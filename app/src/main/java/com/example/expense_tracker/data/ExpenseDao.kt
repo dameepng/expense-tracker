@@ -19,4 +19,20 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM categories WHERE id = :id")
     fun getCategoryById(id: Long): Category?
+
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime")
+    fun getTotalExpense(startTime: Long, endTime: Long): Long
+
+    @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
+    fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense>
+
+    @Query("""
+        SELECT c.id AS categoryId, c.name AS categoryName, COALESCE(SUM(e.amount), 0) AS totalAmount
+        FROM categories c
+        LEFT JOIN expenses e ON c.id = e.categoryId AND e.timestamp >= :startTime AND e.timestamp < :endTime
+        GROUP BY c.id, c.name
+        HAVING totalAmount > 0
+        ORDER BY totalAmount DESC
+    """)
+    fun getBreakdownByCategory(startTime: Long, endTime: Long): List<CategoryBreakdown>
 }
