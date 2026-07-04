@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -158,26 +159,46 @@ fun EmptyState(
     }
 }
 
-// ── Streak Slot (placeholder for F2b) ─────────────────────────────
+// ── Streak Counter ────────────────────────────────────────────────
 
 @Composable
-fun StreakSlot(
-    streak: Int = 0,
+fun StreakCounter(
+    streak: Int,
+    encouragementText: String,
     modifier: Modifier = Modifier
 ) {
-    // Placeholder — will be replaced by F2b StreakCounter component
+    val isActive = streak > 0
     Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (streak > 0) {
-            Text(
-                text = "🔥 $streak hari berturut-turut!",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+        androidx.compose.material3.Surface(
+            color = if (isActive)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant,
+            shape = MaterialTheme.shapes.small
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🔥",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = encouragementText,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (isActive)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -186,12 +207,21 @@ fun StreakSlot(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    streakViewModel: StreakCounterViewModel? = null
+) {
     val state by viewModel.uiState.collectAsState()
+    val streakStateFlow = streakViewModel?.uiState
+        ?: MutableStateFlow(StreakCounterUiState())
+    val streakState by streakStateFlow.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Streak counter slot (US5 — F2b will replace this)
-        StreakSlot(streak = 0)
+        // Streak counter (US5)
+        StreakCounter(
+            streak = streakState.streak,
+            encouragementText = streakState.encouragementText
+        )
 
         // Filter tabs
         FilterTabs(
@@ -274,7 +304,7 @@ fun HomeScreenPreview_empty() {
         // Static preview: empty state
         val fakeState = HomeUiState(filter = FilterPeriod.TODAY, periodLabel = "Hari Ini")
         Column(modifier = Modifier.fillMaxSize()) {
-            StreakSlot(streak = 0)
+            StreakCounter(streak = 0, encouragementText = "Mulai streak kamu hari ini!")
             FilterTabs(selected = fakeState.filter, onSelected = {})
             Spacer(modifier = Modifier.height(8.dp))
             TotalDisplay(amount = fakeState.totalAmount, periodLabel = fakeState.periodLabel)
@@ -298,7 +328,7 @@ fun HomeScreenPreview_withData() {
             )
         )
         Column(modifier = Modifier.fillMaxSize()) {
-            StreakSlot(streak = 3)
+            StreakCounter(streak = 3, encouragementText = "3 hari berturut-turut!")
             FilterTabs(selected = fakeState.filter, onSelected = {})
             Spacer(modifier = Modifier.height(8.dp))
             TotalDisplay(amount = fakeState.totalAmount, periodLabel = fakeState.periodLabel)
@@ -308,5 +338,29 @@ fun HomeScreenPreview_withData() {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StreakCounterActivePreview() {
+    Expense_trackerTheme {
+        StreakCounter(streak = 5, encouragementText = "5 hari berturut-turut!")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StreakCounterInactivePreview() {
+    Expense_trackerTheme {
+        StreakCounter(streak = 0, encouragementText = "Mulai streak kamu hari ini!")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StreakCounterOneDayPreview() {
+    Expense_trackerTheme {
+        StreakCounter(streak = 1, encouragementText = "1 hari berturut-turut!")
     }
 }
