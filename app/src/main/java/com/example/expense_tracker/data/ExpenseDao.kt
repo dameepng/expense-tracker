@@ -35,4 +35,7 @@ interface ExpenseDao {
         ORDER BY totalAmount DESC
     """)
     fun getBreakdownByCategory(startTime: Long, endTime: Long): List<CategoryBreakdown>
+
+    @Query("SELECT DISTINCT timestamp FROM expenses ORDER BY timestamp DESC")
+    fun getDistinctDatesWithExpense(): List<Long>
 }

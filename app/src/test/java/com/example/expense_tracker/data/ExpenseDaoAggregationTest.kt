@@ -10,7 +10,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.Calendar
-import java.util.TimeZone
 
 /**
  * TDD tests for:
@@ -216,5 +215,56 @@ class ExpenseDaoAggregationTest {
         assertEquals(1, breakdown.size)
         assertEquals(hiburan.id, breakdown[0].categoryId)
         assertEquals("Hiburan", breakdown[0].categoryName)
+    }
+
+    // ── getDistinctDatesWithExpense Tests ──────────────────────────
+
+    @Test
+    fun `getDistinctDatesWithExpense returns distinct timestamps only`() {
+        val categories = dao.getAllCategories()
+        val start = todayStart()
+
+        insertExpense(10_000L, categories[0].id, start + 3600_000)  // 01:00
+        insertExpense(20_000L, categories[0].id, start + 7200_000)  // 02:00 (different hour, should still be separate)
+
+        val dates = dao.getDistinctDatesWithExpense()
+        assertEquals(2, dates.size)
+        // DESC: later timestamp first
+        assertTrue(dates[0] > dates[1])
+    }
+
+    @Test
+    fun `getDistinctDatesWithExpense returns same timestamp only once`() {
+        val categories = dao.getAllCategories()
+        val start = todayStart()
+
+        // Same exact timestamp → should be deduplicated by DISTINCT
+        insertExpense(10_000L, categories[0].id, start + 1000)
+        insertExpense(20_000L, categories[1].id, start + 1000)  // same timestamp!
+
+        val dates = dao.getDistinctDatesWithExpense()
+        assertEquals(1, dates.size)
+    }
+
+    @Test
+    fun `getDistinctDatesWithExpense returns dates in DESC order`() {
+        val categories = dao.getAllCategories()
+        val today = todayStart()
+        val oneDay = 86_400_000L
+
+        insertExpense(10_000L, categories[0].id, (today - oneDay) + 1000)
+        insertExpense(20_000L, categories[0].id, today + 1000)
+        insertExpense(30_000L, categories[0].id, (today - 2 * oneDay) + 1000)
+
+        val dates = dao.getDistinctDatesWithExpense()
+        assertEquals(3, dates.size)
+        assertTrue(dates[0] > dates[1])
+        assertTrue(dates[1] > dates[2])
+    }
+
+    @Test
+    fun `getDistinctDatesWithExpense returns empty list when no data`() {
+        val dates = dao.getDistinctDatesWithExpense()
+        assertTrue(dates.isEmpty())
     }
 }
