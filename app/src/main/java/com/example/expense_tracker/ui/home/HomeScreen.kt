@@ -14,13 +14,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -30,8 +36,9 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -321,15 +328,19 @@ fun EmptyState(
 fun HomeScreen(
     viewModel: HomeViewModel,
     streakViewModel: StreakCounterViewModel? = null,
-    onNavigateToInput: () -> Unit = {},
+    onNavigateToInput: (Long?) -> Unit = {},
     onNavigateToSummary: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
     
-    // Streak counter state is loaded but not displayed in this minimalist UI variant
-    // You can integrate it back as a small badge near the profile if needed later.
-    val streakStateFlow = streakViewModel?.uiState ?: MutableStateFlow(StreakCounterUiState())
-    val streakState by streakStateFlow.collectAsState()
+    val streakState by (streakViewModel?.uiState ?: MutableStateFlow(StreakCounterUiState())).collectAsState()
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(state.expenses.firstOrNull()?.id) {
+        if (state.expenses.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
 
     // Refresh data when HomeScreen enters composition (e.g. after navigating back from InputScreen)
     LaunchedEffect(Unit) {
@@ -350,7 +361,7 @@ fun HomeScreen(
         BalanceCard(
             amount = state.totalAmount,
             periodLabel = state.periodLabel,
-            onAddExpense = onNavigateToInput
+            onAddExpense = { onNavigateToInput(null) }
         )
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -377,11 +388,16 @@ fun HomeScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            TextButton(onClick = onNavigateToSummary) {
+            Button(
+                onClick = onNavigateToSummary,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
+                )
+            ) {
                 Text(
                     text = "View all",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         }
@@ -399,13 +415,70 @@ fun HomeScreen(
                 EmptyState(periodLabel = state.periodLabel)
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp),
                 ) {
                     items(state.expenses, key = { it.id }) { expense ->
-                        ExpenseListItem(
-                            expense = expense,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = { dismissValue ->
+                                when (dismissValue) {
+                                    SwipeToDismissBoxValue.EndToStart -> {
+                                        viewModel.deleteExpense(expense)
+                                        true
+                                    }
+                                    SwipeToDismissBoxValue.StartToEnd -> {
+                                        onNavigateToInput(expense.id)
+                                        false
+                                    }
+                                    else -> false
+                                }
+                            }
                         )
+
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {
+                                val direction = dismissState.dismissDirection
+                                val color = when (direction) {
+                                    SwipeToDismissBoxValue.StartToEnd -> Color(0xFF4CAF50) // Green for edit
+                                    SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error // Red for delete
+                                    else -> Color.Transparent
+                                }
+                                val icon = when (direction) {
+                                    SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Edit
+                                    SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
+                                    else -> null
+                                }
+                                val alignment = when (direction) {
+                                    SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                                    SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                                    else -> Alignment.Center
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .background(color, RoundedCornerShape(12.dp))
+                                        .padding(horizontal = 20.dp),
+                                    contentAlignment = alignment
+                                ) {
+                                    if (icon != null) {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            tint = Color.White
+                                        )
+                                    }
+                                }
+                            },
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        ) {
+                            ExpenseListItem(
+                                expense = expense,
+                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                            )
+                        }
                     }
                 }
             }
@@ -483,11 +556,16 @@ fun HomeScreenPreview_withData() {
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                TextButton(onClick = {}) {
+                Button(
+                    onClick = {},
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
+                    )
+                ) {
                     Text(
                         text = "View all",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }

@@ -11,22 +11,41 @@ import kotlinx.coroutines.withContext
 
 class InputViewModel(
     private val repository: InputRepository,
-    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
+    private val expenseId: Long? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InputUiState())
     val uiState: StateFlow<InputUiState> = _uiState.asStateFlow()
 
     init {
-        loadCategories()
+        loadInitialData()
     }
 
-    private fun loadCategories() {
+    private fun loadInitialData() {
         viewModelScope.launch {
             val categories = withContext(ioDispatcher) {
                 repository.getCategories()
             }
-            _uiState.value = _uiState.value.copy(categories = categories)
+            var loadedAmount = ""
+            var loadedCategoryId: Long? = null
+
+            if (expenseId != null) {
+                val expense = withContext(ioDispatcher) {
+                    repository.getExpenseById(expenseId)
+                }
+                if (expense != null) {
+                    loadedAmount = expense.amount.toString()
+                    loadedCategoryId = expense.categoryId
+                }
+            }
+
+            _uiState.value = _uiState.value.copy(
+                categories = categories,
+                amountText = loadedAmount,
+                selectedCategoryId = loadedCategoryId,
+                isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null
+            )
         }
     }
 
@@ -54,7 +73,17 @@ class InputViewModel(
 
         viewModelScope.launch {
             withContext(ioDispatcher) {
-                repository.insertExpense(amount, categoryId, System.currentTimeMillis())
+                val timestamp = if (expenseId != null) {
+                    repository.getExpenseById(expenseId)?.timestamp ?: System.currentTimeMillis()
+                } else {
+                    System.currentTimeMillis()
+                }
+                repository.insertExpense(
+                    amount = amount,
+                    categoryId = categoryId,
+                    timestamp = timestamp,
+                    id = expenseId ?: 0L
+                )
             }
 
             // Reset form for next input

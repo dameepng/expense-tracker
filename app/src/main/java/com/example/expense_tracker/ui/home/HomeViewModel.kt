@@ -63,4 +63,19 @@ class HomeViewModel(
             )
         }
     }
+
+    fun deleteExpense(expense: ExpenseWithCategory) {
+        viewModelScope.launch {
+            withContext(ioDispatcher) {
+                val dbExpense = com.example.expense_tracker.data.Expense(
+                    id = expense.id,
+                    amount = expense.amount,
+                    categoryId = expense.categoryId,
+                    timestamp = expense.timestamp
+                )
+                repository.deleteExpense(dbExpense)
+            }
+            refresh()
+        }
+    }
 }

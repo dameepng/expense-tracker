@@ -7,14 +7,14 @@ import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.RoomInputRepository
 
 object InputViewModelFactory {
-    fun create(application: Application): ViewModelProvider.Factory {
+    fun create(application: Application, expenseId: Long? = null): ViewModelProvider.Factory {
         return object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(InputViewModel::class.java)) {
                     val db = AppDatabase.getInstance(application)
                     val repository = RoomInputRepository(db.expenseDao())
-                    return InputViewModel(repository) as T
+                    return InputViewModel(repository, expenseId = expenseId) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
             }

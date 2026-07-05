@@ -15,4 +15,10 @@ class RoomExpenseRepository(
 
     override fun getCategories(): List<Category> =
         dao.getAllCategories()
+
+    override fun deleteExpense(expense: Expense) =
+        dao.deleteExpense(expense)
+
+    override fun getExpenseById(id: Long): Expense? =
+        dao.getExpenseById(id)
 }

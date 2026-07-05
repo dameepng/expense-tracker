@@ -28,25 +28,22 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.data.Category
-import com.example.expense_tracker.ui.CurrencyFormatter
+
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 
 // ── Custom Header ───────────────────────────────────────────────────
@@ -81,12 +78,28 @@ fun InputHeader(
 
 // ── Amount Input ───────────────────────────────────────────────────
 
+private fun formatWithDots(value: String): String {
+    val number = value.toLongOrNull() ?: return value
+    return number.toString()
+        .reversed()
+        .chunked(3)
+        .joinToString(".")
+        .reversed()
+}
+
 @Composable
 fun AmountInput(
     amountText: String,
     onAmountChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Build display text with thousand separators
+    val displayText = if (amountText.isEmpty()) {
+        "Rp 0"
+    } else {
+        "Rp " + formatWithDots(amountText)
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -95,58 +108,38 @@ fun AmountInput(
     ) {
         BasicTextField(
             value = amountText,
-            onValueChange = onAmountChange,
+            onValueChange = { newValue ->
+                if (newValue.all { it.isDigit() }) onAmountChange(newValue)
+            },
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.displayLarge.copy(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
+                color = Color.Transparent // Hide the raw text
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-            visualTransformation = { text ->
-                val prefix = "Rp "
-                val out = prefix + text.text
-                val offsetMapping = object : OffsetMapping {
-                    override fun originalToTransformed(offset: Int) = offset + prefix.length
-                    override fun transformedToOriginal(offset: Int) = if (offset < prefix.length) 0 else offset - prefix.length
-                }
-                TransformedText(AnnotatedString(out), offsetMapping)
-            },
+            cursorBrush = SolidColor(Color.Transparent), // Hide cursor (we show formatted text instead)
             decorationBox = { innerTextField ->
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (amountText.isEmpty()) {
-                        Text(
-                            text = "Rp 0",
-                            style = MaterialTheme.typography.displayLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    // Visible formatted text — always perfectly centered
+                    Text(
+                        text = displayText,
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = if (amountText.isEmpty())
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        else
+                            MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    // Invisible text field (still needed for keyboard input)
                     innerTextField()
                 }
             }
         )
-        
-        if (amountText.isNotEmpty() && amountText.toLongOrNull() != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = CircleShape
-            ) {
-                Text(
-                    text = CurrencyFormatter.format(amountText.toLong()),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                )
-            }
-        }
     }
 }
 

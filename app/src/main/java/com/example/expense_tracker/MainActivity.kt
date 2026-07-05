@@ -22,6 +22,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import androidx.compose.runtime.getValue
 import com.example.expense_tracker.ui.home.HomeScreen
 import com.example.expense_tracker.ui.home.HomeViewModel
@@ -74,14 +76,21 @@ fun ExpenseTrackerApp() {
                 HomeScreen(
                     viewModel = homeViewModel,
                     streakViewModel = streakViewModel,
-                    onNavigateToInput = { navController.navigate(NavRoutes.INPUT) },
+                    onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) },
                     onNavigateToSummary = { navController.navigate(NavRoutes.SUMMARY) }
                 )
             }
 
-            composable(NavRoutes.INPUT) {
+            composable(
+                route = NavRoutes.INPUT,
+                arguments = listOf(navArgument("expenseId") {
+                    type = NavType.StringType
+                    nullable = true
+                })
+            ) { backStackEntry ->
+                val expenseId = backStackEntry.arguments?.getString("expenseId")?.toLongOrNull()
                 val inputViewModel: InputViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(factory = InputViewModelFactory.create(applicationContext()))
+                    androidx.lifecycle.viewmodel.compose.viewModel(factory = InputViewModelFactory.create(applicationContext(), expenseId))
                 InputScreen(
                     viewModel = inputViewModel,
                     onSaved = { navController.popBackStack() },

@@ -11,6 +11,12 @@ interface ExpenseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertExpense(expense: Expense)
 
+    @androidx.room.Delete
+    fun deleteExpense(expense: Expense)
+
+    @Query("SELECT * FROM expenses WHERE id = :id")
+    fun getExpenseById(id: Long): Expense?
+
     @Query("SELECT * FROM expenses ORDER BY timestamp DESC")
     fun getAllExpenses(): List<Expense>
 
