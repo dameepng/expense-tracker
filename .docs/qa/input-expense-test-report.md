@@ -60,7 +60,14 @@
 
 ## Bugs Found
 
-**None.** All automated tests pass.
+### Bug #1 — FATAL: Room main-thread DB access (FIXED)
+- **Date:** 2026-07-05
+- **Severity:** P0 — app crash on launch
+- **Symptom:** `IllegalStateException: Cannot access database on the main thread`
+- **Root cause:** `viewModelScope.launch {}` defaults to `Dispatchers.Main`. All ViewModels called Room DAO methods from the main thread.
+- **Fix:** Wrapped all DB calls in `withContext(Dispatchers.IO)` across all 4 ViewModels. Added injectable `CoroutineDispatcher` for testability.
+- **Fix commit:** `d03f12c`
+- **Verified:** 66/66 tests pass, BUILD SUCCESSFUL, re-deployed to device — no crash
 
 ---
 

@@ -65,7 +65,10 @@
 
 ## Bugs Found
 
-**None.** All automated tests pass. Percentage calculation verified (no division-by-zero).
+### Bug #1 — FATAL: Room main-thread DB access (FIXED)
+- **Date:** 2026-07-05 | **Severity:** P0 | **Status:** FIXED (`d03f12c`)
+- App crash on launch. SummaryViewModel called DB directly in `init {}` block (no coroutine at all). Fixed with `viewModelScope.launch + withContext(Dispatchers.IO)`.
+- **Re-test:** Re-deploy and verify summary screen loads.
 
 ---
 

@@ -73,7 +73,10 @@
 
 ## Bugs Found
 
-**None.** All automated tests pass. Streak algorithm verified across 9 edge case scenarios.
+### Bug #1 — FATAL: Room main-thread DB access (FIXED)
+- **Date:** 2026-07-05 | **Severity:** P0 | **Status:** FIXED (`d03f12c`)
+- App crash on launch due to Room DB accessed on main thread via `viewModelScope.launch`. Fixed with `withContext(Dispatchers.IO)` in all ViewModels.
+- **Re-test:** Re-deploy and verify home screen loads.
 
 ---
 
