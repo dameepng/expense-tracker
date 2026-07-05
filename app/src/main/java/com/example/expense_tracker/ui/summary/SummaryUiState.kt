@@ -5,7 +5,9 @@ import com.example.expense_tracker.data.FilterPeriod
 data class SummaryUiState(
     val filter: FilterPeriod = FilterPeriod.TODAY,
     val items: List<BreakdownItem> = emptyList(),
-    val totalAmount: Long = 0L
+    val totalAmount: Long = 0L,
+    val customStartDate: Long? = null,
+    val customEndDate: Long? = null
 )
 
 data class BreakdownItem(

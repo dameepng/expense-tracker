@@ -35,6 +35,18 @@ import androidx.compose.ui.unit.sp
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.window.DialogProperties
 
 // ── Summary Filter Tabs ────────────────────────────────────────────
 
@@ -42,26 +54,94 @@ import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 @Composable
 fun SummaryFilterTabs(
     selected: FilterPeriod,
-    onSelected: (FilterPeriod) -> Unit,
+    onSelected: (FilterPeriod, Long?, Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    SingleChoiceSegmentedButtonRow(
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        FilterPeriod.entries.forEachIndexed { index, filter ->
-            SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = FilterPeriod.entries.size),
-                onClick = { onSelected(filter) },
-                selected = selected == filter,
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Text(filter.label)
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.weight(1f)
+        ) {
+            val standardFilters = FilterPeriod.entries.filter { it != FilterPeriod.CUSTOM }
+            standardFilters.forEachIndexed { index, filter ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = standardFilters.size),
+                    onClick = { onSelected(filter, null, null) },
+                    selected = selected == filter,
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text(filter.label)
+                }
             }
+        }
+
+        IconButton(
+            onClick = { showDatePicker = true },
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.DateRange,
+                contentDescription = "Custom Date",
+                tint = if (selected == FilterPeriod.CUSTOM) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+
+    if (showDatePicker) {
+        val dateRangePickerState = rememberDateRangePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            modifier = Modifier.padding(16.dp),
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDatePicker = false
+                        val start = dateRangePickerState.selectedStartDateMillis
+                        val end = dateRangePickerState.selectedEndDateMillis
+                        if (start != null && end != null) {
+                            onSelected(FilterPeriod.CUSTOM, start, end)
+                        } else if (start != null) {
+                            onSelected(FilterPeriod.CUSTOM, start, start) // Same day if only one selected
+                        }
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DateRangePicker(
+                state = dateRangePickerState,
+                modifier = Modifier.weight(1f),
+                title = {
+                    Text(
+                        text = "Pilih Tanggal",
+                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)
+                    )
+                },
+                headline = {
+                    Text(
+                        text = "Tentukan rentang tanggal filter",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
+                    )
+                },
+                showModeToggle = false
+            )
         }
     }
 }
@@ -183,7 +263,7 @@ fun SummaryScreen(viewModel: SummaryViewModel) {
         // Filter tabs
         SummaryFilterTabs(
             selected = state.filter,
-            onSelected = { viewModel.onFilterSelected(it) }
+            onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -193,6 +273,16 @@ fun SummaryScreen(viewModel: SummaryViewModel) {
             SummaryEmptyState()
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {
+                item {
+                    // Donut Chart placed at the top of the list
+                    DonutChart(
+                        items = state.items,
+                        totalAmount = state.totalAmount,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp, vertical = 16.dp)
+                    )
+                }
                 items(state.items, key = { it.categoryId }) { item ->
                     BreakdownListItem(item = item)
                 }
@@ -211,7 +301,7 @@ fun SummaryScreenEmptyPreview() {
     Expense_trackerTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.height(16.dp))
-            SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = {})
+            SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = { _, _, _ -> })
             Spacer(modifier = Modifier.height(16.dp))
             SummaryEmptyState()
         }
@@ -230,7 +320,7 @@ fun SummaryScreenWithDataPreview() {
         )
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.height(16.dp))
-            SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = {})
+            SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = { _, _, _ -> })
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(items, key = { it.categoryId }) { item ->

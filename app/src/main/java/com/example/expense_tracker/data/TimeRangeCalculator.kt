@@ -46,6 +46,7 @@ object TimeRangeCalculator {
                 }
                 Pair(cal.timeInMillis, todayEnd)
             }
+            FilterPeriod.CUSTOM -> Pair(0L, Long.MAX_VALUE) // Custom is usually intercepted before this point
         }
     }
 }

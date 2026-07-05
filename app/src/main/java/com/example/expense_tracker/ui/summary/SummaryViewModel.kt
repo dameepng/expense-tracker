@@ -23,15 +23,24 @@ class SummaryViewModel(
         loadData()
     }
 
-    fun onFilterSelected(filter: FilterPeriod) {
-        _uiState.value = _uiState.value.copy(filter = filter)
+    fun onFilterSelected(filter: FilterPeriod, customStartDate: Long? = null, customEndDate: Long? = null) {
+        _uiState.value = _uiState.value.copy(
+            filter = filter,
+            customStartDate = customStartDate ?: _uiState.value.customStartDate,
+            customEndDate = customEndDate ?: _uiState.value.customEndDate
+        )
         loadData()
     }
 
     private fun loadData() {
         viewModelScope.launch {
-            val currentFilter = _uiState.value.filter
-            val (start, end) = TimeRangeCalculator.calculateRange(currentFilter)
+            val state = _uiState.value
+            val (start, end) = if (state.filter == FilterPeriod.CUSTOM && state.customStartDate != null && state.customEndDate != null) {
+                // For custom dates, make sure end includes the entire day
+                Pair(state.customStartDate, state.customEndDate + 86400000L) // Add 1 day to end to be exclusive boundary
+            } else {
+                TimeRangeCalculator.calculateRange(state.filter)
+            }
             val breakdown = withContext(ioDispatcher) {
                 repository.getBreakdownByCategory(start, end)
             }
