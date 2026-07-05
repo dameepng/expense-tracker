@@ -9,9 +9,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -41,6 +50,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -151,57 +167,83 @@ fun SummaryFilterTabs(
     }
 }
 
-// ── Breakdown Item ─────────────────────────────────────────────────
+// ── Breakdown Card Item ──────────────────────────────────────────────
 
 @Composable
-fun BreakdownListItem(
+fun BreakdownCardItem(
     item: BreakdownItem,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+    val icon = when (item.categoryId) {
+        1L -> Icons.Default.Restaurant
+        2L -> Icons.Default.DirectionsCar
+        3L -> Icons.Default.ShoppingCart
+        4L -> Icons.Default.Movie
+        5L -> Icons.Default.Receipt
+        6L -> Icons.Default.LocalHospital
+        else -> Icons.Default.MoreHoriz
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
     ) {
-        // Category name + amount row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = item.categoryName,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Row(verticalAlignment = Alignment.Bottom) {
+            // Top row: Icon and Name
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = item.categoryName,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = CurrencyFormatter.format(item.amount),
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = item.categoryName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    maxLines = 1
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Bottom row: Colored Dot and Percentage
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(
+                            color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt()),
+                            shape = CircleShape
+                        )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "${(item.percentage * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = CurrencyFormatter.format(item.amount),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Progress bar
-        LinearProgressIndicator(
-            progress = { item.percentage.coerceIn(0f, 1f) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp),
-            color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt()),
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            strokeCap = StrokeCap.Round
-        )
     }
 }
 
@@ -305,19 +347,25 @@ fun SummaryScreen(
         } else if (state.items.isEmpty()) {
             SummaryEmptyState()
         } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                item {
-                    // Donut Chart placed at the top of the list
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                item(span = { GridItemSpan(2) }) {
+                    // Donut Chart placed at the top of the grid
                     DonutChart(
                         items = state.items,
                         totalAmount = state.totalAmount,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 32.dp, vertical = 16.dp)
+                            .padding(vertical = 16.dp)
                     )
                 }
                 items(state.items, key = { it.categoryId }) { item ->
-                    BreakdownListItem(item = item)
+                    BreakdownCardItem(item = item)
                 }
             }
             // Total footer
@@ -356,9 +404,15 @@ fun SummaryScreenWithDataPreview() {
             Spacer(modifier = Modifier.height(16.dp))
             SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = { _, _, _ -> })
             Spacer(modifier = Modifier.height(16.dp))
-            LazyColumn(modifier = Modifier.weight(1f)) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
                 items(items, key = { it.categoryId }) { item ->
-                    BreakdownListItem(item = item)
+                    BreakdownCardItem(item = item)
                 }
             }
             SummaryTotalFooter(totalAmount = 150_000L)
@@ -368,9 +422,9 @@ fun SummaryScreenWithDataPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun BreakdownListItemPreview() {
+fun BreakdownCardItemPreview() {
     Expense_trackerTheme {
-        BreakdownListItem(
+        BreakdownCardItem(
             item = BreakdownItem(1, "Makanan", 50_000L, 0.33f)
         )
     }
