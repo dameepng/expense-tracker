@@ -2,10 +2,10 @@ package com.example.expense_tracker.ui.summary
 
 import androidx.lifecycle.ViewModel
 import com.example.expense_tracker.data.FilterPeriod
+import com.example.expense_tracker.data.TimeRangeCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.Calendar
 
 class SummaryViewModel(
     private val repository: SummaryRepository
@@ -13,8 +13,6 @@ class SummaryViewModel(
 
     private val _uiState = MutableStateFlow(SummaryUiState())
     val uiState: StateFlow<SummaryUiState> = _uiState.asStateFlow()
-
-    private val oneDay = 86_400_000L
 
     init {
         loadData()
@@ -26,7 +24,7 @@ class SummaryViewModel(
     }
 
     private fun loadData() {
-        val (start, end) = calculateRange(_uiState.value.filter)
+        val (start, end) = TimeRangeCalculator.calculateRange(_uiState.value.filter)
         val breakdown = repository.getBreakdownByCategory(start, end)
 
         val total = breakdown.sumOf { it.totalAmount }
@@ -43,42 +41,5 @@ class SummaryViewModel(
             items = items,
             totalAmount = total
         )
-    }
-
-    private fun calculateRange(filter: FilterPeriod): Pair<Long, Long> {
-        val todayEnd = todayStart() + oneDay
-        return when (filter) {
-            FilterPeriod.TODAY -> Pair(todayStart(), todayEnd)
-            FilterPeriod.WEEK -> {
-                val cal = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                    set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
-                }
-                Pair(cal.timeInMillis, todayEnd)
-            }
-            FilterPeriod.MONTH -> {
-                val cal = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                    set(Calendar.DAY_OF_MONTH, 1)
-                }
-                Pair(cal.timeInMillis, todayEnd)
-            }
-        }
-    }
-
-    private fun todayStart(): Long {
-        val cal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        return cal.timeInMillis
     }
 }
