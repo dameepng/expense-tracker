@@ -1,51 +1,59 @@
-# Screen Flow — Expense Tracker MVP
+# Screen Flow & Architecture — Expense Tracker MVP (Material Design 3)
 
-## Navigation Map
+## Navigation Map (Compose `Scaffold` Structure)
 
 ```
 ┌─────────────────────────────────────────────────┐
 │                  HOME SCREEN                     │
-│  ┌─────────────────────────────────────────┐    │
-│  │  🔥 Streak Counter                      │    │
-│  │  ┌──────┬──────┬──────┐                 │    │
-│  │  │ Hari │Minggu│ Bulan │  ← Filter Tabs │    │
-│  │  │ Ini  │ Ini  │ Ini  │                 │    │
-│  │  └──────┴──────┴──────┘                 │    │
-│  │                                         │    │
-│  │        Rp 150.000                       │    │
-│  │      Total Hari Ini                      │    │
-│  │                                         │    │
-│  │  ┌──────────────────────────────────┐   │    │
-│  │  │ 🍔 Makanan         Rp 50.000    │   │    │
-│  │  │ 🚗 Transport       Rp 35.000    │   │    │
-│  │  │ 🛍️ Belanja         Rp 65.000    │   │    │
-│  │  └──────────────────────────────────┘   │    │
-│  │          (Empty state jika 0)           │    │
-│  └─────────────────────────────────────────┘    │
+│  (Menggunakan M3 Scaffold)                      │
 │                                                 │
-│  [+] Tambah           [📊] Summary              │
-│  (FAB)                (Top Bar Icon)            │
-└───────┬─────────────────────┬───────────────────┘
-        │ tap [+]             │ tap [📊]
+│  [TopAppBar]                                    │
+│  Expense Tracker                           [📊] │
+│ ──────────────────────────────────────────────── │
+│                                                 │
+│  🔥 Streak Counter (Surface/Badge)               │
+│  ┌──────┬──────┬──────┐                 │       │
+│  │ Hari │Minggu│ Bulan│  ← SegmentedButton       │
+│  │ Ini  │ Ini  │ Ini  │                 │       │
+│  └──────┴──────┴──────┘                 │       │
+│                                                 │
+│        Rp 150.000 (displaySmall)                │
+│      Total Hari Ini                             │
+│                                                 │
+│  ┌──────────────────────────────────┐           │
+│  │ 🍔 Makanan         Rp 50.000    │           │
+│  │ 🚗 Transport       Rp 35.000    │           │
+│  │ 🛍️ Belanja         Rp 65.000    │           │
+│  └──────────────────────────────────┘           │
+│          (Empty state jika 0)                   │
+│                                                 │
+│                                    [+] (FAB)    │
+└─────────────────────────────────────────────────┘
+        │ tap FAB [+]         │ tap icon [📊]
         ▼                     ▼
 ┌───────────────┐     ┌───────────────────────────┐
 │ INPUT SCREEN  │     │     SUMMARY SCREEN        │
+│(BottomSheet   │     │   (M3 Scaffold)           │
+│ atau lay.baru)│     │                           │
+│               │     │ [TopAppBar] ← Back [📊]   │
+│ Nominal:      │     │                           │
+│ [ Rp 0       ]│     │ Filter: Hari/Minggu/Bulan │
+│(OutlinedField)│     │ (SegmentedButton)         │
 │               │     │                           │
-│ Nominal:      │     │  Filter: Hari/Minggu/Bulan│
-│ [__________]  │     │                           │
-│               │     │  🍔 Makanan   50.000 33%  │
-│ Kategori:     │     │  ████████████             │
-│ ┌───┬───┬───┐ │     │  🚗 Transport 35.000 23%  │
-│ │🍔 │🚗 │🛍️ │ │     │  █████████                │
-│ ├───┼───┼───┤ │     │  🛍️ Belanja   65.000 43%  │
-│ │🎬 │📋 │🏥 │ │     │  ███████████████          │
-│ ├───┼───┼───┤ │     │                           │
-│ │...│   │   │ │     │  Total: Rp 150.000        │
-│ └───┴───┴───┘ │     │                           │
-│               │     │  (Empty state jika 0)     │
+│ Kategori:     │     │ 🍔 Makanan   50.000 33%   │
+│ ┌───┬───┬───┐ │     │ ████████████              │
+│ │🍔 │🚗 │🛍️ │ │     │ 🚗 Transport 35.000 23%   │
+│ ├───┼───┼───┤ │     │ █████████                 │
+│ │🎬 │📋 │🏥 │ │     │ 🛍️ Belanja   65.000 43%   │
+│ ├───┼───┼───┤ │     │ ███████████████           │
+│ │...│       │ │     │                           │
+│ └───┴───┴───┘ │     │ Total: Rp 150.000         │
+│ (FilterChip)  │     │                           │
+│               │     │ (Empty state jika 0)      │
 │ [✓ Simpan]    │     └───────────────────────────┘
+│ (Button M3)   │              │
 └───────┬───────┘              │
-        │ Simpan sukses        │ ◀ back
+        │ Simpan sukses        │ ◀ back (TopAppBar navigation icon)
         ▼                      ▼
    HOME SCREEN           HOME SCREEN
    (refresh data)        (tetap)
@@ -55,15 +63,18 @@
 
 | From | Trigger | To | Notes |
 |------|---------|----|-------|
-| Home | Tap FAB `[+]` | Input | Bottom sheet atau full screen |
-| Home | Tap icon `[📊]` | Summary | Top bar action |
-| Input | Tap `[✓ Simpan]` (valid) | Home | Save expense → pop back → refresh |
-| Input | Back gesture/swipe | Home | Discard input |
-| Summary | Back gesture/swipe | Home | Standard back navigation |
-| Home | Tap filter tab | Home | In-place data refresh, no navigation |
+| Home | Tap FAB `[+]` | Input | `ModalBottomSheet` (rekomendasi M3) atau pindah screen `NavHost` |
+| Home | Tap icon `[📊]` | Summary | Via `TopAppBar` action |
+| Input | Tap `[✓ Simpan]` (valid) | Home | Insert expense → dismiss sheet/pop back |
+| Input | Swipe down / Back | Home | Dismiss sheet (discard input) |
+| Summary | Back icon di TopAppBar | Home | `navController.popBackStack()` |
+| Home | Tap filter `SegmentedButton` | Home | In-place state refresh |
 
-## Navigation Type
+## Navigation Type (Jetpack Compose)
 
-- **Single Activity** architecture
-- **NavHost** with 3 composable destinations: `home`, `input`, `summary`
-- No nested navigation graph needed for MVP
+- **Single Activity Architecture**.
+- **`NavHost`**:
+  - `home`
+  - `summary`
+  - (Opsional) `input` jika dirender sebagai screen terpisah, atau cukup sebagai `ModalBottomSheet` di atas `home` screen.
+- Menggunakan `Scaffold` Material 3 untuk pengaturan layout konsisten (`topBar`, `floatingActionButton`, `content`).

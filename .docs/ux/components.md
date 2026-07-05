@@ -1,8 +1,8 @@
-# Component Spec — Expense Tracker MVP
+# Component Spec — Expense Tracker MVP (Material Design 3)
 
 ## 1. Home Screen
 
-### 1.1 StreakCounter
+### 1.1 StreakCounter (Menggunakan `Surface` / Badge)
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
 | `streak` | Int | 0 | Jumlah hari berturut-turut |
@@ -11,20 +11,19 @@
 **States:**
 | State | Visual |
 |-------|--------|
-| `streak > 0` | 🔥 `N hari berturut-turut!` — icon api oranye, teks bold, badge background primaryContainer |
-| `streak == 0` | 🔥 `Mulai streak kamu hari ini!` — icon api abu-abu (muted), teks subtle |
+| `streak > 0` | 🔥 `N hari berturut-turut!` — Ikon api oranye, teks bold, `Surface` dengan `color = MaterialTheme.colorScheme.primaryContainer`, `shape = MaterialTheme.shapes.small` |
+| `streak == 0` | 🔥 `Mulai streak kamu hari ini!` — Ikon api abu-abu (`onSurfaceVariant`), `Surface` dengan `color = MaterialTheme.colorScheme.surfaceVariant` |
 
-**Layout:** Horizontal chip/badge, padding 12dp horizontal, 8dp vertical. Ditempatkan di atas filter tabs (slot yang disediakan F2a).
+**Layout:** `Surface` membungkus `Row`. Padding 12.dp horizontal, 8.dp vertical. Diposisikan di atas filter tabs.
 
-### 1.2 FilterTabs
+### 1.2 FilterTabs (Menggunakan `SingleChoiceSegmentedButtonRow` M3)
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
 | `selectedFilter` | FilterPeriod | `TODAY` | Enum: TODAY, WEEK, MONTH |
 | `onFilterSelected` | (FilterPeriod) → Unit | — | Callback |
 
-**States:** Single state — salah satu tab selalu selected (default `TODAY`).
-
-**Layout:** 3 chip/tab horizontal dalam Row, equal weight atau wrap content. Selected tab: filled/primary. Unselected: outlined/surface. Gap 8dp antar tab. Padding 16dp horizontal.
+**Layout:** Memanfaatkan `SingleChoiceSegmentedButtonRow` dan `SegmentedButton` bawaan Material 3 Compose. Memberikan interaksi pemilihan periode yang lebih modern dan menyatu. 
+Padding 16.dp horizontal.
 
 ### 1.3 TotalDisplay
 | Prop | Type | Default | Notes |
@@ -36,10 +35,10 @@
 **States:**
 | State | Visual |
 |-------|--------|
-| `amount > 0` | Angka besar (textStyle displaySmall/bold), format: `Rp 150.000` |
-| `amount == 0` | Angka `Rp 0`, tetap bold (jangan hilang — empty state beda komponen) |
+| `amount > 0` | Angka besar (`style = MaterialTheme.typography.displaySmall`, `color = MaterialTheme.colorScheme.onBackground`), format: `Rp 150.000` |
+| `amount == 0` | Angka `Rp 0`, tetap bold. |
 
-**Layout:** Center-aligned, 24dp top padding dari filter tabs. Format rupiah pakai `NumberFormat.getCurrencyInstance("id-ID")`.
+**Layout:** Center-aligned, `Column` dengan jarak antar teks kecil.
 
 ### 1.4 ExpenseList
 | Prop | Type | Default | Notes |
@@ -50,12 +49,12 @@
 **States:**
 | State | Visual |
 |-------|--------|
-| **Success** (ada data) | `LazyColumn` — tiap item: ikon kategori + nama kategori + amount + jam (HH:mm) |
-| **Empty** (tidak ada data) | Ilustrasi tengah + teks "Belum ada pengeluaran [hari ini/minggu ini/bulan ini]" |
+| **Success** (ada data) | `LazyColumn` — tiap item adalah `ExpenseListItem` |
+| **Empty** (tidak ada data) | Ilustrasi tengah + teks "Belum ada pengeluaran [periode]" (Warna `onSurfaceVariant`) |
 
-**Layout:** `LazyColumn`, 16dp horizontal padding. Item height ~56dp. Divider tipis antar item. Empty state: `Box(contentAlignment = Center)` dengan `Column` (icon + text).
+**Layout:** `LazyColumn`, 16.dp horizontal padding. `Arrangement.spacedBy(8.dp)` antar item agar tidak perlu divider manual.
 
-### 1.5 ExpenseListItem
+### 1.5 ExpenseListItem (Menggunakan `ElevatedCard` atau `ListItem` M3)
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
 | `categoryName` | String | — | Nama kategori |
@@ -63,13 +62,18 @@
 | `timestamp` | Long | — | Epoch millis, format ke HH:mm |
 | `modifier` | Modifier | — | |
 
-**Layout:** `Row` — ikon kategori (20dp circle/dot) + `Column` (nama kategori + jam) + `Spacer(weight)` + amount (bold, right-aligned).
+**Layout:** Dianjurkan menggunakan `androidx.compose.material3.ListItem` yang sudah dioptimasi.
+- `headlineContent`: Nama kategori (`titleMedium`)
+- `supportingContent`: Jam (`bodyMedium`)
+- `leadingContent`: Icon kategori dalam `Surface` bundar.
+- `trailingContent`: Amount mentah (`bodyLarge`, bold)
+Atau menggunakan `ElevatedCard` dengan `Row` kustom jika butuh visual lebih 'card-like'.
 
 ---
 
-## 2. Input Screen
+## 2. Input Screen (ModalBottomSheet atau Screen)
 
-### 2.1 AmountInput
+### 2.1 AmountInput (Menggunakan `OutlinedTextField` M3)
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
 | `amount` | String | "" | Teks input mentah |
@@ -79,75 +83,57 @@
 **States:**
 | State | Visual |
 |-------|--------|
-| **Empty** | Placeholder "0", cursor blinking |
-| **Filled** | Angka terformat, prefix "Rp" di luar input atau sebagai prefix TextField |
-| **Error** (opsional) | Kalau amount = 0 lalu user submit, field border merah + helper text "Minimal Rp 1" |
+| **Empty** | Placeholder "0", `prefix = { Text("Rp") }` |
+| **Filled** | Angka terformat. |
+| **Error** | Jika submit invalid: `isError = true`, outline merah. |
 
-**Layout:** `OutlinedTextField`, keyboardType = Number, textStyle headlineMedium, center-aligned text. Width: fillMaxWidth dengan 32dp horizontal padding.
+**Layout:** `OutlinedTextField`, `keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)`. Width: `fillMaxWidth()`. Teks besar (`headlineMedium`).
 
 ### 2.2 CategoryGrid
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
-| `categories` | List\<Category\> | — | 7 kategori dari DB |
+| `categories` | List\<Category\> | — | 7 kategori |
 | `selectedId` | Long? | null | ID kategori terpilih |
 | `onCategorySelected` | (Long) → Unit | — | Callback |
 
-**States:**
-| State | Visual |
-|-------|--------|
-| **Loading** | 7 skeleton placeholder chips |
-| **Success** | Grid 3 kolom (7 item = 3+3+1 baris terakhir) |
-| **None selected** | Semua chip unselected (outlined style) |
+**Layout:** `LazyVerticalGrid` (columns = 3), `verticalArrangement` dan `horizontalArrangement` 12.dp.
 
-**Layout:** `LazyVerticalGrid` columns = 3, 12dp gap. Tiap item: `AssistChip` atau `FilterChip` dengan ikon + nama kategori. Selected: primary container color.
-
-### 2.3 CategoryChip
+### 2.3 CategoryChip (Menggunakan `FilterChip` M3)
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
 | `category` | Category | — | Data kategori |
 | `isSelected` | Boolean | false | |
 | `onClick` | () → Unit | — | |
 
-**Layout:** ~96dp width, 40dp height. Ikon di atas teks (atau ikon di kiri). Selected = filled tonal button style. Unselected = outlined.
+**Layout:** Menggunakan `androidx.compose.material3.FilterChip`.
+- `selected = isSelected`
+- `onClick = onClick`
+- `label = { Text(category.name) }`
+- `leadingIcon`: Menampilkan icon kategori (dan checkmark bawaan M3 jika disetel).
 
-### 2.4 SaveButton
+### 2.4 SaveButton (Menggunakan `Button` M3)
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
-| `enabled` | Boolean | false | True hanya jika amount > 0 DAN kategori terpilih |
+| `enabled` | Boolean | false | True jika valid |
 | `onClick` | () → Unit | — | |
 
-**States:**
-| State | Visual |
-|-------|--------|
-| **Disabled** (amount kosong atau kategori null) | Warna muted, tidak bisa diklik |
-| **Enabled** | Warna primary, clickable |
-
-**Layout:** `Button` full width, 16dp horizontal padding, 24dp bottom padding. Teks "Simpan" dengan checkmark icon.
+**Layout:** `Button` (Filled Button), `modifier = Modifier.fillMaxWidth()`. Menggunakan warna primary secara otomatis.
 
 ---
 
 ## 3. Summary Screen
 
 ### 3.1 SummaryFilterTabs
-Mirip dengan `FilterTabs` di Home Screen. Bisa reuse komponen yang sama.
+Menggunakan `SingleChoiceSegmentedButtonRow` sama seperti di Home Screen.
 
 ### 3.2 BreakdownList
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
-| `items` | List\<CategoryBreakdown\> | emptyList() | Nama kategori + total + persentase |
-| `totalAmount` | Long | 0 | Total keseluruhan (buat hitung %) |
+| `items` | List\<CategoryBreakdown\> | emptyList() | |
+| `totalAmount` | Long | 0 | |
 | `modifier` | Modifier | — | |
 
-**States:**
-| State | Visual |
-|-------|--------|
-| **Success** (ada data) | `LazyColumn` — tiap item: nama + amount + horizontal bar (persentase) + angka % |
-| **Empty** | Ilustrasi tengah + "Belum ada data pengeluaran" |
-
-**Layout:** `LazyColumn`, 16dp padding. Tiap item:
-- Row: nama kategori (kiri) + amount (kanan)
-- LinearProgressIndicator atau custom bar dengan width sesuai persentase, warna per kategori
-- Teks persentase kecil di kanan bar
+**Layout:** `LazyColumn` dengan `Arrangement.spacedBy(16.dp)`.
 
 ### 3.3 BreakdownItem
 | Prop | Type | Default | Notes |
@@ -155,6 +141,9 @@ Mirip dengan `FilterTabs` di Home Screen. Bisa reuse komponen yang sama.
 | `categoryName` | String | — | |
 | `amount` | Long | — | |
 | `percentage` | Float | 0f | 0.0 - 1.0 |
-| `color` | Color | — | Warna per kategori (bisa dari mapping statis 7 warna) |
+| `color` | Color | — | Warna kategori |
 
-**Layout:** `Column` — `Row` (nama + amount) + `LinearProgressIndicator(progress = percentage, color = color)` + teks `(percentage*100).toInt()%`.
+**Layout:** 
+- Header Row: Nama kategori (kiri) & Amount (kanan).
+- Bar Row: `LinearProgressIndicator` (M3) modifikasi dengan `trackColor = MaterialTheme.colorScheme.surfaceVariant`, `color = color`, tinggi 8.dp, rounded shape (`strokeCap = StrokeCap.Round`).
+- Teks persentase di ujung.

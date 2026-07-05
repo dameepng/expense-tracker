@@ -22,7 +22,7 @@ class HomeViewModel(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        loadData()
+        refresh()
     }
 
     fun onFilterSelected(filter: FilterPeriod) {
@@ -30,10 +30,10 @@ class HomeViewModel(
             filter = filter,
             periodLabel = filter.label
         )
-        loadData()
+        refresh()
     }
 
-    private fun loadData() {
+    fun refresh() {
         viewModelScope.launch {
             val currentFilter = _uiState.value.filter
             val (start, end) = TimeRangeCalculator.calculateRange(currentFilter)

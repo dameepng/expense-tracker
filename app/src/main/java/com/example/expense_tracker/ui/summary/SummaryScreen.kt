@@ -12,10 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,29 +38,30 @@ import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 
 // ── Summary Filter Tabs ────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryFilterTabs(
     selected: FilterPeriod,
     onSelected: (FilterPeriod) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    SingleChoiceSegmentedButtonRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        FilterPeriod.entries.forEach { filter ->
-            FilterChip(
-                selected = selected == filter,
+        FilterPeriod.entries.forEachIndexed { index, filter ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = FilterPeriod.entries.size),
                 onClick = { onSelected(filter) },
-                label = { Text(filter.label) },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                modifier = Modifier.weight(1f)
-            )
+                selected = selected == filter,
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            ) {
+                Text(filter.label)
+            }
         }
     }
 }
@@ -107,8 +113,9 @@ fun BreakdownListItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp),
-            color = MaterialTheme.colorScheme.primary,
+            color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt()),
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            strokeCap = StrokeCap.Round
         )
     }
 }

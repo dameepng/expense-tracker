@@ -20,7 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.getValue
 import com.example.expense_tracker.ui.home.HomeScreen
 import com.example.expense_tracker.ui.home.HomeViewModel
 import com.example.expense_tracker.ui.home.HomeViewModelFactory
@@ -51,33 +53,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ExpenseTrackerApp() {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
-        floatingActionButton = {
-            // Only show FAB on home screen
-            if (navController.currentDestination?.route == NavRoutes.HOME) {
-                FloatingActionButton(
-                    onClick = { navController.navigate(NavRoutes.INPUT) }
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Tambah Expense")
-                }
-            }
-        },
-        topBar = {
-            if (navController.currentDestination?.route == NavRoutes.HOME) {
-                TopAppBar(
-                    title = { Text("Expense Tracker") },
-                    actions = {
-                        IconButton(onClick = { navController.navigate(NavRoutes.SUMMARY) }) {
-                            Icon(
-                                Icons.Default.Star,
-                                contentDescription = "Lihat Summary"
-                            )
-                        }
-                    }
-                )
-            }
-        }
+        // TopBar and FAB moved to HomeScreen custom UI
     ) { innerPadding ->
         NavHost(
             navController = navController,
@@ -93,7 +73,9 @@ fun ExpenseTrackerApp() {
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = StreakViewModelFactory.create(applicationContext()))
                 HomeScreen(
                     viewModel = homeViewModel,
-                    streakViewModel = streakViewModel
+                    streakViewModel = streakViewModel,
+                    onNavigateToInput = { navController.navigate(NavRoutes.INPUT) },
+                    onNavigateToSummary = { navController.navigate(NavRoutes.SUMMARY) }
                 )
             }
 
@@ -102,7 +84,8 @@ fun ExpenseTrackerApp() {
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = InputViewModelFactory.create(applicationContext()))
                 InputScreen(
                     viewModel = inputViewModel,
-                    onSaved = { navController.popBackStack() }
+                    onSaved = { navController.popBackStack() },
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

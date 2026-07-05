@@ -1,5 +1,6 @@
 package com.example.expense_tracker.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,86 +10,221 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.ExpenseWithCategory
+import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.TimeFormatter
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+
+// ── Custom Header ───────────────────────────────────────────────────
+
+@Composable
+fun HomeHeader(
+    onNavigateToSummary: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profil",
+                    modifier = Modifier.padding(12.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = "Welcome,",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Pengguna",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+        IconButton(
+            onClick = onNavigateToSummary,
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = "Lihat Summary",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// ── Balance Card ───────────────────────────────────────────────────
+
+@Composable
+fun BalanceCard(
+    amount: Long,
+    periodLabel: String,
+    onAddExpense: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val gradient = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFFF512F), // Vibrant Orange
+            Color(0xFFDD2476)  // Vibrant Red/Pink
+        )
+    )
+
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        shadowElevation = 8.dp,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(gradient)
+                .padding(24.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.2f),
+                ) {
+                    Text(
+                        text = periodLabel,
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = CurrencyFormatter.format(amount),
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "Balance",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Quick Action Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    IconButton(
+                        onClick = onAddExpense,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(
+                                color = Color.White.copy(alpha = 0.2f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Tambah Pengeluaran",
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 // ── Filter Tabs ───────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterTabs(
     selected: FilterPeriod,
     onSelected: (FilterPeriod) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    SingleChoiceSegmentedButtonRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        FilterPeriod.entries.forEach { filter ->
-            FilterChip(
-                selected = selected == filter,
+        FilterPeriod.entries.forEachIndexed { index, filter ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = FilterPeriod.entries.size),
                 onClick = { onSelected(filter) },
-                label = { Text(filter.label) },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                modifier = Modifier.weight(1f)
-            )
+                selected = selected == filter,
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            ) {
+                Text(filter.label)
+            }
         }
-    }
-}
-
-// ── Total Display ──────────────────────────────────────────────────
-
-@Composable
-fun TotalDisplay(
-    amount: Long,
-    periodLabel: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = CurrencyFormatter.format(amount),
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Total $periodLabel",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
@@ -99,32 +235,52 @@ fun ExpenseListItem(
     expense: ExpenseWithCategory,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
+    ListItem(
+        modifier = modifier.padding(vertical = 4.dp),
+        headlineContent = {
             Text(
                 text = expense.categoryName,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                fontWeight = FontWeight.SemiBold
             )
+        },
+        supportingContent = {
             Text(
                 text = TimeFormatter.formatTime(expense.timestamp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = CurrencyFormatter.format(expense.amount),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+        },
+        leadingContent = {
+            Surface(
+                shape = CircleShape,
+                color = com.example.expense_tracker.ui.theme.categoryColor(expense.categoryId.toInt()).copy(alpha = 0.15f),
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = com.example.expense_tracker.ui.theme.categoryColor(expense.categoryId.toInt()),
+                        modifier = Modifier.size(16.dp)
+                    ) {}
+                }
+            }
+        },
+        trailingContent = {
+            Text(
+                text = "-" + CurrencyFormatter.format(expense.amount),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.error
+            )
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent
         )
-    }
+    )
 }
 
 // ── Empty State ────────────────────────────────────────────────────
@@ -159,91 +315,98 @@ fun EmptyState(
     }
 }
 
-// ── Streak Counter ────────────────────────────────────────────────
-
-@Composable
-fun StreakCounter(
-    streak: Int,
-    encouragementText: String,
-    modifier: Modifier = Modifier
-) {
-    val isActive = streak > 0
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        androidx.compose.material3.Surface(
-            color = if (isActive)
-                MaterialTheme.colorScheme.primaryContainer
-            else
-                MaterialTheme.colorScheme.surfaceVariant,
-            shape = MaterialTheme.shapes.small
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "🔥",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = encouragementText,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (isActive)
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
 // ── Home Screen ────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    streakViewModel: StreakCounterViewModel? = null
+    streakViewModel: StreakCounterViewModel? = null,
+    onNavigateToInput: () -> Unit = {},
+    onNavigateToSummary: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
-    val streakStateFlow = streakViewModel?.uiState
-        ?: MutableStateFlow(StreakCounterUiState())
+    
+    // Streak counter state is loaded but not displayed in this minimalist UI variant
+    // You can integrate it back as a small badge near the profile if needed later.
+    val streakStateFlow = streakViewModel?.uiState ?: MutableStateFlow(StreakCounterUiState())
     val streakState by streakStateFlow.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Streak counter (US5)
-        StreakCounter(
-            streak = streakState.streak,
-            encouragementText = streakState.encouragementText
-        )
+    // Refresh data when HomeScreen enters composition (e.g. after navigating back from InputScreen)
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
 
-        // Filter tabs
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Custom Header
+        HomeHeader(onNavigateToSummary = onNavigateToSummary)
+        
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Balance Card
+        BalanceCard(
+            amount = state.totalAmount,
+            periodLabel = state.periodLabel,
+            onAddExpense = onNavigateToInput
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // Filter tabs (Days/Weeks/Months)
         FilterTabs(
             selected = state.filter,
             onSelected = { viewModel.onFilterSelected(it) }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Total display
-        TotalDisplay(
-            amount = state.totalAmount,
-            periodLabel = state.periodLabel
-        )
+        // Transactions Section Header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Transactions",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            TextButton(onClick = onNavigateToSummary) {
+                Text(
+                    text = "View all",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
 
         // Expense list or empty state
-        if (state.expenses.isEmpty()) {
-            EmptyState(periodLabel = state.periodLabel)
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(state.expenses, key = { it.id }) { expense ->
-                    ExpenseListItem(expense = expense)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(horizontal = 8.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        ) {
+            if (state.expenses.isEmpty()) {
+                EmptyState(periodLabel = state.periodLabel)
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(top = 8.dp),
+                ) {
+                    items(state.expenses, key = { it.id }) { expense ->
+                        ExpenseListItem(
+                            expense = expense,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                    }
                 }
             }
         }
@@ -254,20 +417,17 @@ fun HomeScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun FilterTabsPreview() {
+fun BalanceCardPreview() {
     Expense_trackerTheme {
-        FilterTabs(
-            selected = FilterPeriod.TODAY,
-            onSelected = {}
-        )
+        BalanceCard(amount = 150_000L, periodLabel = "Hari Ini", onAddExpense = {})
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun TotalDisplayPreview() {
+fun HomeHeaderPreview() {
     Expense_trackerTheme {
-        TotalDisplay(amount = 150_000L, periodLabel = "Hari Ini")
+        HomeHeader(onNavigateToSummary = {})
     }
 }
 
@@ -289,32 +449,6 @@ fun ExpenseListItemPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun EmptyStatePreview() {
-    Expense_trackerTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            EmptyState(periodLabel = "hari ini")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview_empty() {
-    Expense_trackerTheme {
-        // Static preview: empty state
-        val fakeState = HomeUiState(filter = FilterPeriod.TODAY, periodLabel = "Hari Ini")
-        Column(modifier = Modifier.fillMaxSize()) {
-            StreakCounter(streak = 0, encouragementText = "Mulai streak kamu hari ini!")
-            FilterTabs(selected = fakeState.filter, onSelected = {})
-            Spacer(modifier = Modifier.height(8.dp))
-            TotalDisplay(amount = fakeState.totalAmount, periodLabel = fakeState.periodLabel)
-            EmptyState(periodLabel = fakeState.periodLabel)
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
 fun HomeScreenPreview_withData() {
     Expense_trackerTheme {
         val fakeState = HomeUiState(
@@ -327,40 +461,47 @@ fun HomeScreenPreview_withData() {
                 ExpenseWithCategory(3, 65_000L, 3, "Belanja", System.currentTimeMillis() - 7200_000),
             )
         )
-        Column(modifier = Modifier.fillMaxSize()) {
-            StreakCounter(streak = 3, encouragementText = "3 hari berturut-turut!")
-            FilterTabs(selected = fakeState.filter, onSelected = {})
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            HomeHeader(onNavigateToSummary = {})
             Spacer(modifier = Modifier.height(8.dp))
-            TotalDisplay(amount = fakeState.totalAmount, periodLabel = fakeState.periodLabel)
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(fakeState.expenses, key = { it.id }) { expense ->
-                    ExpenseListItem(expense = expense)
+            BalanceCard(amount = fakeState.totalAmount, periodLabel = fakeState.periodLabel, onAddExpense = {})
+            Spacer(modifier = Modifier.height(24.dp))
+            FilterTabs(selected = fakeState.filter, onSelected = {})
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Transactions",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                TextButton(onClick = {}) {
+                    Text(
+                        text = "View all",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Surface(
+                modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 8.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
+                    items(fakeState.expenses, key = { it.id }) { expense ->
+                        ExpenseListItem(expense = expense, modifier = Modifier.padding(horizontal = 8.dp))
+                    }
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun StreakCounterActivePreview() {
-    Expense_trackerTheme {
-        StreakCounter(streak = 5, encouragementText = "5 hari berturut-turut!")
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun StreakCounterInactivePreview() {
-    Expense_trackerTheme {
-        StreakCounter(streak = 0, encouragementText = "Mulai streak kamu hari ini!")
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun StreakCounterOneDayPreview() {
-    Expense_trackerTheme {
-        StreakCounter(streak = 1, encouragementText = "1 hari berturut-turut!")
     }
 }
