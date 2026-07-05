@@ -19,6 +19,9 @@ class RoomExpenseRepository(
     override fun deleteExpense(expense: Expense) =
         dao.deleteExpense(expense)
 
+    override fun insertExpense(expense: Expense) =
+        dao.insertExpense(expense)
+
     override fun getExpenseById(id: Long): Expense? =
         dao.getExpenseById(id)
 }

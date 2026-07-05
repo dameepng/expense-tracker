@@ -101,7 +101,10 @@ fun ExpenseTrackerApp() {
             composable(NavRoutes.SUMMARY) {
                 val summaryViewModel: SummaryViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = SummaryViewModelFactory.create(applicationContext()))
-                SummaryScreen(viewModel = summaryViewModel)
+                SummaryScreen(
+                    viewModel = summaryViewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
     }

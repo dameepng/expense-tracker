@@ -43,6 +43,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -253,12 +258,36 @@ fun SummaryTotalFooter(
 
 // ── Summary Screen ─────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SummaryScreen(viewModel: SummaryViewModel) {
+fun SummaryScreen(
+    viewModel: SummaryViewModel,
+    onNavigateBack: () -> Unit
+) {
     val state by viewModel.uiState.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Spacer(modifier = Modifier.height(16.dp))
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Ringkasan") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Kembali"
+                        )
+                    }
+                },
+                windowInsets = WindowInsets(0, 0, 0, 0)
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
 
         // Filter tabs
         SummaryFilterTabs(
@@ -269,7 +298,11 @@ fun SummaryScreen(viewModel: SummaryViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Breakdown list or empty state
-        if (state.items.isEmpty()) {
+        if (state.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (state.items.isEmpty()) {
             SummaryEmptyState()
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {
@@ -290,6 +323,7 @@ fun SummaryScreen(viewModel: SummaryViewModel) {
             // Total footer
             SummaryTotalFooter(totalAmount = state.totalAmount)
         }
+    }
     }
 }
 

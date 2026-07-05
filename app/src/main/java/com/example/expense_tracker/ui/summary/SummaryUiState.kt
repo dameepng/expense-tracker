@@ -7,7 +7,8 @@ data class SummaryUiState(
     val items: List<BreakdownItem> = emptyList(),
     val totalAmount: Long = 0L,
     val customStartDate: Long? = null,
-    val customEndDate: Long? = null
+    val customEndDate: Long? = null,
+    val isLoading: Boolean = false
 )
 
 data class BreakdownItem(

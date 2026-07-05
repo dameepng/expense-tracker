@@ -34,7 +34,9 @@ class HomeViewModel(
     }
 
     fun refresh() {
+        _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
+            kotlinx.coroutines.delay(300) // Artificial delay for smoother transition feel
             val currentFilter = _uiState.value.filter
             val (start, end) = TimeRangeCalculator.calculateRange(currentFilter)
             val (total, expenses, categories) = withContext(ioDispatcher) {
@@ -74,6 +76,21 @@ class HomeViewModel(
                     timestamp = expense.timestamp
                 )
                 repository.deleteExpense(dbExpense)
+            }
+            refresh()
+        }
+    }
+
+    fun undoDeleteExpense(expense: ExpenseWithCategory) {
+        viewModelScope.launch {
+            withContext(ioDispatcher) {
+                val dbExpense = com.example.expense_tracker.data.Expense(
+                    id = expense.id,
+                    amount = expense.amount,
+                    categoryId = expense.categoryId,
+                    timestamp = expense.timestamp
+                )
+                repository.insertExpense(dbExpense)
             }
             refresh()
         }

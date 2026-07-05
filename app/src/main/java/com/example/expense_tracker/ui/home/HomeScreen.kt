@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,10 +40,22 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -219,9 +232,10 @@ fun FilterTabs(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        FilterPeriod.entries.forEachIndexed { index, filter ->
+        val standardFilters = FilterPeriod.entries.filter { it != FilterPeriod.CUSTOM }
+        standardFilters.forEachIndexed { index, filter ->
             SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = FilterPeriod.entries.size),
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = standardFilters.size),
                 onClick = { onSelected(filter) },
                 selected = selected == filter,
                 colors = SegmentedButtonDefaults.colors(
@@ -335,6 +349,8 @@ fun HomeScreen(
     
     val streakState by (streakViewModel?.uiState ?: MutableStateFlow(StreakCounterUiState())).collectAsState()
     val listState = rememberLazyListState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(state.expenses.firstOrNull()?.id) {
         if (state.expenses.isNotEmpty()) {
@@ -347,12 +363,17 @@ fun HomeScreen(
         viewModel.refresh()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Custom Header
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Custom Header
         HomeHeader(onNavigateToSummary = onNavigateToSummary)
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -411,12 +432,17 @@ fun HomeScreen(
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
         ) {
-            if (state.expenses.isEmpty()) {
+            if (state.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (state.expenses.isEmpty()) {
                 EmptyState(periodLabel = state.periodLabel)
             } else {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
                     items(state.expenses, key = { it.id }) { expense ->
                         val dismissState = rememberSwipeToDismissBoxState(
@@ -424,6 +450,16 @@ fun HomeScreen(
                                 when (dismissValue) {
                                     SwipeToDismissBoxValue.EndToStart -> {
                                         viewModel.deleteExpense(expense)
+                                        coroutineScope.launch {
+                                            val result = snackbarHostState.showSnackbar(
+                                                message = "Transaksi dihapus",
+                                                actionLabel = "Batal",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                            if (result == SnackbarResult.ActionPerformed) {
+                                                viewModel.undoDeleteExpense(expense)
+                                            }
+                                        }
                                         true
                                     }
                                     SwipeToDismissBoxValue.StartToEnd -> {
@@ -483,6 +519,7 @@ fun HomeScreen(
                 }
             }
         }
+    }
     }
 }
 
