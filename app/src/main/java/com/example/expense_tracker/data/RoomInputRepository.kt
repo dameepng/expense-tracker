@@ -10,9 +10,9 @@ class RoomInputRepository(
 
     override fun getExpenseById(id: Long) = dao.getExpenseById(id)
 
-    override fun insertExpense(amount: Long, categoryId: Long, timestamp: Long, id: Long) {
+    override fun insertExpense(amount: Long, categoryId: Long, description: String, timestamp: Long, id: Long) {
         dao.insertExpense(
-            Expense(id = id, amount = amount, categoryId = categoryId, timestamp = timestamp)
+            Expense(id = id, amount = amount, categoryId = categoryId, description = description, timestamp = timestamp)
         )
     }
 }

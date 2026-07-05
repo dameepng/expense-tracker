@@ -54,6 +54,7 @@ class HomeViewModel(
                     amount = expense.amount,
                     categoryId = expense.categoryId,
                     categoryName = category?.name ?: "Lainnya",
+                    description = expense.description,
                     timestamp = expense.timestamp
                 )
             }
@@ -73,6 +74,7 @@ class HomeViewModel(
                     id = expense.id,
                     amount = expense.amount,
                     categoryId = expense.categoryId,
+                    description = expense.description,
                     timestamp = expense.timestamp
                 )
                 repository.deleteExpense(dbExpense)
@@ -88,6 +90,7 @@ class HomeViewModel(
                     id = expense.id,
                     amount = expense.amount,
                     categoryId = expense.categoryId,
+                    description = expense.description,
                     timestamp = expense.timestamp
                 )
                 repository.insertExpense(dbExpense)

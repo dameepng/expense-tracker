@@ -30,6 +30,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -252,6 +255,24 @@ fun InputScreen(
         AmountInput(
             amountText = state.amountText,
             onAmountChange = { viewModel.onAmountChange(it) }
+        )
+
+        // Description Input
+        OutlinedTextField(
+            value = state.description,
+            onValueChange = { viewModel.onDescriptionChange(it) },
+            label = { Text("Deskripsi Singkat (opsional)") },
+            placeholder = { Text("Misal: Nasi Goreng, Bensin, Netflix") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            ),
+            shape = RoundedCornerShape(12.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))

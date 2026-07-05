@@ -8,5 +8,6 @@ data class ExpenseWithCategory(
     val amount: Long,
     val categoryId: Long,
     val categoryName: String,
+    val description: String = "",
     val timestamp: Long
 )

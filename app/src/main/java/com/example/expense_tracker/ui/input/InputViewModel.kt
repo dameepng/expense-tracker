@@ -28,6 +28,7 @@ class InputViewModel(
                 repository.getCategories()
             }
             var loadedAmount = ""
+            var loadedDescription = ""
             var loadedCategoryId: Long? = null
 
             if (expenseId != null) {
@@ -36,6 +37,7 @@ class InputViewModel(
                 }
                 if (expense != null) {
                     loadedAmount = expense.amount.toString()
+                    loadedDescription = expense.description
                     loadedCategoryId = expense.categoryId
                 }
             }
@@ -43,6 +45,7 @@ class InputViewModel(
             _uiState.value = _uiState.value.copy(
                 categories = categories,
                 amountText = loadedAmount,
+                description = loadedDescription,
                 selectedCategoryId = loadedCategoryId,
                 isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null
             )
@@ -54,6 +57,12 @@ class InputViewModel(
         _uiState.value = _uiState.value.copy(
             amountText = text,
             isSaveEnabled = isValid && _uiState.value.selectedCategoryId != null
+        )
+    }
+
+    fun onDescriptionChange(text: String) {
+        _uiState.value = _uiState.value.copy(
+            description = text
         )
     }
 
@@ -81,6 +90,7 @@ class InputViewModel(
                 repository.insertExpense(
                     amount = amount,
                     categoryId = categoryId,
+                    description = state.description,
                     timestamp = timestamp,
                     id = expenseId ?: 0L
                 )

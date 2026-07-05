@@ -56,6 +56,18 @@ class HomeViewModelTest {
             this.expenses = expenses.toList()
             this.categories = categories.toList()
         }
+
+        override fun deleteExpense(expense: Expense) {
+            expenses = expenses.filterNot { it.id == expense.id }
+        }
+
+        override fun insertExpense(expense: Expense) {
+            expenses = expenses + expense
+        }
+
+        override fun getExpenseById(id: Long): Expense? {
+            return expenses.find { it.id == id }
+        }
     }
 
     // ── Helpers ────────────────────────────────────────────────────

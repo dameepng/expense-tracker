@@ -30,12 +30,13 @@ class InputViewModelTest {
         )
 
         override fun getCategories(): List<Category> = presetCategories
-        override fun insertExpense(amount: Long, categoryId: Long, timestamp: Long) {
-            savedExpenses.add(SavedExpense(amount, categoryId, timestamp))
+        override fun getExpenseById(id: Long): com.example.expense_tracker.data.Expense? = null
+        override fun insertExpense(amount: Long, categoryId: Long, description: String, timestamp: Long, id: Long) {
+            savedExpenses.add(SavedExpense(amount, categoryId, description, timestamp))
         }
     }
 
-    private data class SavedExpense(val amount: Long, val categoryId: Long, val timestamp: Long)
+    private data class SavedExpense(val amount: Long, val categoryId: Long, val description: String, val timestamp: Long)
 
     @Before
     fun setup() {

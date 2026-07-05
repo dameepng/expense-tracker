@@ -22,6 +22,7 @@ data class Expense(
     val id: Long = 0,
     val amount: Long,
     val categoryId: Long,
+    val description: String = "",
     val timestamp: Long
 ) {
     init {

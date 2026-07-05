@@ -266,11 +266,22 @@ fun ExpenseListItem(
             )
         },
         supportingContent = {
-            Text(
-                text = TimeFormatter.formatTime(expense.timestamp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column {
+                if (expense.description.isNotBlank()) {
+                    Text(
+                        text = expense.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+                Text(
+                    text = TimeFormatter.formatTime(expense.timestamp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
         },
         leadingContent = {
             Surface(
@@ -551,6 +562,7 @@ fun ExpenseListItemPreview() {
                 amount = 50_000L,
                 categoryId = 1,
                 categoryName = "Makanan",
+                description = "Makan Siang",
                 timestamp = System.currentTimeMillis()
             )
         )
@@ -566,9 +578,9 @@ fun HomeScreenPreview_withData() {
             periodLabel = "Hari Ini",
             totalAmount = 150_000L,
             expenses = listOf(
-                ExpenseWithCategory(1, 50_000L, 1, "Makanan", System.currentTimeMillis()),
-                ExpenseWithCategory(2, 35_000L, 2, "Transport", System.currentTimeMillis() - 3600_000),
-                ExpenseWithCategory(3, 65_000L, 3, "Belanja", System.currentTimeMillis() - 7200_000),
+                ExpenseWithCategory(1, 50_000L, 1, "Makanan", "Baso", System.currentTimeMillis()),
+                ExpenseWithCategory(2, 35_000L, 2, "Transport", "", System.currentTimeMillis() - 3600_000),
+                ExpenseWithCategory(3, 65_000L, 3, "Belanja", "", System.currentTimeMillis() - 7200_000),
             )
         )
         Column(
