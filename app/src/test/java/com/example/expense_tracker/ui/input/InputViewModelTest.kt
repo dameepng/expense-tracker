@@ -1,18 +1,21 @@
 package com.example.expense_tracker.ui.input
 
 import com.example.expense_tracker.data.Category
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
 
-/**
- * TDD tests for InputViewModel.
- *
- * US1: Input expense — nominal + kategori
- * US2: Kategori preset single-select
- */
+@OptIn(ExperimentalCoroutinesApi::class)
 class InputViewModelTest {
 
-    // ── Fake Repository ────────────────────────────────────────────
+    private val testDispatcher = StandardTestDispatcher()
 
     private class FakeInputRepository : InputRepository {
         var savedExpenses = mutableListOf<SavedExpense>()
@@ -27,24 +30,33 @@ class InputViewModelTest {
         )
 
         override fun getCategories(): List<Category> = presetCategories
-
         override fun insertExpense(amount: Long, categoryId: Long, timestamp: Long) {
             savedExpenses.add(SavedExpense(amount, categoryId, timestamp))
         }
     }
 
-    private data class SavedExpense(
-        val amount: Long,
-        val categoryId: Long,
-        val timestamp: Long
-    )
+    private data class SavedExpense(val amount: Long, val categoryId: Long, val timestamp: Long)
 
-    // ── Initial State Tests ────────────────────────────────────────
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    @After
+    fun teardown() {
+        Dispatchers.resetMain()
+    }
+
+    private fun initViewModel(repo: FakeInputRepository): InputViewModel {
+        val vm = InputViewModel(repo, testDispatcher)
+        testDispatcher.scheduler.advanceUntilIdle()
+        return vm
+    }
 
     @Test
     fun `initial state has empty amount and no category selected`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
         val state = vm.uiState.value
 
         assertEquals("", state.amountText)
@@ -56,21 +68,18 @@ class InputViewModelTest {
     @Test
     fun `initial state loads 7 preset categories`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
         val state = vm.uiState.value
 
         assertEquals(7, state.categories.size)
     }
 
-    // ── Amount Input Tests ─────────────────────────────────────────
-
     @Test
     fun `entering amount enables save only when category also selected`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
 
         vm.onAmountChange("50000")
-        // Amount entered but no category → still disabled
         assertFalse(vm.uiState.value.isSaveEnabled)
         assertEquals("50000", vm.uiState.value.amountText)
     }
@@ -78,7 +87,7 @@ class InputViewModelTest {
     @Test
     fun `amount and category both set enables save button`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
 
         vm.onAmountChange("25000")
         vm.onCategorySelected(1L)
@@ -89,7 +98,7 @@ class InputViewModelTest {
     @Test
     fun `clearing amount disables save even with category selected`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
 
         vm.onAmountChange("10000")
         vm.onCategorySelected(1L)
@@ -102,7 +111,7 @@ class InputViewModelTest {
     @Test
     fun `amount zero or non-numeric treated as invalid`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
         vm.onCategorySelected(1L)
 
         vm.onAmountChange("0")
@@ -112,12 +121,10 @@ class InputViewModelTest {
         assertFalse(vm.uiState.value.isSaveEnabled)
     }
 
-    // ── Category Selection Tests ───────────────────────────────────
-
     @Test
     fun `selecting category sets selectedCategoryId`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
 
         vm.onCategorySelected(2L)
 
@@ -127,7 +134,7 @@ class InputViewModelTest {
     @Test
     fun `selecting different category replaces previous selection`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
 
         vm.onCategorySelected(1L)
         assertEquals(1L, vm.uiState.value.selectedCategoryId)
@@ -136,16 +143,15 @@ class InputViewModelTest {
         assertEquals(3L, vm.uiState.value.selectedCategoryId)
     }
 
-    // ── Save Tests ──────────────────────────────────────────────────
-
     @Test
     fun `save inserts expense and sets saved flag`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
 
         vm.onAmountChange("50000")
         vm.onCategorySelected(1L)
         vm.onSave()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         assertTrue(vm.uiState.value.saved)
         assertEquals(1, repo.savedExpenses.size)
@@ -156,9 +162,10 @@ class InputViewModelTest {
     @Test
     fun `save does nothing when form invalid`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
 
-        vm.onSave() // no amount, no category
+        vm.onSave()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         assertFalse(vm.uiState.value.saved)
         assertEquals(0, repo.savedExpenses.size)
@@ -167,15 +174,17 @@ class InputViewModelTest {
     @Test
     fun `save resets form state for next input`() {
         val repo = FakeInputRepository()
-        val vm = InputViewModel(repo)
+        val vm = initViewModel(repo)
 
         vm.onAmountChange("75000")
         vm.onCategorySelected(2L)
         vm.onSave()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // After save, reset for next expense
         assertEquals("", vm.uiState.value.amountText)
         assertNull(vm.uiState.value.selectedCategoryId)
         assertFalse(vm.uiState.value.isSaveEnabled)
+        assertTrue(vm.uiState.value.saved)
     }
 }

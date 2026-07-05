@@ -84,7 +84,7 @@ class HomeViewModelTest {
     }
 
     private fun initAndAdvance() {
-        viewModel = HomeViewModel(fakeRepository)
+        viewModel = HomeViewModel(fakeRepository, testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
     }
 

@@ -1,18 +1,34 @@
 package com.example.expense_tracker.ui.input
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class InputViewModel(
-    private val repository: InputRepository
+    private val repository: InputRepository,
+    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(
-        InputUiState(categories = repository.getCategories())
-    )
+    private val _uiState = MutableStateFlow(InputUiState())
     val uiState: StateFlow<InputUiState> = _uiState.asStateFlow()
+
+    init {
+        loadCategories()
+    }
+
+    private fun loadCategories() {
+        viewModelScope.launch {
+            val categories = withContext(ioDispatcher) {
+                repository.getCategories()
+            }
+            _uiState.value = _uiState.value.copy(categories = categories)
+        }
+    }
 
     fun onAmountChange(text: String) {
         val isValid = text.toLongOrNull() != null && text.toLong() > 0
@@ -36,12 +52,16 @@ class InputViewModel(
         val categoryId = state.selectedCategoryId ?: return
         if (amount <= 0) return
 
-        repository.insertExpense(amount, categoryId, System.currentTimeMillis())
+        viewModelScope.launch {
+            withContext(ioDispatcher) {
+                repository.insertExpense(amount, categoryId, System.currentTimeMillis())
+            }
 
-        // Reset form for next input
-        _uiState.value = InputUiState(
-            categories = state.categories,
-            saved = true
-        )
+            // Reset form for next input
+            _uiState.value = InputUiState(
+                categories = _uiState.value.categories,
+                saved = true
+            )
+        }
     }
 }

@@ -35,7 +35,7 @@ class StreakCounterViewModelTest {
     }
 
     private fun initViewModel(streak: Int): StreakCounterViewModel {
-        val vm = StreakCounterViewModel(FakeStreakRepository(streak))
+        val vm = StreakCounterViewModel(FakeStreakRepository(streak), testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
         return vm
     }

@@ -2,13 +2,16 @@ package com.example.expense_tracker.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class StreakCounterViewModel(
-    private val repository: StreakRepository
+    private val repository: StreakRepository,
+    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StreakCounterUiState())
@@ -20,7 +23,9 @@ class StreakCounterViewModel(
 
     fun loadStreak() {
         viewModelScope.launch {
-            val streak = repository.calculateStreak()
+            val streak = withContext(ioDispatcher) {
+                repository.calculateStreak()
+            }
             _uiState.value = StreakCounterUiState(
                 streak = streak,
                 hasStreak = streak > 0,
