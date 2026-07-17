@@ -60,6 +60,7 @@ class HomeViewModel(
             _uiState.value = _uiState.value.copy(
                 totalAmount = totalIncome - totalExpense,
                 totalIncome = totalIncome,
+                totalExpense = totalExpense,
                 transactions = withCategory,
                 isLoading = false
             )

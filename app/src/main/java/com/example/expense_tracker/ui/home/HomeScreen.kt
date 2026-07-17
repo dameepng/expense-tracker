@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -229,6 +231,101 @@ fun BalanceCard(
     }
 }
 
+// ── Income / Expense Summary ───────────────────────────────────────
+
+@Composable
+fun IncomeExpenseSummary(
+    totalIncome: Long,
+    totalExpense: Long,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Income Card
+        Surface(
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFFE8F5E9),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.TrendingUp,
+                        contentDescription = "Income",
+                        tint = Color(0xFF2E7D32),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "Income",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = CurrencyFormatter.format(totalIncome),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+
+        // Expense Card
+        Surface(
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.TrendingDown,
+                        contentDescription = "Expense",
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "Expense",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = CurrencyFormatter.format(totalExpense),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
 
 // ── Expense List Item ──────────────────────────────────────────────
 
@@ -375,10 +472,15 @@ fun HomeScreen(
             totalBalance = state.totalAmount
         )
         
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Income / Expense Summary
+        IncomeExpenseSummary(
+            totalIncome = state.totalIncome,
+            totalExpense = state.totalExpense
+        )
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-
-
         // Transactions Section Header
         Row(
             modifier = Modifier
@@ -553,6 +655,8 @@ fun HomeScreenPreview_withData() {
             filter = FilterPeriod.TODAY,
             periodLabel = "Hari Ini",
             totalAmount = 150_000L,
+            totalIncome = 300_000L,
+            totalExpense = 150_000L,
             transactions = listOf(
                 ExpenseWithCategory(1, 50_000L, 1, "Makanan", "Baso", System.currentTimeMillis()),
                 ExpenseWithCategory(2, 35_000L, 2, "Transport", "", System.currentTimeMillis() - 3600_000),
@@ -567,6 +671,8 @@ fun HomeScreenPreview_withData() {
             HomeHeader(onNavigateToSummary = {})
             Spacer(modifier = Modifier.height(8.dp))
             BalanceCard(totalBalance = fakeState.totalAmount)
+            Spacer(modifier = Modifier.height(16.dp))
+            IncomeExpenseSummary(totalIncome = fakeState.totalIncome, totalExpense = fakeState.totalExpense)
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
