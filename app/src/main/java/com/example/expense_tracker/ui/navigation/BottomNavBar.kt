@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -30,11 +31,11 @@ fun BottomNavBar(
             selected = currentRoute == NavRoutes.HOME,
             onClick = { onNavigate(NavRoutes.HOME) }
         )
-        // Summary
+        // Wallet
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.PieChart, contentDescription = "Summary") },
-            selected = currentRoute == NavRoutes.SUMMARY,
-            onClick = { onNavigate(NavRoutes.SUMMARY) }
+            icon = { Icon(Icons.Filled.AccountBalanceWallet, contentDescription = "Wallet") },
+            selected = currentRoute == NavRoutes.WALLET,
+            onClick = { onNavigate(NavRoutes.WALLET) }
         )
         // Add
         NavigationBarItem(
@@ -55,11 +56,17 @@ fun BottomNavBar(
             selected = currentRoute?.startsWith("input") == true,
             onClick = { onNavigate(NavRoutes.inputRoute(null)) }
         )
-        // Wallet
+        // Summary
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.AccountBalanceWallet, contentDescription = "Wallet") },
-            selected = currentRoute == NavRoutes.WALLET,
-            onClick = { onNavigate(NavRoutes.WALLET) }
+            icon = { Icon(Icons.Filled.PieChart, contentDescription = "Summary") },
+            selected = currentRoute == NavRoutes.SUMMARY,
+            onClick = { onNavigate(NavRoutes.SUMMARY) }
+        )
+        // Profile
+        NavigationBarItem(
+            icon = { Icon(Icons.Filled.Person, contentDescription = "Profile") },
+            selected = currentRoute == NavRoutes.PROFILE,
+            onClick = { onNavigate(NavRoutes.PROFILE) }
         )
     }
 }

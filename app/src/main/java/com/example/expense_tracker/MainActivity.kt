@@ -151,6 +151,10 @@ fun ExpenseTrackerApp() {
                     onNavigateToInput = { expenseId -> navController.navigate(NavRoutes.inputRoute(expenseId)) }
                 )
             }
+
+            composable(NavRoutes.PROFILE) {
+                com.example.expense_tracker.ui.profile.ProfileScreen()
+            }
         }
     }
 }

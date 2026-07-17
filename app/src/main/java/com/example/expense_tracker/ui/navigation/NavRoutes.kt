@@ -5,6 +5,7 @@ object NavRoutes {
     const val INPUT = "input?expenseId={expenseId}"
     const val SUMMARY = "summary"
     const val WALLET = "wallet"
+    const val PROFILE = "profile"
 
     fun inputRoute(expenseId: Long? = null): String {
         return if (expenseId != null) "input?expenseId=$expenseId" else "input"
