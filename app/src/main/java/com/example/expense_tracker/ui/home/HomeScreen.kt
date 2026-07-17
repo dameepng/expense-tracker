@@ -327,27 +327,31 @@ fun IncomeExpenseSummary(
     }
 }
 
-// ── Expense List Item ──────────────────────────────────────────────
+// ── Transaction List Item ────────────────────────────────────────────
 
 @Composable
-fun ExpenseListItem(
-    expense: ExpenseWithCategory,
+fun TransactionListItem(
+    transaction: ExpenseWithCategory,
     modifier: Modifier = Modifier
 ) {
+    val isIncome = transaction.type == com.example.expense_tracker.data.TransactionType.INCOME.name
+    val amountPrefix = if (isIncome) "+" else "-"
+    val amountColor = if (isIncome) Color(0xFF2E8B57) else MaterialTheme.colorScheme.error
+
     ListItem(
         modifier = modifier.padding(vertical = 4.dp),
         headlineContent = {
             Text(
-                text = expense.categoryName,
+                text = transaction.categoryName,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
         },
         supportingContent = {
             Column {
-                if (expense.description.isNotBlank()) {
+                if (transaction.description.isNotBlank()) {
                     Text(
-                        text = expense.description,
+                        text = transaction.description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -355,36 +359,51 @@ fun ExpenseListItem(
                     )
                 }
                 Text(
-                    text = TimeFormatter.formatTime(expense.timestamp),
+                    text = TimeFormatter.formatTime(transaction.timestamp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
         },
         leadingContent = {
-            Surface(
-                shape = CircleShape,
-                color = com.example.expense_tracker.ui.theme.categoryColor(expense.categoryId.toInt()).copy(alpha = 0.15f),
-                modifier = Modifier.size(48.dp)
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
+            if (isIncome) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFFE8F5E9),
+                    modifier = Modifier.size(48.dp)
                 ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = com.example.expense_tracker.ui.theme.categoryColor(expense.categoryId.toInt()),
-                        modifier = Modifier.size(16.dp)
-                    ) {}
+                    Icon(
+                        imageVector = Icons.Filled.TrendingUp,
+                        contentDescription = "Income",
+                        tint = Color(0xFF2E8B57),
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            } else {
+                Surface(
+                    shape = CircleShape,
+                    color = com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt()).copy(alpha = 0.15f),
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt()),
+                            modifier = Modifier.size(16.dp)
+                        ) {}
+                    }
                 }
             }
         },
         trailingContent = {
             Text(
-                text = "-" + CurrencyFormatter.format(expense.amount),
+                text = amountPrefix + CurrencyFormatter.format(transaction.amount),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
+                color = amountColor
             )
         },
         colors = ListItemDefaults.colors(
@@ -599,8 +618,8 @@ fun HomeScreen(
                             },
                             modifier = Modifier.padding(horizontal = 8.dp)
                         ) {
-                            ExpenseListItem(
-                                expense = expense,
+                            TransactionListItem(
+                                transaction = expense,
                                 modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                             )
                         }
@@ -632,18 +651,32 @@ fun HomeHeaderPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun ExpenseListItemPreview() {
+fun TransactionListItemPreview() {
     Expense_trackerTheme {
-        ExpenseListItem(
-            expense = ExpenseWithCategory(
-                id = 1,
-                amount = 50_000L,
-                categoryId = 1,
-                categoryName = "Makanan",
-                description = "Makan Siang",
-                timestamp = System.currentTimeMillis()
+        Column {
+            TransactionListItem(
+                transaction = ExpenseWithCategory(
+                    id = 1,
+                    amount = 50_000L,
+                    categoryId = 1,
+                    categoryName = "Makanan",
+                    description = "Makan Siang",
+                    timestamp = System.currentTimeMillis(),
+                    type = com.example.expense_tracker.data.TransactionType.EXPENSE.name
+                )
             )
-        )
+            TransactionListItem(
+                transaction = ExpenseWithCategory(
+                    id = 2,
+                    amount = 5_000_000L,
+                    categoryId = 0,
+                    categoryName = "Gaji",
+                    description = "Gaji Bulan Ini",
+                    timestamp = System.currentTimeMillis(),
+                    type = com.example.expense_tracker.data.TransactionType.INCOME.name
+                )
+            )
+        }
     }
 }
 
@@ -709,7 +742,7 @@ fun HomeScreenPreview_withData() {
                         items = fakeState.transactions,
                         key = { it.id }
                     ) { expense ->
-                        ExpenseListItem(expense = expense, modifier = Modifier.padding(horizontal = 8.dp))
+                        TransactionListItem(transaction = expense, modifier = Modifier.padding(horizontal = 8.dp))
                     }
                 }
             }
