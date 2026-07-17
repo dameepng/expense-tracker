@@ -94,7 +94,8 @@ fun ExpenseTrackerApp() {
                     viewModel = homeViewModel,
                     streakViewModel = streakViewModel,
                     onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) },
-                    onNavigateToSummary = { navController.navigate(NavRoutes.SUMMARY) }
+                    onNavigateToSummary = { navController.navigate(NavRoutes.SUMMARY) },
+                    onNavigateToWalletDetail = { id -> navController.navigate(NavRoutes.walletDetailRoute(id)) }
                 )
             }
 

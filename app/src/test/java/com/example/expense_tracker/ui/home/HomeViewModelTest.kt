@@ -22,9 +22,20 @@ class HomeViewModelTest {
 
     private lateinit var viewModel: HomeViewModel
     private lateinit var fakeRepository: FakeExpenseRepository
+    private lateinit var fakeWalletRepository: FakeWalletRepository
     private val testDispatcher = StandardTestDispatcher()
 
     // ── Fake Repository ────────────────────────────────────────────
+
+    private class FakeWalletRepository(
+        private var wallets: List<com.example.expense_tracker.data.Wallet> = emptyList()
+    ) : com.example.expense_tracker.data.WalletRepository {
+        override fun getAllWallets(): List<com.example.expense_tracker.data.Wallet> = wallets
+        override fun getWalletById(id: Long): com.example.expense_tracker.data.Wallet? = wallets.find { it.id == id }
+        override fun insertWallet(wallet: com.example.expense_tracker.data.Wallet) { wallets = wallets + wallet }
+        override fun deleteWallet(wallet: com.example.expense_tracker.data.Wallet) { wallets = wallets.filterNot { it.id == wallet.id } }
+        fun setData(newWallets: List<com.example.expense_tracker.data.Wallet>) { wallets = newWallets }
+    }
 
     private class FakeExpenseRepository(
         private var expenses: List<Expense> = emptyList(),
@@ -112,6 +123,7 @@ class HomeViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeRepository = FakeExpenseRepository()
+        fakeWalletRepository = FakeWalletRepository()
     }
 
     @After
@@ -120,7 +132,7 @@ class HomeViewModelTest {
     }
 
     private fun initAndAdvance() {
-        viewModel = HomeViewModel(fakeRepository, testDispatcher)
+        viewModel = HomeViewModel(fakeRepository, fakeWalletRepository, testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
     }
 
@@ -145,6 +157,20 @@ class HomeViewModelTest {
         assertEquals(50_000L, state.totalIncome)
         assertEquals(20_000L, state.totalAmount) // 50k - 30k
         assertEquals(3, state.transactions.size)
+    }
+
+    @Test
+    fun `wallets are loaded successfully`() {
+        fakeWalletRepository.setData(listOf(
+            com.example.expense_tracker.data.Wallet(1, "Cash", 50_000L),
+            com.example.expense_tracker.data.Wallet(2, "BCA", 150_000L)
+        ))
+        initAndAdvance()
+        
+        val state = viewModel.uiState.value
+        assertEquals(2, state.wallets.size)
+        assertEquals("Cash", state.wallets[0].name)
+        assertEquals("BCA", state.wallets[1].name)
     }
 
     @Test

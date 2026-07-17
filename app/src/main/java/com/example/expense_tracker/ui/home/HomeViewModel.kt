@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 
 class HomeViewModel(
     private val repository: ExpenseRepository,
+    private val walletRepository: com.example.expense_tracker.data.WalletRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -36,6 +37,7 @@ class HomeViewModel(
             val totalIncome = withContext(ioDispatcher) { repository.getTotalIncome(start, end) }
             val transactions = withContext(ioDispatcher) { repository.getAllTransactionsBetween(start, end) }
             val categories = withContext(ioDispatcher) { repository.getCategories() }
+            val wallets = withContext(ioDispatcher) { walletRepository.getAllWallets() }
 
             val withCategory = transactions.map { expense ->
                 val category = categories.find { it.id == expense.categoryId }
@@ -46,7 +48,8 @@ class HomeViewModel(
                     categoryName = category?.name ?: "Lainnya",
                     description = expense.description,
                     timestamp = expense.timestamp,
-                    type = expense.type
+                    type = expense.type,
+                    walletId = expense.walletId
                 )
             }
 
@@ -55,6 +58,7 @@ class HomeViewModel(
                 totalIncome = totalIncome,
                 totalExpense = totalExpense,
                 transactions = withCategory,
+                wallets = wallets,
                 isLoading = false
             )
         }
@@ -69,7 +73,8 @@ class HomeViewModel(
                     categoryId = expense.categoryId,
                     description = expense.description,
                     timestamp = expense.timestamp,
-                    type = expense.type
+                    type = expense.type,
+                    walletId = expense.walletId
                 )
                 repository.deleteExpense(dbExpense)
             }
@@ -86,7 +91,8 @@ class HomeViewModel(
                     categoryId = expense.categoryId,
                     description = expense.description,
                     timestamp = expense.timestamp,
-                    type = expense.type
+                    type = expense.type,
+                    walletId = expense.walletId
                 )
                 repository.insertExpense(dbExpense)
             }

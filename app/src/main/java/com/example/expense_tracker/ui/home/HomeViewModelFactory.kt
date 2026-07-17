@@ -27,7 +27,8 @@ class HomeViewModelFactory : ViewModelProvider.Factory {
                     if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
                         val db = AppDatabase.getInstance(application)
                         val repository = RoomExpenseRepository(db.expenseDao())
-                        return HomeViewModel(repository) as T
+                        val walletRepository = com.example.expense_tracker.data.RoomWalletRepository(db.walletDao())
+                        return HomeViewModel(repository, walletRepository) as T
                     }
                     throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
                 }
