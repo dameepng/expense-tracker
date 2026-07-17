@@ -9,14 +9,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration
 
 @Database(
-    entities = [Expense::class, Category::class, Wallet::class],
-    version = 6,
+    entities = [Expense::class, Category::class, Wallet::class, BillReminder::class],
+    version = 7,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun expenseDao(): ExpenseDao
     abstract fun walletDao(): WalletDao
+    abstract fun billReminderDao(): BillReminderDao
 
     companion object {
 
@@ -31,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "expense_tracker.db"
                 )
                     .addCallback(SeedCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                     .build()
                     .also { INSTANCE = it }
             }
@@ -84,6 +85,27 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                     db.insert("categories", 0, values)
                 }
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS bill_reminders (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        amount INTEGER NOT NULL,
+                        dueDay INTEGER NOT NULL,
+                        categoryId INTEGER NOT NULL,
+                        walletId INTEGER NOT NULL,
+                        isActive INTEGER NOT NULL DEFAULT 1,
+                        createdAt INTEGER NOT NULL,
+                        FOREIGN KEY(categoryId) REFERENCES categories(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+                        FOREIGN KEY(walletId) REFERENCES wallets(id) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_bill_reminders_categoryId ON bill_reminders(categoryId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_bill_reminders_walletId ON bill_reminders(walletId)")
             }
         }
     }
