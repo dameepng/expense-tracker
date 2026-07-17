@@ -103,7 +103,10 @@ fun WalletDetailScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             // Balance Card (reuse from Home)
-            BalanceCard(totalBalance = state.balance)
+            BalanceCard(
+                totalBalance = state.balance,
+                selectedWalletName = state.wallet?.name ?: "Wallet"
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

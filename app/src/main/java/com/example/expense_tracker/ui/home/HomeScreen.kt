@@ -44,6 +44,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -80,6 +82,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun HomeHeader(
+    wallets: List<com.example.expense_tracker.data.Wallet>,
+    selectedWalletId: Long?,
+    onWalletSelected: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -117,6 +122,51 @@ fun HomeHeader(
                 )
             }
         }
+        
+        Box {
+            var expanded by remember { mutableStateOf(false) }
+            IconButton(
+                onClick = { expanded = true },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccountBalanceWallet,
+                    contentDescription = "Select Wallet",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("All Wallets") },
+                    onClick = {
+                        onWalletSelected(null)
+                        expanded = false
+                    },
+                    leadingIcon = {
+                        if (selectedWalletId == null) {
+                            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                )
+                wallets.forEach { wallet ->
+                    DropdownMenuItem(
+                        text = { Text(wallet.name) },
+                        onClick = {
+                            onWalletSelected(wallet.id)
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            if (selectedWalletId == wallet.id) {
+                                Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(20.dp))
+                            }
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -125,6 +175,7 @@ fun HomeHeader(
 @Composable
 fun BalanceCard(
     totalBalance: Long,
+    selectedWalletName: String,
     modifier: Modifier = Modifier
 ) {
     val gradient = Brush.linearGradient(
@@ -154,6 +205,12 @@ fun BalanceCard(
                     verticalAlignment = Alignment.Top
                 ) {
                     Column {
+                        Text(
+                            text = selectedWalletName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
                         Text(
                             text = CurrencyFormatter.format(totalBalance),
                             style = MaterialTheme.typography.displaySmall,
@@ -540,13 +597,18 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
             // Custom Header
-        HomeHeader()
+        HomeHeader(
+            wallets = state.wallets,
+            selectedWalletId = state.selectedWalletId,
+            onWalletSelected = { viewModel.selectWallet(it) }
+        )
         
         Spacer(modifier = Modifier.height(8.dp))
 
         // Balance Card
         BalanceCard(
-            totalBalance = state.totalAmount
+            totalBalance = state.totalAmount,
+            selectedWalletName = state.selectedWalletName
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -557,14 +619,7 @@ fun HomeScreen(
             totalExpense = state.totalExpense
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        WalletOverview(
-            wallets = state.wallets,
-            onWalletClick = onNavigateToWalletDetail
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
         // Transactions Section Header
         Row(
             modifier = Modifier
@@ -702,7 +757,7 @@ fun HomeScreen(
 @Composable
 fun BalanceCardPreview() {
     Expense_trackerTheme {
-        BalanceCard(totalBalance = 150_000L)
+        BalanceCard(totalBalance = 150_000L, selectedWalletName = "All Wallets")
     }
 }
 
@@ -710,7 +765,11 @@ fun BalanceCardPreview() {
 @Composable
 fun HomeHeaderPreview() {
     Expense_trackerTheme {
-        HomeHeader()
+        HomeHeader(
+            wallets = emptyList(),
+            selectedWalletId = null,
+            onWalletSelected = {}
+        )
     }
 }
 
@@ -765,9 +824,13 @@ fun HomeScreenPreview_withData() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            HomeHeader()
+            HomeHeader(
+                wallets = emptyList(),
+                selectedWalletId = null,
+                onWalletSelected = {}
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            BalanceCard(totalBalance = fakeState.totalAmount)
+            BalanceCard(totalBalance = fakeState.totalAmount, selectedWalletName = fakeState.selectedWalletName)
             Spacer(modifier = Modifier.height(16.dp))
             IncomeExpenseSummary(totalIncome = fakeState.totalIncome, totalExpense = fakeState.totalExpense)
             Spacer(modifier = Modifier.height(24.dp))

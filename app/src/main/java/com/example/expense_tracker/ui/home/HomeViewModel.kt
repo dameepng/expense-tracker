@@ -26,16 +26,34 @@ class HomeViewModel(
         refresh()
     }
 
-
-
+    fun selectWallet(walletId: Long?) {
+        val selectedWallet = _uiState.value.wallets.find { it.id == walletId }
+        _uiState.value = _uiState.value.copy(
+            selectedWalletId = walletId,
+            selectedWalletName = selectedWallet?.name ?: "All Wallets"
+        )
+        refresh()
+    }
+    
     fun refresh() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
             kotlinx.coroutines.delay(300) // Artificial delay for smoother transition feel
             val (start, end) = TimeRangeCalculator.calculateRange(FilterPeriod.MONTH)
-            val totalExpense = withContext(ioDispatcher) { repository.getTotalExpense(start, end) }
-            val totalIncome = withContext(ioDispatcher) { repository.getTotalIncome(start, end) }
-            val transactions = withContext(ioDispatcher) { repository.getAllTransactionsBetween(start, end) }
+            val walletId = _uiState.value.selectedWalletId
+            
+            val totalExpense = withContext(ioDispatcher) { 
+                if (walletId != null) repository.getTotalExpenseByWallet(walletId, start, end)
+                else repository.getTotalExpense(start, end)
+            }
+            val totalIncome = withContext(ioDispatcher) { 
+                if (walletId != null) repository.getTotalIncomeByWallet(walletId, start, end)
+                else repository.getTotalIncome(start, end)
+            }
+            val transactions = withContext(ioDispatcher) { 
+                if (walletId != null) repository.getTransactionsByWallet(walletId, start, end)
+                else repository.getAllTransactionsBetween(start, end)
+            }
             val categories = withContext(ioDispatcher) { repository.getCategories() }
             val wallets = withContext(ioDispatcher) { walletRepository.getAllWallets() }
 
