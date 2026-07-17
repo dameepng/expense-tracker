@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -133,15 +134,13 @@ fun HomeHeader(
 
 @Composable
 fun BalanceCard(
-    amount: Long,
-    periodLabel: String,
-    onAddExpense: () -> Unit,
+    totalBalance: Long,
     modifier: Modifier = Modifier
 ) {
     val gradient = Brush.linearGradient(
         colors = listOf(
-            Color(0xFFFF512F), // Vibrant Orange
-            Color(0xFFDD2476)  // Vibrant Red/Pink
+            Color(0xFF2D2D3A),
+            Color(0xFF1A1A2E)
         )
     )
 
@@ -157,57 +156,72 @@ fun BalanceCard(
                 .background(gradient)
                 .padding(24.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color.White.copy(alpha = 0.2f),
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Top Row: Amount & More icon
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Text(
-                        text = periodLabel,
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    Column {
+                        Text(
+                            text = CurrencyFormatter.format(totalBalance),
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Balance",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Options",
+                        tint = Color.White.copy(alpha = 0.7f)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Text(
-                    text = CurrencyFormatter.format(amount),
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    text = "Balance",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f)
+                // Progress Indicator
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = 0.45f,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp),
+                    color = Color(0xFFFF512F),
+                    trackColor = Color.White.copy(alpha = 0.1f)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Quick Action Buttons
+                // Bottom Row: Card number dots & Mastercard style logo
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
-                        onClick = onAddExpense,
-                        modifier = Modifier
-                            .size(56.dp)
-                            .background(
-                                color = Color.White.copy(alpha = 0.2f),
-                                shape = CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Tambah Pengeluaran",
-                            tint = Color.White
-                        )
+                    Text(
+                        text = "****  ****  402",
+                        style = MaterialTheme.typography.bodyMedium,
+                        letterSpacing = 2.sp,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                    
+                    // Decorative mastercard-style circles
+                    Box(modifier = Modifier.width(40.dp).height(24.dp)) {
+                        Surface(
+                            modifier = Modifier.size(24.dp).align(Alignment.CenterStart),
+                            shape = CircleShape,
+                            color = Color(0xFFEA001B).copy(alpha = 0.8f)
+                        ) {}
+                        Surface(
+                            modifier = Modifier.size(24.dp).align(Alignment.CenterEnd),
+                            shape = CircleShape,
+                            color = Color(0xFFF79E1B).copy(alpha = 0.8f)
+                        ) {}
                     }
                 }
             }
@@ -358,9 +372,7 @@ fun HomeScreen(
 
         // Balance Card
         BalanceCard(
-            amount = state.totalAmount,
-            periodLabel = state.periodLabel,
-            onAddExpense = { onNavigateToInput(null) }
+            totalBalance = state.totalAmount
         )
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -501,7 +513,7 @@ fun HomeScreen(
 @Composable
 fun BalanceCardPreview() {
     Expense_trackerTheme {
-        BalanceCard(amount = 150_000L, periodLabel = "Hari Ini", onAddExpense = {})
+        BalanceCard(totalBalance = 150_000L)
     }
 }
 
@@ -551,7 +563,7 @@ fun HomeScreenPreview_withData() {
         ) {
             HomeHeader(onNavigateToSummary = {})
             Spacer(modifier = Modifier.height(8.dp))
-            BalanceCard(amount = fakeState.totalAmount, periodLabel = fakeState.periodLabel, onAddExpense = {})
+            BalanceCard(totalBalance = fakeState.totalAmount)
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
