@@ -10,7 +10,7 @@ import androidx.room.migration.Migration
 
 @Database(
     entities = [Expense::class, Category::class, Wallet::class, BillReminder::class],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -32,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "expense_tracker.db"
                 )
                     .addCallback(SeedCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                     .build()
                     .also { INSTANCE = it }
             }
@@ -106,6 +106,12 @@ abstract class AppDatabase : RoomDatabase() {
                 """.trimIndent())
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_bill_reminders_categoryId ON bill_reminders(categoryId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_bill_reminders_walletId ON bill_reminders(walletId)")
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE bill_reminders ADD COLUMN lastPaidMonth TEXT")
             }
         }
     }

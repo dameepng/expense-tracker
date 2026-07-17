@@ -32,7 +32,8 @@ data class BillReminder(
     val categoryId: Long,
     val walletId: Long,
     val isActive: Boolean = true,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val lastPaidMonth: String? = null
 ) {
     init {
         require(amount > 0) { "Amount must be greater than 0, but was $amount" }

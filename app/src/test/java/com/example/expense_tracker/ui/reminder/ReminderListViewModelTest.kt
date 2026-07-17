@@ -30,9 +30,13 @@ class ReminderListViewModelTest {
     private lateinit var viewModel: ReminderListViewModel
 
     private class FakeExpenseRepository(val presetCategories: List<Category>) : ExpenseRepository {
+        val insertedExpenses = mutableListOf<Expense>()
+        
         override fun getCategories(): List<Category> = presetCategories
         override fun getCategoriesByType(type: String): List<Category> = presetCategories.filter { it.type == type }
-        override fun insertExpense(expense: Expense) {}
+        override fun insertExpense(expense: Expense) {
+            insertedExpenses.add(expense)
+        }
         override fun deleteExpense(expense: Expense) {}
         override fun getExpenseById(id: Long): Expense? = null
         override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> = emptyList()
@@ -75,5 +79,36 @@ class ReminderListViewModelTest {
         assertEquals("Test Reminder", item.reminder.name)
         assertEquals("Listrik", item.categoryName)
         assertEquals("BCA", item.walletName)
+    }
+
+    @Test
+    fun `markAsPaid inserts expense and updates lastPaidMonth`() {
+        val reminderId = reminderRepository.insertReminder(
+            BillReminder(name = "Test Reminder", amount = 1000, dueDay = 5, categoryId = 1, walletId = 1, isActive = true)
+        )
+        expenseRepository = FakeExpenseRepository(listOf(Category(1, "Listrik", "EXPENSE")))
+        walletRepository.insertWallet(Wallet(1, "BCA", 5000))
+
+        viewModel = ReminderListViewModel(reminderRepository, expenseRepository, walletRepository, testDispatcher)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val reminder = reminderRepository.getReminderById(reminderId)!!
+        viewModel.markAsPaid(reminder)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Verify expense inserted
+        assertEquals(1, expenseRepository.insertedExpenses.size)
+        val expense = expenseRepository.insertedExpenses.first()
+        assertEquals(1000, expense.amount)
+        assertEquals("Test Reminder", expense.description)
+        
+        // Verify wallet updated
+        val wallet = walletRepository.getWalletById(1)!!
+        assertEquals(4000, wallet.balance)
+        
+        // Verify reminder updated
+        val updatedReminder = reminderRepository.getReminderById(reminderId)!!
+        val currentMonth = java.time.YearMonth.now().toString()
+        assertEquals(currentMonth, updatedReminder.lastPaidMonth)
     }
 }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 class HomeViewModel(
     private val repository: ExpenseRepository,
     private val walletRepository: com.example.expense_tracker.data.WalletRepository,
+    private val billReminderRepository: com.example.expense_tracker.data.BillReminderRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -56,6 +57,10 @@ class HomeViewModel(
             }
             val categories = withContext(ioDispatcher) { repository.getCategories() }
             val wallets = withContext(ioDispatcher) { walletRepository.getAllWallets() }
+            val activeRemindersCount = withContext(ioDispatcher) {
+                val currentMonth = java.time.YearMonth.now().toString()
+                billReminderRepository.getActiveReminders().count { it.lastPaidMonth != currentMonth }
+            }
 
             val withCategory = transactions.map { expense ->
                 val category = categories.find { it.id == expense.categoryId }
@@ -77,6 +82,7 @@ class HomeViewModel(
                 totalExpense = totalExpense,
                 transactions = withCategory,
                 wallets = wallets,
+                activeRemindersCount = activeRemindersCount,
                 isLoading = false
             )
         }

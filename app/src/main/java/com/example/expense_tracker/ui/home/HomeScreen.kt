@@ -84,6 +84,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun HeaderSection(
     modifier: Modifier = Modifier,
+    activeRemindersCount: Int = 0,
     onNavigateToReminder: () -> Unit = {}
 ) {
     Row(
@@ -126,11 +127,30 @@ fun HeaderSection(
             onClick = onNavigateToReminder,
             modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
         ) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "Notifications",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (activeRemindersCount > 0) {
+                androidx.compose.material3.BadgedBox(
+                    badge = {
+                        androidx.compose.material3.Badge(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        ) {
+                            Text(text = activeRemindersCount.toString())
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = "Notifications",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = "Notifications",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -593,7 +613,10 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            HeaderSection(onNavigateToReminder = onNavigateToReminder)
+            HeaderSection(
+                activeRemindersCount = state.activeRemindersCount,
+                onNavigateToReminder = onNavigateToReminder
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,

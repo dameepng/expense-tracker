@@ -3,17 +3,22 @@ package com.example.expense_tracker.ui.reminder
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -112,7 +117,8 @@ fun ReminderListScreen(
                     ) {
                         ReminderItemCard(
                             item = item,
-                            onClick = { onNavigateToForm(item.reminder.id) }
+                            onClick = { onNavigateToForm(item.reminder.id) },
+                            onClickMarkAsPaid = { viewModel.markAsPaid(item.reminder) }
                         )
                     }
                 }
@@ -125,7 +131,8 @@ fun ReminderListScreen(
 @Composable
 fun ReminderItemCard(
     item: ReminderItemUiState,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onClickMarkAsPaid: () -> Unit
 ) {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
     
@@ -155,11 +162,27 @@ fun ReminderItemCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Text(
-                text = currencyFormat.format(item.reminder.amount),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.error
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = currencyFormat.format(item.reminder.amount),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.padding(4.dp))
+                Button(
+                    onClick = { onClickMarkAsPaid() },
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Mark as Paid",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.padding(2.dp))
+                    Text("Bayar", style = MaterialTheme.typography.labelSmall)
+                }
+            }
         }
     }
 }

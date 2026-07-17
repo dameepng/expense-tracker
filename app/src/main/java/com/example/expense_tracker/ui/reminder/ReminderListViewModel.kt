@@ -83,6 +83,34 @@ class ReminderListViewModel(
             loadReminders()
         }
     }
+
+    fun markAsPaid(reminder: BillReminder) {
+        viewModelScope.launch {
+            withContext(ioDispatcher) {
+                // 1. Create an Expense
+                val expense = com.example.expense_tracker.data.Expense(
+                    amount = reminder.amount,
+                    categoryId = reminder.categoryId,
+                    walletId = reminder.walletId,
+                    description = reminder.name,
+                    timestamp = System.currentTimeMillis(),
+                    type = "EXPENSE"
+                )
+                expenseRepository.insertExpense(expense)
+                
+                // 2. Update wallet balance
+                val wallet = walletRepository.getWalletById(reminder.walletId)
+                if (wallet != null) {
+                    walletRepository.insertWallet(wallet.copy(balance = wallet.balance - reminder.amount))
+                }
+
+                // 3. Mark reminder as paid for this month
+                val currentMonth = java.time.YearMonth.now().toString() // e.g., "2026-07"
+                repository.updateReminder(reminder.copy(lastPaidMonth = currentMonth))
+            }
+            loadReminders()
+        }
+    }
 }
 
 class ReminderListViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

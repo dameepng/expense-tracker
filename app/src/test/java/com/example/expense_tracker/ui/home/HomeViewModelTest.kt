@@ -3,6 +3,7 @@ package com.example.expense_tracker.ui.home
 import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.Expense
 import com.example.expense_tracker.data.ExpenseRepository
+import com.example.expense_tracker.data.FakeBillReminderRepository
 import com.example.expense_tracker.data.CategoryBreakdown
 import com.example.expense_tracker.data.TransactionType
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,7 @@ class HomeViewModelTest {
     private lateinit var viewModel: HomeViewModel
     private lateinit var fakeRepository: FakeExpenseRepository
     private lateinit var fakeWalletRepository: FakeWalletRepository
+    private lateinit var fakeBillReminderRepository: FakeBillReminderRepository
     private val testDispatcher = StandardTestDispatcher()
 
     // ── Fake Repository ────────────────────────────────────────────
@@ -126,6 +128,7 @@ class HomeViewModelTest {
         Dispatchers.setMain(testDispatcher)
         fakeRepository = FakeExpenseRepository()
         fakeWalletRepository = FakeWalletRepository()
+        fakeBillReminderRepository = FakeBillReminderRepository()
     }
 
     @After
@@ -134,7 +137,7 @@ class HomeViewModelTest {
     }
 
     private fun initAndAdvance() {
-        viewModel = HomeViewModel(fakeRepository, fakeWalletRepository, testDispatcher)
+        viewModel = HomeViewModel(fakeRepository, fakeWalletRepository, fakeBillReminderRepository, testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
     }
 
