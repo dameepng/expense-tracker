@@ -39,8 +39,8 @@ class ExpenseDaoTest {
     fun insertAndGetIncomeAndExpenseTotals() {
         // 1. Setup category using raw query since categoryDao is not exposed directly
         val db = database.openHelper.writableDatabase
-        db.execSQL("INSERT INTO categories (id, name) VALUES (1, 'Makanan')")
-        db.execSQL("INSERT INTO categories (id, name) VALUES (2, 'Gaji')")
+        db.execSQL("INSERT INTO categories (id, name, type) VALUES (1, 'Makanan', 'EXPENSE')")
+        db.execSQL("INSERT INTO categories (id, name, type) VALUES (2, 'Gaji', 'INCOME')")
 
         // 2. Insert dummy data
         val expense1 = Expense(

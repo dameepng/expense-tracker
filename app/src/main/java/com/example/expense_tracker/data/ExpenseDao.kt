@@ -29,6 +29,9 @@ interface ExpenseDao {
     @Query("SELECT * FROM categories WHERE id = :id")
     fun getCategoryById(id: Long): Category?
 
+    @Query("SELECT * FROM categories WHERE type = :type OR type = 'BOTH' ORDER BY id ASC")
+    fun getCategoriesByType(type: String): List<Category>
+
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime AND type = 'EXPENSE'")
     fun getTotalExpense(startTime: Long, endTime: Long): Long
 

@@ -10,7 +10,7 @@ import androidx.room.migration.Migration
 
 @Database(
     entities = [Expense::class, Category::class, Wallet::class],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -31,7 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "expense_tracker.db"
                 )
                     .addCallback(SeedCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                     .also { INSTANCE = it }
             }
@@ -68,20 +68,48 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE expenses ADD COLUMN walletId INTEGER NOT NULL DEFAULT 1")
             }
         }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add type column to categories
+                db.execSQL("ALTER TABLE categories ADD COLUMN type TEXT NOT NULL DEFAULT 'EXPENSE'")
+                // Update "Lainnya" to BOTH so it appears in both views
+                db.execSQL("UPDATE categories SET type = 'BOTH' WHERE name = 'Lainnya'")
+                // Insert income categories
+                val incomeCategories = listOf("Gaji", "Freelance", "Bonus", "Transfer Masuk")
+                for (name in incomeCategories) {
+                    val values = ContentValues().apply {
+                        put("name", name)
+                        put("type", "INCOME")
+                    }
+                    db.insert("categories", 0, values)
+                }
+            }
+        }
     }
 
     class SeedCallback : Callback() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             val presetCategories = listOf(
-                "Makanan", "Transport", "Belanja",
-                "Hiburan", "Tagihan", "Kesehatan", "Lainnya"
+                "Makanan" to "EXPENSE",
+                "Transport" to "EXPENSE",
+                "Belanja" to "EXPENSE",
+                "Hiburan" to "EXPENSE",
+                "Tagihan" to "EXPENSE",
+                "Kesehatan" to "EXPENSE",
+                "Lainnya" to "BOTH",
+                "Gaji" to "INCOME",
+                "Freelance" to "INCOME",
+                "Bonus" to "INCOME",
+                "Transfer Masuk" to "INCOME"
             )
             db.beginTransaction()
             try {
-                for (name in presetCategories) {
+                for ((name, type) in presetCategories) {
                     val values = ContentValues().apply {
                         put("name", name)
+                        put("type", type)
                     }
                     db.insert("categories", 0, values)
                 }

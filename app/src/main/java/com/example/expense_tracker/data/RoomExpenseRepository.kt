@@ -26,6 +26,8 @@ class RoomExpenseRepository(
     override fun getCategories(): List<Category> =
         dao.getAllCategories()
 
+    override fun getCategoriesByType(type: String): List<Category> =
+        dao.getCategoriesByType(type)
     override fun deleteExpense(expense: Expense) =
         dao.deleteExpense(expense)
 

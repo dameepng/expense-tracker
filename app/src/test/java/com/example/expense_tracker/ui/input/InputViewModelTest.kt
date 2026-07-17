@@ -22,16 +22,22 @@ class InputViewModelTest {
     private class FakeInputRepository : InputRepository {
         var savedExpenses = mutableListOf<SavedExpense>()
         var presetCategories = listOf(
-            Category(1, "Makanan"),
-            Category(2, "Transport"),
-            Category(3, "Belanja"),
-            Category(4, "Hiburan"),
-            Category(5, "Tagihan"),
-            Category(6, "Kesehatan"),
-            Category(7, "Lainnya"),
+            Category(1, "Makanan", "EXPENSE"),
+            Category(2, "Transport", "EXPENSE"),
+            Category(3, "Belanja", "EXPENSE"),
+            Category(4, "Hiburan", "EXPENSE"),
+            Category(5, "Tagihan", "EXPENSE"),
+            Category(6, "Kesehatan", "EXPENSE"),
+            Category(7, "Lainnya", "BOTH"),
+            Category(8, "Gaji", "INCOME"),
+            Category(9, "Freelance", "INCOME"),
+            Category(10, "Bonus", "INCOME"),
+            Category(11, "Transfer Masuk", "INCOME")
         )
 
         override fun getCategories(): List<Category> = presetCategories
+        override fun getCategoriesByType(type: String): List<Category> =
+            presetCategories.filter { it.type == type || it.type == "BOTH" }
         override fun getExpenseById(id: Long): com.example.expense_tracker.data.Expense? = null
         override fun insertExpense(amount: Long, categoryId: Long, description: String, timestamp: Long, type: String, walletId: Long, id: Long) {
             savedExpenses.add(SavedExpense(amount, categoryId, description, timestamp, type, walletId))
@@ -69,12 +75,14 @@ class InputViewModelTest {
     }
 
     @Test
-    fun `initial state loads 7 preset categories`() {
+    fun `initial state loads expense categories by default`() {
         val repo = FakeInputRepository()
         val vm = initViewModel(repo)
         val state = vm.uiState.value
 
+        // 6 EXPENSE + 1 BOTH (Lainnya) = 7
         assertEquals(7, state.categories.size)
+        assertTrue(state.categories.all { it.type == "EXPENSE" || it.type == "BOTH" })
     }
 
     @Test
@@ -210,5 +218,40 @@ class InputViewModelTest {
         assertNull(vm.uiState.value.selectedCategoryId)
         // selectedWalletId might also be null or auto-selected, but saved is true
         assertTrue(vm.uiState.value.saved)
+    }
+
+    @Test
+    fun `switching to income type loads income categories`() {
+        val repo = FakeInputRepository()
+        val vm = initViewModel(repo)
+
+        vm.onTransactionTypeChange(com.example.expense_tracker.data.TransactionType.INCOME)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = vm.uiState.value
+        // 4 INCOME + 1 BOTH (Lainnya) = 5
+        assertEquals(5, state.categories.size)
+        assertTrue(state.categories.all { it.type == "INCOME" || it.type == "BOTH" })
+        assertNull(state.selectedCategoryId) // selection reset
+    }
+
+    @Test
+    fun `switching type resets category selection and disables save`() {
+        val repo = FakeInputRepository()
+        val walletRepo = FakeWalletRepository().apply {
+            insertWallet(Wallet(1L, "Cash", 0L))
+        }
+        val vm = initViewModel(repo, walletRepo)
+
+        vm.onAmountChange("50000")
+        vm.onCategorySelected(1L)
+        vm.onWalletSelected(1L)
+        assertTrue(vm.uiState.value.isSaveEnabled)
+
+        vm.onTransactionTypeChange(com.example.expense_tracker.data.TransactionType.INCOME)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertNull(vm.uiState.value.selectedCategoryId)
+        assertFalse(vm.uiState.value.isSaveEnabled)
     }
 }

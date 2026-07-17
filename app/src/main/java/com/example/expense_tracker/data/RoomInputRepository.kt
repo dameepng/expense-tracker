@@ -8,6 +8,8 @@ class RoomInputRepository(
 
     override fun getCategories(): List<Category> = dao.getAllCategories()
 
+    override fun getCategoriesByType(type: String): List<Category> = dao.getCategoriesByType(type)
+
     override fun getExpenseById(id: Long) = dao.getExpenseById(id)
 
     override fun insertExpense(amount: Long, categoryId: Long, description: String, timestamp: Long, type: String, walletId: Long, id: Long) {

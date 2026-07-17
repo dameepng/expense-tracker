@@ -43,13 +43,14 @@ class ExpenseDatabaseTest {
     // ── Category Tests ────────────────────────────────────────────
 
     @Test
-    fun `getAllCategories returns 7 preset categories after first install`() {
+    fun `getAllCategories returns 11 preset categories after first install`() {
         val categories = dao.getAllCategories()
-        assertEquals(7, categories.size)
+        assertEquals(11, categories.size)
 
         val expectedNames = setOf(
             "Makanan", "Transport", "Belanja",
-            "Hiburan", "Tagihan", "Kesehatan", "Lainnya"
+            "Hiburan", "Tagihan", "Kesehatan", "Lainnya",
+            "Gaji", "Freelance", "Bonus", "Transfer Masuk"
         )
         val actualNames = categories.map { it.name }.toSet()
         assertEquals(expectedNames, actualNames)

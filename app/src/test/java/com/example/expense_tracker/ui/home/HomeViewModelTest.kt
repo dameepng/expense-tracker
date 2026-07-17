@@ -85,6 +85,8 @@ class HomeViewModelTest {
         }
 
         override fun getCategories(): List<Category> = categories.toList()
+        override fun getCategoriesByType(type: String): List<Category> =
+            categories.filter { it.type == type || it.type == "BOTH" }
 
         fun setData(expenses: List<Expense>, categories: List<Category>) {
             this.expenses = expenses.toList()

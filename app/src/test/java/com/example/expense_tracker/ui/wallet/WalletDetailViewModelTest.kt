@@ -46,6 +46,7 @@ class WalletDetailViewModelTest {
         override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> = emptyList()
         override fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense> = emptyList()
         override fun getCategories(): List<Category> = emptyList()
+        override fun getCategoriesByType(type: String): List<Category> = emptyList()
         override fun insertExpense(expense: Expense) {}
         override fun deleteExpense(expense: Expense) {}
         override fun getExpenseById(id: Long): Expense? = null

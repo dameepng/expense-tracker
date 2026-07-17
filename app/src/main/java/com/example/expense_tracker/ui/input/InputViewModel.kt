@@ -25,9 +25,6 @@ class InputViewModel(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            val categories = withContext(ioDispatcher) {
-                repository.getCategories()
-            }
             val wallets = withContext(ioDispatcher) {
                 walletRepository.getAllWallets()
             }
@@ -52,6 +49,10 @@ class InputViewModel(
                     }
                     loadedWalletId = expense.walletId
                 }
+            }
+
+            val categories = withContext(ioDispatcher) {
+                repository.getCategoriesByType(loadedTransactionType.name)
             }
 
             _uiState.value = _uiState.value.copy(
@@ -99,8 +100,16 @@ class InputViewModel(
 
     fun onTransactionTypeChange(type: com.example.expense_tracker.data.TransactionType) {
         _uiState.value = _uiState.value.copy(
-            transactionType = type
+            transactionType = type,
+            selectedCategoryId = null,
+            isSaveEnabled = false
         )
+        viewModelScope.launch {
+            val categories = withContext(ioDispatcher) {
+                repository.getCategoriesByType(type.name)
+            }
+            _uiState.value = _uiState.value.copy(categories = categories)
+        }
     }
 
     fun onSave() {

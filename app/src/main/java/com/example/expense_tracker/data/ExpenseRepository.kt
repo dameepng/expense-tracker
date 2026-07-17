@@ -10,6 +10,7 @@ interface ExpenseRepository {
     fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense>
     fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense>
     fun getCategories(): List<Category>
+    fun getCategoriesByType(type: String): List<Category>
     fun deleteExpense(expense: Expense)
     fun insertExpense(expense: Expense)
     fun getExpenseById(id: Long): Expense?
