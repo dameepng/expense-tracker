@@ -1,0 +1,22 @@
+package com.example.expense_tracker.data
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+
+@Dao
+interface WalletDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertWallet(wallet: Wallet)
+
+    @Delete
+    fun deleteWallet(wallet: Wallet)
+
+    @Query("SELECT * FROM wallets ORDER BY id ASC")
+    fun getAllWallets(): List<Wallet>
+
+    @Query("SELECT * FROM wallets WHERE id = :id")
+    fun getWalletById(id: Long): Wallet?
+}

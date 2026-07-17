@@ -9,13 +9,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration
 
 @Database(
-    entities = [Expense::class, Category::class],
-    version = 3,
+    entities = [Expense::class, Category::class, Wallet::class],
+    version = 4,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun expenseDao(): ExpenseDao
+    abstract fun walletDao(): WalletDao
 
     companion object {
 
@@ -30,7 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "expense_tracker.db"
                 )
                     .addCallback(SeedCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                     .also { INSTANCE = it }
             }
@@ -45,6 +46,20 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE expenses ADD COLUMN type TEXT NOT NULL DEFAULT 'EXPENSE'")
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS wallets (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        balance INTEGER NOT NULL DEFAULT 0,
+                        icon TEXT NOT NULL DEFAULT '',
+                        color TEXT NOT NULL DEFAULT ''
+                    )
+                """.trimIndent())
             }
         }
     }
@@ -64,6 +79,15 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                     db.insert("categories", 0, values)
                 }
+                
+                val walletValues = ContentValues().apply {
+                    put("name", "Cash")
+                    put("balance", 0)
+                    put("icon", "")
+                    put("color", "")
+                }
+                db.insert("wallets", 0, walletValues)
+                
                 db.setTransactionSuccessful()
             } finally {
                 db.endTransaction()
