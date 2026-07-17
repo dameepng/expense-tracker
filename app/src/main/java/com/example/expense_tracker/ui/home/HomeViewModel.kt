@@ -25,20 +25,13 @@ class HomeViewModel(
         refresh()
     }
 
-    fun onFilterSelected(filter: FilterPeriod) {
-        _uiState.value = _uiState.value.copy(
-            filter = filter,
-            periodLabel = filter.label
-        )
-        refresh()
-    }
+
 
     fun refresh() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
             kotlinx.coroutines.delay(300) // Artificial delay for smoother transition feel
-            val currentFilter = _uiState.value.filter
-            val (start, end) = TimeRangeCalculator.calculateRange(currentFilter)
+            val (start, end) = TimeRangeCalculator.calculateRange(FilterPeriod.MONTH)
             val totalExpense = withContext(ioDispatcher) { repository.getTotalExpense(start, end) }
             val totalIncome = withContext(ioDispatcher) { repository.getTotalIncome(start, end) }
             val transactions = withContext(ioDispatcher) { repository.getAllTransactionsBetween(start, end) }

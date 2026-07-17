@@ -76,7 +76,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun HomeHeader(
-    onNavigateToSummary: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -113,21 +112,6 @@ fun HomeHeader(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-        }
-        IconButton(
-            onClick = onNavigateToSummary,
-            modifier = Modifier
-                .size(48.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(12.dp)
-                )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = "Lihat Summary",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -482,7 +466,7 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
             // Custom Header
-        HomeHeader(onNavigateToSummary = onNavigateToSummary)
+        HomeHeader()
         
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -645,7 +629,7 @@ fun BalanceCardPreview() {
 @Composable
 fun HomeHeaderPreview() {
     Expense_trackerTheme {
-        HomeHeader(onNavigateToSummary = {})
+        HomeHeader()
     }
 }
 
@@ -685,7 +669,6 @@ fun TransactionListItemPreview() {
 fun HomeScreenPreview_withData() {
     Expense_trackerTheme {
         val fakeState = HomeUiState(
-            filter = FilterPeriod.TODAY,
             periodLabel = "Hari Ini",
             totalAmount = 150_000L,
             totalIncome = 300_000L,
@@ -701,7 +684,7 @@ fun HomeScreenPreview_withData() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            HomeHeader(onNavigateToSummary = {})
+            HomeHeader()
             Spacer(modifier = Modifier.height(8.dp))
             BalanceCard(totalBalance = fakeState.totalAmount)
             Spacer(modifier = Modifier.height(16.dp))
