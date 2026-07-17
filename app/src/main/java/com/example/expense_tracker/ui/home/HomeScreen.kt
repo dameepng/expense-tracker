@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.TrendingDown
@@ -82,9 +83,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun HomeHeader(
-    wallets: List<com.example.expense_tracker.data.Wallet>,
-    selectedWalletId: Long?,
-    onWalletSelected: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -123,49 +121,16 @@ fun HomeHeader(
             }
         }
         
-        Box {
-            var expanded by remember { mutableStateOf(false) }
-            IconButton(
-                onClick = { expanded = true },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AccountBalanceWallet,
-                    contentDescription = "Select Wallet",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("All Wallets") },
-                    onClick = {
-                        onWalletSelected(null)
-                        expanded = false
-                    },
-                    leadingIcon = {
-                        if (selectedWalletId == null) {
-                            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(20.dp))
-                        }
-                    }
-                )
-                wallets.forEach { wallet ->
-                    DropdownMenuItem(
-                        text = { Text(wallet.name) },
-                        onClick = {
-                            onWalletSelected(wallet.id)
-                            expanded = false
-                        },
-                        leadingIcon = {
-                            if (selectedWalletId == wallet.id) {
-                                Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(20.dp))
-                            }
-                        }
-                    )
-                }
-            }
+        
+        IconButton(
+            onClick = { /* TODO: Notification */ },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = "Notifications",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -176,6 +141,9 @@ fun HomeHeader(
 fun BalanceCard(
     totalBalance: Long,
     selectedWalletName: String,
+    wallets: List<com.example.expense_tracker.data.Wallet> = emptyList(),
+    selectedWalletId: Long? = null,
+    onWalletSelected: (Long?) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val gradient = Brush.linearGradient(
@@ -223,11 +191,47 @@ fun BalanceCard(
                             color = Color.White.copy(alpha = 0.7f)
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Options",
-                        tint = Color.White.copy(alpha = 0.7f)
-                    )
+                    Box {
+                        var expanded by remember { mutableStateOf(false) }
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Options",
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("All Wallets") },
+                                onClick = {
+                                    onWalletSelected(null)
+                                    expanded = false
+                                },
+                                leadingIcon = {
+                                    if (selectedWalletId == null) {
+                                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(20.dp))
+                                    }
+                                }
+                            )
+                            wallets.forEach { wallet ->
+                                DropdownMenuItem(
+                                    text = { Text(wallet.name) },
+                                    onClick = {
+                                        onWalletSelected(wallet.id)
+                                        expanded = false
+                                    },
+                                    leadingIcon = {
+                                        if (selectedWalletId == wallet.id) {
+                                            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -597,18 +601,17 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
             // Custom Header
-        HomeHeader(
-            wallets = state.wallets,
-            selectedWalletId = state.selectedWalletId,
-            onWalletSelected = { viewModel.selectWallet(it) }
-        )
+        HomeHeader()
         
         Spacer(modifier = Modifier.height(8.dp))
 
         // Balance Card
         BalanceCard(
             totalBalance = state.totalAmount,
-            selectedWalletName = state.selectedWalletName
+            selectedWalletName = state.selectedWalletName,
+            wallets = state.wallets,
+            selectedWalletId = state.selectedWalletId,
+            onWalletSelected = { viewModel.selectWallet(it) }
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -766,11 +769,7 @@ fun BalanceCardPreview() {
 @Composable
 fun HomeHeaderPreview() {
     Expense_trackerTheme {
-        HomeHeader(
-            wallets = emptyList(),
-            selectedWalletId = null,
-            onWalletSelected = {}
-        )
+        HomeHeader()
     }
 }
 
@@ -825,13 +824,15 @@ fun HomeScreenPreview_withData() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            HomeHeader(
+            HomeHeader()
+            Spacer(modifier = Modifier.height(8.dp))
+            BalanceCard(
+                totalBalance = fakeState.totalAmount, 
+                selectedWalletName = fakeState.selectedWalletName,
                 wallets = emptyList(),
                 selectedWalletId = null,
                 onWalletSelected = {}
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            BalanceCard(totalBalance = fakeState.totalAmount, selectedWalletName = fakeState.selectedWalletName)
             Spacer(modifier = Modifier.height(16.dp))
             IncomeExpenseSummary(totalIncome = fakeState.totalIncome, totalExpense = fakeState.totalExpense)
             Spacer(modifier = Modifier.height(24.dp))
