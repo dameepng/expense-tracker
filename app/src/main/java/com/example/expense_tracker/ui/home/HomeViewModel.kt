@@ -39,15 +39,12 @@ class HomeViewModel(
             kotlinx.coroutines.delay(300) // Artificial delay for smoother transition feel
             val currentFilter = _uiState.value.filter
             val (start, end) = TimeRangeCalculator.calculateRange(currentFilter)
-            val (total, expenses, categories) = withContext(ioDispatcher) {
-                Triple(
-                    repository.getTotalExpense(start, end),
-                    repository.getExpensesBetween(start, end),
-                    repository.getCategories()
-                )
-            }
+            val totalExpense = withContext(ioDispatcher) { repository.getTotalExpense(start, end) }
+            val totalIncome = withContext(ioDispatcher) { repository.getTotalIncome(start, end) }
+            val transactions = withContext(ioDispatcher) { repository.getAllTransactionsBetween(start, end) }
+            val categories = withContext(ioDispatcher) { repository.getCategories() }
 
-            val withCategory = expenses.map { expense ->
+            val withCategory = transactions.map { expense ->
                 val category = categories.find { it.id == expense.categoryId }
                 ExpenseWithCategory(
                     id = expense.id,
@@ -55,13 +52,15 @@ class HomeViewModel(
                     categoryId = expense.categoryId,
                     categoryName = category?.name ?: "Lainnya",
                     description = expense.description,
-                    timestamp = expense.timestamp
+                    timestamp = expense.timestamp,
+                    type = expense.type
                 )
             }
 
             _uiState.value = _uiState.value.copy(
-                totalAmount = total,
-                expenses = withCategory,
+                totalAmount = totalIncome - totalExpense,
+                totalIncome = totalIncome,
+                transactions = withCategory,
                 isLoading = false
             )
         }
@@ -75,7 +74,8 @@ class HomeViewModel(
                     amount = expense.amount,
                     categoryId = expense.categoryId,
                     description = expense.description,
-                    timestamp = expense.timestamp
+                    timestamp = expense.timestamp,
+                    type = expense.type
                 )
                 repository.deleteExpense(dbExpense)
             }
@@ -91,7 +91,8 @@ class HomeViewModel(
                     amount = expense.amount,
                     categoryId = expense.categoryId,
                     description = expense.description,
-                    timestamp = expense.timestamp
+                    timestamp = expense.timestamp,
+                    type = expense.type
                 )
                 repository.insertExpense(dbExpense)
             }

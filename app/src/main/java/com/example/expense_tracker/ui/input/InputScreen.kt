@@ -28,7 +28,10 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import com.example.expense_tracker.data.TransactionType
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -53,9 +56,11 @@ import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 
 @Composable
 fun InputHeader(
+    transactionType: TransactionType,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val title = if (transactionType == TransactionType.INCOME) "Tambah Pemasukan" else "Tambah Pengeluaran"
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -70,7 +75,7 @@ fun InputHeader(
             )
         }
         Text(
-            text = "Tambah Pengeluaran",
+            text = title,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
@@ -93,14 +98,21 @@ private fun formatWithDots(value: String): String {
 @Composable
 fun AmountInput(
     amountText: String,
+    transactionType: TransactionType,
     onAmountChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Build display text with thousand separators
+    val prefix = if (transactionType == TransactionType.INCOME) "+Rp " else "-Rp "
     val displayText = if (amountText.isEmpty()) {
         "Rp 0"
     } else {
-        "Rp " + formatWithDots(amountText)
+        prefix + formatWithDots(amountText)
+    }
+    
+    val textColor = if (amountText.isEmpty()) {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    } else {
+        if (transactionType == TransactionType.INCOME) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onBackground
     }
 
     Column(
@@ -131,10 +143,7 @@ fun AmountInput(
                         text = displayText,
                         style = MaterialTheme.typography.displayLarge,
                         fontWeight = FontWeight.Bold,
-                        color = if (amountText.isEmpty())
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        else
-                            MaterialTheme.colorScheme.onBackground,
+                        color = textColor,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -229,6 +238,37 @@ fun SaveButton(
     }
 }
 
+// ── Transaction Type Toggle ───────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TransactionTypeToggle(
+    selectedType: TransactionType,
+    onTypeChange: (TransactionType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    SingleChoiceSegmentedButtonRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
+        val types = TransactionType.entries
+        types.forEachIndexed { index, type ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = types.size),
+                onClick = { onTypeChange(type) },
+                selected = selectedType == type,
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = if (type == TransactionType.INCOME) Color(0xFFE8F5E9) else MaterialTheme.colorScheme.errorContainer,
+                    activeContentColor = if (type == TransactionType.INCOME) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onErrorContainer
+                )
+            ) {
+                Text(if (type == TransactionType.INCOME) "Pemasukan" else "Pengeluaran")
+            }
+        }
+    }
+}
+
 // ── Input Screen ───────────────────────────────────────────────────
 
 @Composable
@@ -249,11 +289,22 @@ fun InputScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        InputHeader(onNavigateBack = onNavigateBack)
+        InputHeader(
+            transactionType = state.transactionType,
+            onNavigateBack = onNavigateBack
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        TransactionTypeToggle(
+            selectedType = state.transactionType,
+            onTypeChange = { viewModel.onTransactionTypeChange(it) }
+        )
         
         // Amount input
         AmountInput(
             amountText = state.amountText,
+            transactionType = state.transactionType,
             onAmountChange = { viewModel.onAmountChange(it) }
         )
 
@@ -313,8 +364,10 @@ fun InputScreenEmptyPreview() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            InputHeader(onNavigateBack = {})
-            AmountInput(amountText = "", onAmountChange = {})
+            InputHeader(transactionType = TransactionType.EXPENSE, onNavigateBack = {})
+            Spacer(modifier = Modifier.height(16.dp))
+            TransactionTypeToggle(selectedType = TransactionType.EXPENSE, onTypeChange = {})
+            AmountInput(amountText = "", transactionType = TransactionType.EXPENSE, onAmountChange = {})
             Spacer(modifier = Modifier.height(16.dp))
             CategoryGrid(categories = categories, selectedId = null, onCategorySelected = {}, modifier = Modifier.weight(1f))
             SaveButton(enabled = false, onClick = {})
@@ -340,8 +393,10 @@ fun InputScreenFilledPreview() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            InputHeader(onNavigateBack = {})
-            AmountInput(amountText = "75000", onAmountChange = {})
+            InputHeader(transactionType = TransactionType.EXPENSE, onNavigateBack = {})
+            Spacer(modifier = Modifier.height(16.dp))
+            TransactionTypeToggle(selectedType = TransactionType.EXPENSE, onTypeChange = {})
+            AmountInput(amountText = "75000", transactionType = TransactionType.EXPENSE, onAmountChange = {})
             Spacer(modifier = Modifier.height(16.dp))
             CategoryGrid(categories = categories, selectedId = 1L, onCategorySelected = {}, modifier = Modifier.weight(1f))
             SaveButton(enabled = true, onClick = {})

@@ -30,6 +30,7 @@ class InputViewModel(
             var loadedAmount = ""
             var loadedDescription = ""
             var loadedCategoryId: Long? = null
+            var loadedTransactionType = com.example.expense_tracker.data.TransactionType.EXPENSE
 
             if (expenseId != null) {
                 val expense = withContext(ioDispatcher) {
@@ -39,6 +40,11 @@ class InputViewModel(
                     loadedAmount = expense.amount.toString()
                     loadedDescription = expense.description
                     loadedCategoryId = expense.categoryId
+                    loadedTransactionType = try {
+                        com.example.expense_tracker.data.TransactionType.valueOf(expense.type)
+                    } catch (e: IllegalArgumentException) {
+                        com.example.expense_tracker.data.TransactionType.EXPENSE
+                    }
                 }
             }
 
@@ -47,6 +53,7 @@ class InputViewModel(
                 amountText = loadedAmount,
                 description = loadedDescription,
                 selectedCategoryId = loadedCategoryId,
+                transactionType = loadedTransactionType,
                 isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null
             )
         }
@@ -74,6 +81,12 @@ class InputViewModel(
         )
     }
 
+    fun onTransactionTypeChange(type: com.example.expense_tracker.data.TransactionType) {
+        _uiState.value = _uiState.value.copy(
+            transactionType = type
+        )
+    }
+
     fun onSave() {
         val state = _uiState.value
         val amount = state.amountText.toLongOrNull() ?: return
@@ -92,6 +105,7 @@ class InputViewModel(
                     categoryId = categoryId,
                     description = state.description,
                     timestamp = timestamp,
+                    type = state.transactionType.name,
                     id = expenseId ?: 0L
                 )
             }

@@ -344,8 +344,8 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(state.expenses.firstOrNull()?.id) {
-        if (state.expenses.isNotEmpty()) {
+    LaunchedEffect(state.transactions.firstOrNull()?.id) {
+        if (state.transactions.isNotEmpty()) {
             listState.animateScrollToItem(0)
         }
     }
@@ -420,7 +420,7 @@ fun HomeScreen(
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-            } else if (state.expenses.isEmpty()) {
+            } else if (state.transactions.isEmpty()) {
                 EmptyState(periodLabel = state.periodLabel)
             } else {
                 LazyColumn(
@@ -428,7 +428,10 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    items(state.expenses, key = { it.id }) { expense ->
+                    items(
+                        items = state.transactions,
+                        key = { it.id }
+                    ) { expense ->
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = { dismissValue ->
                                 when (dismissValue) {
@@ -550,7 +553,7 @@ fun HomeScreenPreview_withData() {
             filter = FilterPeriod.TODAY,
             periodLabel = "Hari Ini",
             totalAmount = 150_000L,
-            expenses = listOf(
+            transactions = listOf(
                 ExpenseWithCategory(1, 50_000L, 1, "Makanan", "Baso", System.currentTimeMillis()),
                 ExpenseWithCategory(2, 35_000L, 2, "Transport", "", System.currentTimeMillis() - 3600_000),
                 ExpenseWithCategory(3, 65_000L, 3, "Belanja", "", System.currentTimeMillis() - 7200_000),
@@ -596,7 +599,10 @@ fun HomeScreenPreview_withData() {
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
                 LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
-                    items(fakeState.expenses, key = { it.id }) { expense ->
+                    items(
+                        items = fakeState.transactions,
+                        key = { it.id }
+                    ) { expense ->
                         ExpenseListItem(expense = expense, modifier = Modifier.padding(horizontal = 8.dp))
                     }
                 }

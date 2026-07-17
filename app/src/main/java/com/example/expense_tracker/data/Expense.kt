@@ -23,7 +23,8 @@ data class Expense(
     val amount: Long,
     val categoryId: Long,
     val description: String = "",
-    val timestamp: Long
+    val timestamp: Long,
+    val type: String = TransactionType.EXPENSE.name
 ) {
     init {
         require(amount > 0) { "Amount must be greater than 0, but was $amount" }

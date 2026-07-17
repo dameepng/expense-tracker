@@ -6,7 +6,9 @@ package com.example.expense_tracker.data
  */
 interface ExpenseRepository {
     fun getTotalExpense(startTime: Long, endTime: Long): Long
+    fun getTotalIncome(startTime: Long, endTime: Long): Long
     fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense>
+    fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense>
     fun getCategories(): List<Category>
     fun deleteExpense(expense: Expense)
     fun insertExpense(expense: Expense)

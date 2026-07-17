@@ -17,8 +17,11 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE id = :id")
     fun getExpenseById(id: Long): Expense?
 
-    @Query("SELECT * FROM expenses ORDER BY timestamp DESC")
+    @Query("SELECT * FROM expenses WHERE type = 'EXPENSE' ORDER BY timestamp DESC")
     fun getAllExpenses(): List<Expense>
+
+    @Query("SELECT * FROM expenses ORDER BY timestamp DESC")
+    fun getAllTransactions(): List<Expense>
 
     @Query("SELECT * FROM categories ORDER BY id ASC")
     fun getAllCategories(): List<Category>
@@ -26,16 +29,22 @@ interface ExpenseDao {
     @Query("SELECT * FROM categories WHERE id = :id")
     fun getCategoryById(id: Long): Category?
 
-    @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime")
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime AND type = 'EXPENSE'")
     fun getTotalExpense(startTime: Long, endTime: Long): Long
 
-    @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime AND type = 'INCOME'")
+    fun getTotalIncome(startTime: Long, endTime: Long): Long
+
+    @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime AND type = 'EXPENSE' ORDER BY timestamp DESC")
     fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense>
+
+    @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
+    fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense>
 
     @Query("""
         SELECT c.id AS categoryId, c.name AS categoryName, COALESCE(SUM(e.amount), 0) AS totalAmount
         FROM categories c
-        LEFT JOIN expenses e ON c.id = e.categoryId AND e.timestamp >= :startTime AND e.timestamp < :endTime
+        LEFT JOIN expenses e ON c.id = e.categoryId AND e.timestamp >= :startTime AND e.timestamp < :endTime AND e.type = 'EXPENSE'
         GROUP BY c.id, c.name
         HAVING totalAmount > 0
         ORDER BY totalAmount DESC

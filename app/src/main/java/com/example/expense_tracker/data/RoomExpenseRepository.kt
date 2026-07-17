@@ -7,11 +7,21 @@ class RoomExpenseRepository(
     private val dao: ExpenseDao
 ) : ExpenseRepository {
 
-    override fun getTotalExpense(startTime: Long, endTime: Long): Long =
-        dao.getTotalExpense(startTime, endTime)
+    override fun getTotalExpense(startTime: Long, endTime: Long): Long {
+        return dao.getTotalExpense(startTime, endTime)
+    }
 
-    override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> =
-        dao.getExpensesBetween(startTime, endTime)
+    override fun getTotalIncome(startTime: Long, endTime: Long): Long {
+        return dao.getTotalIncome(startTime, endTime)
+    }
+
+    override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> {
+        return dao.getExpensesBetween(startTime, endTime)
+    }
+
+    override fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense> {
+        return dao.getAllTransactionsBetween(startTime, endTime)
+    }
 
     override fun getCategories(): List<Category> =
         dao.getAllCategories()
