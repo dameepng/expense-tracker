@@ -123,6 +123,14 @@ fun ExpenseTrackerApp() {
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
+            
+            composable(NavRoutes.WALLET) {
+                val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(applicationContext()))
+                com.example.expense_tracker.ui.wallet.WalletListScreen(
+                    viewModel = walletViewModel
+                )
+            }
         }
     }
 }

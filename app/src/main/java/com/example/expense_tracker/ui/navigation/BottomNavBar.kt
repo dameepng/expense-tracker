@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -55,11 +55,11 @@ fun BottomNavBar(
             selected = currentRoute?.startsWith("input") == true,
             onClick = { onNavigate(NavRoutes.inputRoute(null)) }
         )
-        // Profile
+        // Wallet
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Person, contentDescription = "Profile") },
-            selected = false,
-            onClick = { /* TODO: Profile Screen */ }
+            icon = { Icon(Icons.Filled.AccountBalanceWallet, contentDescription = "Wallet") },
+            selected = currentRoute == NavRoutes.WALLET,
+            onClick = { onNavigate(NavRoutes.WALLET) }
         )
     }
 }
