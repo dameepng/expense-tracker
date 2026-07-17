@@ -154,7 +154,7 @@ fun WalletListItem(
         }
     )
     
-    val formatRp = NumberFormat.getCurrencyInstance(Locale("id", "ID")).apply {
+    val formatRp = NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("id").setRegion("ID").build()).apply {
         maximumFractionDigits = 0
     }
 

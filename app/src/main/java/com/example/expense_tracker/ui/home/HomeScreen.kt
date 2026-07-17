@@ -177,7 +177,7 @@ fun BalanceCard(
 
                 // Progress Indicator
                 androidx.compose.material3.LinearProgressIndicator(
-                    progress = 0.45f,
+                    progress = { 0.45f },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(4.dp),
