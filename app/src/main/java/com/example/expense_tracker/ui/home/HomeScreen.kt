@@ -33,9 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -218,36 +215,6 @@ fun BalanceCard(
     }
 }
 
-// ── Filter Tabs ───────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FilterTabs(
-    selected: FilterPeriod,
-    onSelected: (FilterPeriod) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    SingleChoiceSegmentedButtonRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        val standardFilters = FilterPeriod.entries.filter { it != FilterPeriod.CUSTOM }
-        standardFilters.forEachIndexed { index, filter ->
-            SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = standardFilters.size),
-                onClick = { onSelected(filter) },
-                selected = selected == filter,
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Text(filter.label)
-            }
-        }
-    }
-}
 
 // ── Expense List Item ──────────────────────────────────────────────
 
@@ -398,13 +365,7 @@ fun HomeScreen(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Filter tabs (Days/Weeks/Months)
-        FilterTabs(
-            selected = state.filter,
-            onSelected = { viewModel.onFilterSelected(it) }
-        )
 
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Transactions Section Header
         Row(
@@ -592,8 +553,7 @@ fun HomeScreenPreview_withData() {
             Spacer(modifier = Modifier.height(8.dp))
             BalanceCard(amount = fakeState.totalAmount, periodLabel = fakeState.periodLabel, onAddExpense = {})
             Spacer(modifier = Modifier.height(24.dp))
-            FilterTabs(selected = fakeState.filter, onSelected = {})
-            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,

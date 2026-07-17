@@ -59,7 +59,24 @@ fun ExpenseTrackerApp() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
-        // TopBar and FAB moved to HomeScreen custom UI
+        bottomBar = {
+            com.example.expense_tracker.ui.navigation.BottomNavBar(
+                currentRoute = currentRoute,
+                onNavigate = { route ->
+                    if (route.startsWith("input")) {
+                        navController.navigate(route)
+                    } else {
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            )
+        }
     ) { innerPadding ->
         NavHost(
             navController = navController,
