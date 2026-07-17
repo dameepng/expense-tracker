@@ -128,7 +128,26 @@ fun ExpenseTrackerApp() {
                 val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(applicationContext()))
                 com.example.expense_tracker.ui.wallet.WalletListScreen(
-                    viewModel = walletViewModel
+                    viewModel = walletViewModel,
+                    onNavigateToWalletDetail = { id -> navController.navigate(NavRoutes.walletDetailRoute(id)) }
+                )
+            }
+
+            composable(
+                route = NavRoutes.WALLET_DETAIL,
+                arguments = listOf(navArgument("walletId") {
+                    type = NavType.LongType
+                })
+            ) { backStackEntry ->
+                val walletId = backStackEntry.arguments?.getLong("walletId") ?: return@composable
+                val walletDetailViewModel: com.example.expense_tracker.ui.wallet.WalletDetailViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(
+                        factory = com.example.expense_tracker.ui.wallet.WalletDetailViewModelFactory(applicationContext(), walletId)
+                    )
+                com.example.expense_tracker.ui.wallet.WalletDetailScreen(
+                    viewModel = walletDetailViewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInput = { expenseId -> navController.navigate(NavRoutes.inputRoute(expenseId)) }
                 )
             }
         }

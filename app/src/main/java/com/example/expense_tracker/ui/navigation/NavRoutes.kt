@@ -9,4 +9,7 @@ object NavRoutes {
     fun inputRoute(expenseId: Long? = null): String {
         return if (expenseId != null) "input?expenseId=$expenseId" else "input"
     }
+
+    const val WALLET_DETAIL = "wallet/{walletId}"
+    fun walletDetailRoute(walletId: Long): String = "wallet/$walletId"
 }

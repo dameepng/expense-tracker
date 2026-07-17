@@ -50,7 +50,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WalletListScreen(
-    viewModel: WalletViewModel
+    viewModel: WalletViewModel,
+    onNavigateToWalletDetail: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
@@ -90,7 +91,8 @@ fun WalletListScreen(
                     ) { wallet ->
                         WalletListItem(
                             wallet = wallet,
-                            onDelete = { viewModel.deleteWallet(wallet) }
+                            onDelete = { viewModel.deleteWallet(wallet) },
+                            onClick = { onNavigateToWalletDetail(wallet.id) }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -138,7 +140,8 @@ fun WalletListScreen(
 @Composable
 fun WalletListItem(
     wallet: Wallet,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onClick: () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
@@ -181,6 +184,7 @@ fun WalletListItem(
         }
     ) {
         Card(
+            onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
