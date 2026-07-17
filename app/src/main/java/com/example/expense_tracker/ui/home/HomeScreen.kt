@@ -82,8 +82,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 // ── Custom Header ───────────────────────────────────────────────────
 
 @Composable
-fun HomeHeader(
-    modifier: Modifier = Modifier
+fun HeaderSection(
+    modifier: Modifier = Modifier,
+    onNavigateToReminder: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -121,9 +122,8 @@ fun HomeHeader(
             }
         }
         
-        
         IconButton(
-            onClick = { /* TODO: Notification */ },
+            onClick = onNavigateToReminder,
             modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
         ) {
             Icon(
@@ -570,7 +570,8 @@ fun HomeScreen(
     streakViewModel: StreakCounterViewModel? = null,
     onNavigateToInput: (Long?) -> Unit = {},
     onNavigateToSummary: () -> Unit = {},
-    onNavigateToWalletDetail: (Long) -> Unit = {}
+    onNavigateToWalletDetail: (Long) -> Unit = {},
+    onNavigateToReminder: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
     
@@ -591,6 +592,9 @@ fun HomeScreen(
     }
 
     Scaffold(
+        topBar = {
+            HeaderSection(onNavigateToReminder = onNavigateToReminder)
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
@@ -600,8 +604,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Custom Header
-        HomeHeader()
         
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -769,7 +771,7 @@ fun BalanceCardPreview() {
 @Composable
 fun HomeHeaderPreview() {
     Expense_trackerTheme {
-        HomeHeader()
+        HeaderSection()
     }
 }
 
@@ -814,9 +816,9 @@ fun HomeScreenPreview_withData() {
             totalIncome = 300_000L,
             totalExpense = 150_000L,
             transactions = listOf(
-                ExpenseWithCategory(1, 50_000L, 1, "Makanan", "Baso", System.currentTimeMillis()),
-                ExpenseWithCategory(2, 35_000L, 2, "Transport", "", System.currentTimeMillis() - 3600_000),
-                ExpenseWithCategory(3, 65_000L, 3, "Belanja", "", System.currentTimeMillis() - 7200_000),
+                ExpenseWithCategory(1, 50_000L, 1, "Makanan", "Baso", System.currentTimeMillis(), "EXPENSE"),
+                ExpenseWithCategory(2, 35_000L, 2, "Transport", "", System.currentTimeMillis() - 3600_000, "EXPENSE"),
+                ExpenseWithCategory(3, 65_000L, 3, "Belanja", "", System.currentTimeMillis() - 7200_000, "EXPENSE"),
             )
         )
         Column(
@@ -824,7 +826,7 @@ fun HomeScreenPreview_withData() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            HomeHeader()
+            HeaderSection()
             Spacer(modifier = Modifier.height(8.dp))
             BalanceCard(
                 totalBalance = fakeState.totalAmount, 
