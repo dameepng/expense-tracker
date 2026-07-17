@@ -3,7 +3,8 @@ package com.example.expense_tracker.ui.home
 import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.Expense
 import com.example.expense_tracker.data.ExpenseRepository
-import com.example.expense_tracker.data.FilterPeriod
+import com.example.expense_tracker.data.CategoryBreakdown
+import com.example.expense_tracker.data.TransactionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -16,14 +17,6 @@ import org.junit.Before
 import org.junit.Test
 import java.util.Calendar
 
-/**
- * TDD tests for HomeViewModel.
- *
- * Verifies US3 AC:
- * - Total displayed prominently
- * - Filter switches update total & list
- * - Empty state when no data
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
@@ -40,11 +33,23 @@ class HomeViewModelTest {
 
         override fun getTotalExpense(startTime: Long, endTime: Long): Long {
             return expenses
-                .filter { it.timestamp in startTime until endTime }
+                .filter { it.timestamp in startTime until endTime && it.type == TransactionType.EXPENSE.name }
+                .sumOf { it.amount }
+        }
+        
+        override fun getTotalIncome(startTime: Long, endTime: Long): Long {
+            return expenses
+                .filter { it.timestamp in startTime until endTime && it.type == TransactionType.INCOME.name }
                 .sumOf { it.amount }
         }
 
         override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> {
+            return expenses
+                .filter { it.timestamp in startTime until endTime && it.type == TransactionType.EXPENSE.name }
+                .sortedByDescending { it.timestamp }
+        }
+        
+        override fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense> {
             return expenses
                 .filter { it.timestamp in startTime until endTime }
                 .sortedByDescending { it.timestamp }
@@ -68,6 +73,7 @@ class HomeViewModelTest {
         override fun getExpenseById(id: Long): Expense? {
             return expenses.find { it.id == id }
         }
+        
     }
 
     // ── Helpers ────────────────────────────────────────────────────
@@ -100,155 +106,58 @@ class HomeViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
     }
 
-    // ── Filter Tests ───────────────────────────────────────────────
-
-    @Test
-    fun `default filter is TODAY with label Hari Ini`() {
-        initAndAdvance()
-        val state = viewModel.uiState.value
-        assertEquals(FilterPeriod.TODAY, state.filter)
-        assertEquals("Hari Ini", state.periodLabel)
-    }
-
-    @Test
-    fun `switch filter to WEEK updates label to Minggu Ini`() {
-        initAndAdvance()
-        viewModel.onFilterSelected(FilterPeriod.WEEK)
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals("Minggu Ini", viewModel.uiState.value.periodLabel)
-        assertEquals(FilterPeriod.WEEK, viewModel.uiState.value.filter)
-    }
-
-    @Test
-    fun `switch filter to MONTH updates label to Bulan Ini`() {
-        initAndAdvance()
-        viewModel.onFilterSelected(FilterPeriod.MONTH)
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals("Bulan Ini", viewModel.uiState.value.periodLabel)
-        assertEquals(FilterPeriod.MONTH, viewModel.uiState.value.filter)
-    }
-
-    @Test
-    fun `switching filter back to TODAY restores original label`() {
-        initAndAdvance()
-        viewModel.onFilterSelected(FilterPeriod.WEEK)
-        testDispatcher.scheduler.advanceUntilIdle()
-        viewModel.onFilterSelected(FilterPeriod.TODAY)
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals("Hari Ini", viewModel.uiState.value.periodLabel)
-    }
-
     // ── Total & List Tests ─────────────────────────────────────────
 
     @Test
-    fun `total reflects sum of expenses for today filter`() {
+    fun `total reflects sum of incomes minus expenses`() {
         val today = todayMidnight()
-        val categories = listOf(Category(1, "Makanan"), Category(2, "Transport"))
+        val categories = listOf(Category(1, "Makanan"), Category(2, "Gaji"))
         fakeRepository.setData(
             expenses = listOf(
-                Expense(amount = 10_000L, categoryId = 1, timestamp = today + 1000),
-                Expense(amount = 20_000L, categoryId = 2, timestamp = today + 2000),
-                Expense(amount = 30_000L, categoryId = 1, timestamp = today - oneDay)
+                Expense(amount = 10_000L, categoryId = 1, timestamp = today + 1000, type = TransactionType.EXPENSE.name),
+                Expense(amount = 50_000L, categoryId = 2, timestamp = today + 2000, type = TransactionType.INCOME.name),
+                Expense(amount = 20_000L, categoryId = 1, timestamp = today + 3000, type = TransactionType.EXPENSE.name)
             ),
             categories = categories
         )
         initAndAdvance()
 
         val state = viewModel.uiState.value
-        assertEquals(30_000L, state.totalAmount)
-        assertEquals(2, state.expenses.size)
+        assertEquals(30_000L, state.totalExpense)
+        assertEquals(50_000L, state.totalIncome)
+        assertEquals(20_000L, state.totalAmount) // 50k - 30k
+        assertEquals(3, state.transactions.size)
     }
 
     @Test
     fun `list items include category name via join`() {
         val today = todayMidnight()
-        val categories = listOf(Category(1, "Makanan"), Category(2, "Transport"))
+        val categories = listOf(Category(1, "Makanan"), Category(2, "Gaji"))
         fakeRepository.setData(
             expenses = listOf(
-                Expense(amount = 15_000L, categoryId = 1, timestamp = today + 1000),
-                Expense(amount = 25_000L, categoryId = 2, timestamp = today + 2000),
+                Expense(amount = 15_000L, categoryId = 1, timestamp = today + 1000, type = TransactionType.EXPENSE.name),
+                Expense(amount = 25_000L, categoryId = 2, timestamp = today + 2000, type = TransactionType.INCOME.name),
             ),
             categories = categories
         )
         initAndAdvance()
 
         val state = viewModel.uiState.value
-        assertEquals(2, state.expenses.size)
-        // DESC order: newest first → Transport (today+2000), Makanan (today+1000)
-        assertEquals("Transport", state.expenses[0].categoryName)
-        assertEquals("Makanan", state.expenses[1].categoryName)
-    }
-
-    @Test
-    fun `list items are ordered newest first`() {
-        val today = todayMidnight()
-        val categories = listOf(Category(1, "Makanan"))
-        fakeRepository.setData(
-            expenses = listOf(
-                Expense(amount = 10_000L, categoryId = 1, timestamp = today + 1000),
-                Expense(amount = 30_000L, categoryId = 1, timestamp = today + 3000),
-                Expense(amount = 20_000L, categoryId = 1, timestamp = today + 2000),
-            ),
-            categories = categories
-        )
-        initAndAdvance()
-
-        val state = viewModel.uiState.value
-        assertEquals(3, state.expenses.size)
-        assertEquals(30_000L, state.expenses[0].amount)
-        assertEquals(20_000L, state.expenses[1].amount)
-        assertEquals(10_000L, state.expenses[2].amount)
+        assertEquals(2, state.transactions.size)
+        // DESC order: newest first
+        assertEquals("Gaji", state.transactions[0].categoryName)
+        assertEquals("Makanan", state.transactions[1].categoryName)
     }
 
     // ── Empty State Tests ──────────────────────────────────────────
 
     @Test
-    fun `empty state when no expenses in current filter period`() {
+    fun `empty state when no expenses`() {
         initAndAdvance()
         val state = viewModel.uiState.value
         assertEquals(0L, state.totalAmount)
-        assertTrue(state.expenses.isEmpty())
-    }
-
-    @Test
-    fun `empty state when all expenses are outside current filter`() {
-        val today = todayMidnight()
-        val categories = listOf(Category(1, "Makanan"))
-        fakeRepository.setData(
-            expenses = listOf(
-                Expense(amount = 10_000L, categoryId = 1, timestamp = today - oneDay),
-            ),
-            categories = categories
-        )
-        initAndAdvance()
-
-        val state = viewModel.uiState.value
-        assertEquals(0L, state.totalAmount)
-        assertTrue(state.expenses.isEmpty())
-    }
-
-    @Test
-    fun `filter change recalculates total and list`() {
-        val today = todayMidnight()
-        val categories = listOf(Category(1, "Makanan"))
-        fakeRepository.setData(
-            expenses = listOf(
-                Expense(amount = 10_000L, categoryId = 1, timestamp = today + 1000),
-                Expense(amount = 20_000L, categoryId = 1, timestamp = today + 5000),
-            ),
-            categories = categories
-        )
-        initAndAdvance()
-
-        // Initially TODAY: 30k total, 2 items
-        assertEquals(30_000L, viewModel.uiState.value.totalAmount)
-        assertEquals(2, viewModel.uiState.value.expenses.size)
-        assertEquals(FilterPeriod.TODAY, viewModel.uiState.value.filter)
-
-        // Switch to WEEK: same data (both today), but filter label changes
-        viewModel.onFilterSelected(FilterPeriod.WEEK)
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(FilterPeriod.WEEK, viewModel.uiState.value.filter)
-        assertEquals("Minggu Ini", viewModel.uiState.value.periodLabel)
+        assertEquals(0L, state.totalIncome)
+        assertEquals(0L, state.totalExpense)
+        assertTrue(state.transactions.isEmpty())
     }
 }
