@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -328,6 +330,15 @@ fun InputScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Wallet picker
+        WalletPicker(
+            wallets = state.wallets,
+            selectedId = state.selectedWalletId,
+            onWalletSelected = { viewModel.onWalletSelected(it) }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Category grid
         CategoryGrid(
             categories = state.categories,
@@ -404,3 +415,48 @@ fun InputScreenFilledPreview() {
     }
 }
 
+// ── Wallet Picker ───────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WalletPicker(
+    wallets: List<com.example.expense_tracker.data.Wallet>,
+    selectedId: Long?,
+    onWalletSelected: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (wallets.size <= 1) return
+
+    Column(modifier = modifier.padding(horizontal = 24.dp)) {
+        Text(
+            text = "Pilih Wallet",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(wallets, key = { it.id }) { wallet ->
+                val isSelected = wallet.id == selectedId
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onWalletSelected(wallet.id) },
+                    label = { 
+                        Text(
+                            text = wallet.name,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        )
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        }
+    }
+}

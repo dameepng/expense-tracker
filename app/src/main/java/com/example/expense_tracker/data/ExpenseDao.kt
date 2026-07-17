@@ -41,6 +41,15 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
     fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense>
 
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime AND type = 'EXPENSE'")
+    fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long
+
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime AND type = 'INCOME'")
+    fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Long
+
+    @Query("SELECT * FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
+    fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense>
+
     @Query("""
         SELECT c.id AS categoryId, c.name AS categoryName, COALESCE(SUM(e.amount), 0) AS totalAmount
         FROM categories c

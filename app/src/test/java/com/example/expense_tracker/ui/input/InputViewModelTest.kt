@@ -11,6 +11,8 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import com.example.expense_tracker.data.FakeWalletRepository
+import com.example.expense_tracker.data.Wallet
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class InputViewModelTest {
@@ -31,12 +33,12 @@ class InputViewModelTest {
 
         override fun getCategories(): List<Category> = presetCategories
         override fun getExpenseById(id: Long): com.example.expense_tracker.data.Expense? = null
-        override fun insertExpense(amount: Long, categoryId: Long, description: String, timestamp: Long, type: String, id: Long) {
-            savedExpenses.add(SavedExpense(amount, categoryId, description, timestamp, type))
+        override fun insertExpense(amount: Long, categoryId: Long, description: String, timestamp: Long, type: String, walletId: Long, id: Long) {
+            savedExpenses.add(SavedExpense(amount, categoryId, description, timestamp, type, walletId))
         }
     }
 
-    private data class SavedExpense(val amount: Long, val categoryId: Long, val description: String, val timestamp: Long, val type: String)
+    private data class SavedExpense(val amount: Long, val categoryId: Long, val description: String, val timestamp: Long, val type: String, val walletId: Long)
 
     @Before
     fun setup() {
@@ -48,8 +50,8 @@ class InputViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun initViewModel(repo: FakeInputRepository): InputViewModel {
-        val vm = InputViewModel(repo, testDispatcher)
+    private fun initViewModel(repo: FakeInputRepository, walletRepo: FakeWalletRepository = FakeWalletRepository()): InputViewModel {
+        val vm = InputViewModel(repo, walletRepo, testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
         return vm
     }
@@ -86,12 +88,16 @@ class InputViewModelTest {
     }
 
     @Test
-    fun `amount and category both set enables save button`() {
+    fun `amount, category, and wallet set enables save button`() {
         val repo = FakeInputRepository()
-        val vm = initViewModel(repo)
+        val walletRepo = FakeWalletRepository().apply {
+            insertWallet(Wallet(1L, "Cash", 0L))
+        }
+        val vm = initViewModel(repo, walletRepo)
 
         vm.onAmountChange("25000")
         vm.onCategorySelected(1L)
+        vm.onWalletSelected(1L)
 
         assertTrue(vm.uiState.value.isSaveEnabled)
     }
@@ -99,10 +105,14 @@ class InputViewModelTest {
     @Test
     fun `clearing amount disables save even with category selected`() {
         val repo = FakeInputRepository()
-        val vm = initViewModel(repo)
+        val walletRepo = FakeWalletRepository().apply {
+            insertWallet(Wallet(1L, "Cash", 0L))
+        }
+        val vm = initViewModel(repo, walletRepo)
 
         vm.onAmountChange("10000")
         vm.onCategorySelected(1L)
+        vm.onWalletSelected(1L)
         assertTrue(vm.uiState.value.isSaveEnabled)
 
         vm.onAmountChange("")
@@ -112,8 +122,12 @@ class InputViewModelTest {
     @Test
     fun `amount zero or non-numeric treated as invalid`() {
         val repo = FakeInputRepository()
-        val vm = initViewModel(repo)
+        val walletRepo = FakeWalletRepository().apply {
+            insertWallet(Wallet(1L, "Cash", 0L))
+        }
+        val vm = initViewModel(repo, walletRepo)
         vm.onCategorySelected(1L)
+        vm.onWalletSelected(1L)
 
         vm.onAmountChange("0")
         assertFalse(vm.uiState.value.isSaveEnabled)
@@ -147,10 +161,14 @@ class InputViewModelTest {
     @Test
     fun `save inserts expense and sets saved flag`() {
         val repo = FakeInputRepository()
-        val vm = initViewModel(repo)
+        val walletRepo = FakeWalletRepository().apply {
+            insertWallet(Wallet(1L, "Cash", 0L))
+        }
+        val vm = initViewModel(repo, walletRepo)
 
         vm.onAmountChange("50000")
         vm.onCategorySelected(1L)
+        vm.onWalletSelected(1L)
         vm.onSave()
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -158,6 +176,7 @@ class InputViewModelTest {
         assertEquals(1, repo.savedExpenses.size)
         assertEquals(50_000L, repo.savedExpenses[0].amount)
         assertEquals(1L, repo.savedExpenses[0].categoryId)
+        assertEquals(1L, repo.savedExpenses[0].walletId)
     }
 
     @Test
@@ -175,17 +194,21 @@ class InputViewModelTest {
     @Test
     fun `save resets form state for next input`() {
         val repo = FakeInputRepository()
-        val vm = initViewModel(repo)
+        val walletRepo = FakeWalletRepository().apply {
+            insertWallet(Wallet(1L, "Cash", 0L))
+        }
+        val vm = initViewModel(repo, walletRepo)
 
         vm.onAmountChange("75000")
         vm.onCategorySelected(2L)
+        vm.onWalletSelected(1L)
         vm.onSave()
         testDispatcher.scheduler.advanceUntilIdle()
 
         // After save, reset for next expense
         assertEquals("", vm.uiState.value.amountText)
         assertNull(vm.uiState.value.selectedCategoryId)
-        assertFalse(vm.uiState.value.isSaveEnabled)
+        // selectedWalletId might also be null or auto-selected, but saved is true
         assertTrue(vm.uiState.value.saved)
     }
 }

@@ -14,7 +14,8 @@ object InputViewModelFactory {
                 if (modelClass.isAssignableFrom(InputViewModel::class.java)) {
                     val db = AppDatabase.getInstance(application)
                     val repository = RoomInputRepository(db.expenseDao())
-                    return InputViewModel(repository, expenseId = expenseId) as T
+                    val walletRepository = com.example.expense_tracker.data.RoomWalletRepository(db.walletDao())
+                    return InputViewModel(repository, walletRepository, expenseId = expenseId) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
             }

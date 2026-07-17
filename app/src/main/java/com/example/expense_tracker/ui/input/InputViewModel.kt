@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 
 class InputViewModel(
     private val repository: InputRepository,
+    private val walletRepository: com.example.expense_tracker.data.WalletRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
     private val expenseId: Long? = null
 ) : ViewModel() {
@@ -27,9 +28,13 @@ class InputViewModel(
             val categories = withContext(ioDispatcher) {
                 repository.getCategories()
             }
+            val wallets = withContext(ioDispatcher) {
+                walletRepository.getAllWallets()
+            }
             var loadedAmount = ""
             var loadedDescription = ""
             var loadedCategoryId: Long? = null
+            var loadedWalletId: Long? = if (wallets.size == 1) wallets.first().id else null
             var loadedTransactionType = com.example.expense_tracker.data.TransactionType.EXPENSE
 
             if (expenseId != null) {
@@ -45,16 +50,19 @@ class InputViewModel(
                     } catch (e: IllegalArgumentException) {
                         com.example.expense_tracker.data.TransactionType.EXPENSE
                     }
+                    loadedWalletId = expense.walletId
                 }
             }
 
             _uiState.value = _uiState.value.copy(
                 categories = categories,
+                wallets = wallets,
                 amountText = loadedAmount,
                 description = loadedDescription,
                 selectedCategoryId = loadedCategoryId,
+                selectedWalletId = loadedWalletId,
                 transactionType = loadedTransactionType,
-                isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null
+                isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null && loadedWalletId != null
             )
         }
     }
@@ -63,7 +71,7 @@ class InputViewModel(
         val isValid = text.toLongOrNull() != null && text.toLong() > 0
         _uiState.value = _uiState.value.copy(
             amountText = text,
-            isSaveEnabled = isValid && _uiState.value.selectedCategoryId != null
+            isSaveEnabled = isValid && _uiState.value.selectedCategoryId != null && _uiState.value.selectedWalletId != null
         )
     }
 
@@ -77,7 +85,15 @@ class InputViewModel(
         val amountValid = _uiState.value.amountText.toLongOrNull()?.let { it > 0 } ?: false
         _uiState.value = _uiState.value.copy(
             selectedCategoryId = categoryId,
-            isSaveEnabled = amountValid
+            isSaveEnabled = amountValid && _uiState.value.selectedWalletId != null
+        )
+    }
+
+    fun onWalletSelected(walletId: Long) {
+        val amountValid = _uiState.value.amountText.toLongOrNull()?.let { it > 0 } ?: false
+        _uiState.value = _uiState.value.copy(
+            selectedWalletId = walletId,
+            isSaveEnabled = amountValid && _uiState.value.selectedCategoryId != null
         )
     }
 
@@ -91,6 +107,7 @@ class InputViewModel(
         val state = _uiState.value
         val amount = state.amountText.toLongOrNull() ?: return
         val categoryId = state.selectedCategoryId ?: return
+        val walletId = state.selectedWalletId ?: return
         if (amount <= 0) return
 
         viewModelScope.launch {
@@ -106,6 +123,7 @@ class InputViewModel(
                     description = state.description,
                     timestamp = timestamp,
                     type = state.transactionType.name,
+                    walletId = walletId,
                     id = expenseId ?: 0L
                 )
             }

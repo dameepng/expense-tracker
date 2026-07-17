@@ -10,5 +10,6 @@ data class ExpenseWithCategory(
     val categoryName: String,
     val description: String = "",
     val timestamp: Long,
-    val type: String = TransactionType.EXPENSE.name
+    val type: String = TransactionType.EXPENSE.name,
+    val walletId: Long = 1L
 )

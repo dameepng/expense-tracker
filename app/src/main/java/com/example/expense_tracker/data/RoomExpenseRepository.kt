@@ -34,4 +34,16 @@ class RoomExpenseRepository(
 
     override fun getExpenseById(id: Long): Expense? =
         dao.getExpenseById(id)
+
+    override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long {
+        return dao.getTotalExpenseByWallet(walletId, startTime, endTime)
+    }
+
+    override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Long {
+        return dao.getTotalIncomeByWallet(walletId, startTime, endTime)
+    }
+
+    override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense> {
+        return dao.getTransactionsByWallet(walletId, startTime, endTime)
+    }
 }

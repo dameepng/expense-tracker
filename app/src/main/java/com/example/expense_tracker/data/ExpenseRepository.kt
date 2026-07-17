@@ -13,4 +13,7 @@ interface ExpenseRepository {
     fun deleteExpense(expense: Expense)
     fun insertExpense(expense: Expense)
     fun getExpenseById(id: Long): Expense?
+    fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long
+    fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Long
+    fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense>
 }

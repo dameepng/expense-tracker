@@ -55,6 +55,24 @@ class HomeViewModelTest {
                 .sortedByDescending { it.timestamp }
         }
 
+        override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense> {
+            return expenses
+                .filter { it.walletId == walletId && it.timestamp in startTime until endTime }
+                .sortedByDescending { it.timestamp }
+        }
+
+        override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long {
+            return expenses
+                .filter { it.walletId == walletId && it.timestamp in startTime until endTime && it.type == TransactionType.EXPENSE.name }
+                .sumOf { it.amount }
+        }
+
+        override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Long {
+            return expenses
+                .filter { it.walletId == walletId && it.timestamp in startTime until endTime && it.type == TransactionType.INCOME.name }
+                .sumOf { it.amount }
+        }
+
         override fun getCategories(): List<Category> = categories.toList()
 
         fun setData(expenses: List<Expense>, categories: List<Category>) {
