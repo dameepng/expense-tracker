@@ -56,8 +56,12 @@ class InputViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun initViewModel(repo: FakeInputRepository, walletRepo: FakeWalletRepository = FakeWalletRepository()): InputViewModel {
-        val vm = InputViewModel(repo, walletRepo, testDispatcher)
+    private fun initViewModel(
+        repo: FakeInputRepository,
+        walletRepo: FakeWalletRepository = FakeWalletRepository(),
+        billReminderRepo: com.example.expense_tracker.data.FakeBillReminderRepository = com.example.expense_tracker.data.FakeBillReminderRepository()
+    ): InputViewModel {
+        val vm = InputViewModel(repo, walletRepo, billReminderRepo, testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
         return vm
     }

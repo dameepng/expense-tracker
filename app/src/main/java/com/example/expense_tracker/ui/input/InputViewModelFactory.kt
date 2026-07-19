@@ -15,7 +15,8 @@ object InputViewModelFactory {
                     val db = AppDatabase.getInstance(application)
                     val repository = RoomInputRepository(db.expenseDao())
                     val walletRepository = com.example.expense_tracker.data.RoomWalletRepository(db.walletDao())
-                    return InputViewModel(repository, walletRepository, expenseId = expenseId) as T
+                    val billReminderRepository = com.example.expense_tracker.data.RoomBillReminderRepository(db.billReminderDao())
+                    return InputViewModel(repository, walletRepository, billReminderRepository, expenseId = expenseId) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
             }

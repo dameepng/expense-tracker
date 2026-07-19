@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 class InputViewModel(
     private val repository: InputRepository,
     private val walletRepository: com.example.expense_tracker.data.WalletRepository,
+    private val billReminderRepository: com.example.expense_tracker.data.BillReminderRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
     private val expenseId: Long? = null
 ) : ViewModel() {
@@ -68,12 +69,50 @@ class InputViewModel(
         }
     }
 
-    fun onAmountChange(text: String) {
-        val isValid = text.toLongOrNull() != null && text.toLong() > 0
+    private fun updateSaveEnabled() {
+        val state = _uiState.value
+        val amountValid = state.amountText.toLongOrNull()?.let { it > 0 } ?: false
+        val walletSelected = state.selectedWalletId != null
+        val categorySelected = state.selectedCategoryId != null
+        
+        val isEnabled = if (state.inputMode == InputMode.TRANSACTION) {
+            amountValid && walletSelected && categorySelected
+        } else {
+            val dueDay = state.billReminderDueDay.toIntOrNull()
+            val dueDayValid = dueDay != null && dueDay in 1..31
+            val nameValid = state.billReminderName.isNotBlank()
+            amountValid && walletSelected && dueDayValid && nameValid && categorySelected
+        }
+        _uiState.value = state.copy(isSaveEnabled = isEnabled)
+    }
+
+    fun onInputModeChange(mode: InputMode) {
         _uiState.value = _uiState.value.copy(
-            amountText = text,
-            isSaveEnabled = isValid && _uiState.value.selectedCategoryId != null && _uiState.value.selectedWalletId != null
+            inputMode = mode,
+            amountText = "",
+            billReminderName = "",
+            billReminderDueDay = "",
+            description = ""
         )
+        updateSaveEnabled()
+    }
+
+    fun onBillReminderNameChange(text: String) {
+        _uiState.value = _uiState.value.copy(billReminderName = text)
+        updateSaveEnabled()
+    }
+
+    fun onBillReminderDueDayChange(text: String) {
+        // Only allow numbers up to 31
+        if (text.isEmpty() || (text.toIntOrNull() != null && text.toInt() <= 31)) {
+            _uiState.value = _uiState.value.copy(billReminderDueDay = text)
+            updateSaveEnabled()
+        }
+    }
+
+    fun onAmountChange(text: String) {
+        _uiState.value = _uiState.value.copy(amountText = text)
+        updateSaveEnabled()
     }
 
     fun onDescriptionChange(text: String) {
@@ -83,19 +122,17 @@ class InputViewModel(
     }
 
     fun onCategorySelected(categoryId: Long) {
-        val amountValid = _uiState.value.amountText.toLongOrNull()?.let { it > 0 } ?: false
         _uiState.value = _uiState.value.copy(
-            selectedCategoryId = categoryId,
-            isSaveEnabled = amountValid && _uiState.value.selectedWalletId != null
+            selectedCategoryId = categoryId
         )
+        updateSaveEnabled()
     }
 
     fun onWalletSelected(walletId: Long) {
-        val amountValid = _uiState.value.amountText.toLongOrNull()?.let { it > 0 } ?: false
         _uiState.value = _uiState.value.copy(
-            selectedWalletId = walletId,
-            isSaveEnabled = amountValid && _uiState.value.selectedCategoryId != null
+            selectedWalletId = walletId
         )
+        updateSaveEnabled()
     }
 
     fun onTransactionTypeChange(type: com.example.expense_tracker.data.TransactionType) {
@@ -121,25 +158,41 @@ class InputViewModel(
 
         viewModelScope.launch {
             withContext(ioDispatcher) {
-                val timestamp = if (expenseId != null) {
-                    repository.getExpenseById(expenseId)?.timestamp ?: System.currentTimeMillis()
+                if (state.inputMode == InputMode.TRANSACTION) {
+                    val timestamp = if (expenseId != null) {
+                        repository.getExpenseById(expenseId)?.timestamp ?: System.currentTimeMillis()
+                    } else {
+                        System.currentTimeMillis()
+                    }
+                    repository.insertExpense(
+                        amount = amount,
+                        categoryId = categoryId,
+                        description = state.description,
+                        timestamp = timestamp,
+                        type = state.transactionType.name,
+                        walletId = walletId,
+                        id = expenseId ?: 0L
+                    )
                 } else {
-                    System.currentTimeMillis()
+                    val dueDay = state.billReminderDueDay.toIntOrNull() ?: return@withContext
+                    val reminder = com.example.expense_tracker.data.BillReminder(
+                        name = state.billReminderName,
+                        amount = amount,
+                        dueDay = dueDay,
+                        categoryId = categoryId,
+                        walletId = walletId,
+                        isActive = true,
+                        createdAt = System.currentTimeMillis()
+                    )
+                    billReminderRepository.insertReminder(reminder)
                 }
-                repository.insertExpense(
-                    amount = amount,
-                    categoryId = categoryId,
-                    description = state.description,
-                    timestamp = timestamp,
-                    type = state.transactionType.name,
-                    walletId = walletId,
-                    id = expenseId ?: 0L
-                )
             }
 
             // Reset form for next input
             _uiState.value = InputUiState(
                 categories = _uiState.value.categories,
+                wallets = state.wallets,
+                transactionType = state.transactionType,
                 saved = true
             )
         }

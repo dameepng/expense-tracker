@@ -271,6 +271,37 @@ fun TransactionTypeToggle(
     }
 }
 
+// ── Input Mode Toggle ──────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InputModeToggle(
+    selectedMode: InputMode,
+    onModeChange: (InputMode) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    SingleChoiceSegmentedButtonRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
+        val modes = InputMode.entries
+        modes.forEachIndexed { index, mode ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
+                onClick = { onModeChange(mode) },
+                selected = selectedMode == mode,
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Text(if (mode == InputMode.TRANSACTION) "Transaksi" else "Bill Reminder")
+            }
+        }
+    }
+}
+
 // ── Input Screen ───────────────────────────────────────────────────
 
 @Composable
@@ -303,6 +334,14 @@ fun InputScreen(
             onTypeChange = { viewModel.onTransactionTypeChange(it) }
         )
         
+        if (state.transactionType == TransactionType.EXPENSE) {
+            Spacer(modifier = Modifier.height(16.dp))
+            InputModeToggle(
+                selectedMode = state.inputMode,
+                onModeChange = { viewModel.onInputModeChange(it) }
+            )
+        }
+        
         // Amount input
         AmountInput(
             amountText = state.amountText,
@@ -310,23 +349,61 @@ fun InputScreen(
             onAmountChange = { viewModel.onAmountChange(it) }
         )
 
-        // Description Input
-        OutlinedTextField(
-            value = state.description,
-            onValueChange = { viewModel.onDescriptionChange(it) },
-            label = { Text("Deskripsi Singkat (opsional)") },
-            placeholder = { Text("Misal: Nasi Goreng, Bensin, Netflix") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-            ),
-            shape = RoundedCornerShape(12.dp)
-        )
+        if (state.inputMode == InputMode.BILL_REMINDER) {
+            OutlinedTextField(
+                value = state.billReminderName,
+                onValueChange = { viewModel.onBillReminderNameChange(it) },
+                label = { Text("Nama Tagihan") },
+                placeholder = { Text("Misal: Netflix, Listrik") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = state.billReminderDueDay,
+                onValueChange = { viewModel.onBillReminderDueDayChange(it) },
+                label = { Text("Tanggal Jatuh Tempo (1-31)") },
+                placeholder = { Text("Misal: 25") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+        } else {
+            // Description Input
+            OutlinedTextField(
+                value = state.description,
+                onValueChange = { viewModel.onDescriptionChange(it) },
+                label = { Text("Deskripsi Singkat (opsional)") },
+                placeholder = { Text("Misal: Nasi Goreng, Bensin, Netflix") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
