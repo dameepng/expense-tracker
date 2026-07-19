@@ -86,15 +86,28 @@ class InputViewModel(
         _uiState.value = state.copy(isSaveEnabled = isEnabled)
     }
 
-    fun onInputModeChange(mode: InputMode) {
+    fun onInputTypeSelected(option: InputTypeOption) {
+        val newTransactionType = if (option == InputTypeOption.INCOME) com.example.expense_tracker.data.TransactionType.INCOME else com.example.expense_tracker.data.TransactionType.EXPENSE
+        val newInputMode = if (option == InputTypeOption.BILL_REMINDER) InputMode.BILL_REMINDER else InputMode.TRANSACTION
+
         _uiState.value = _uiState.value.copy(
-            inputMode = mode,
+            inputTypeOption = option,
+            transactionType = newTransactionType,
+            inputMode = newInputMode,
+            selectedCategoryId = null,
             amountText = "",
             billReminderName = "",
             billReminderDueDay = "",
-            description = ""
+            description = "",
+            isSaveEnabled = false
         )
-        updateSaveEnabled()
+        
+        viewModelScope.launch {
+            val categories = withContext(ioDispatcher) {
+                repository.getCategoriesByType(newTransactionType.name)
+            }
+            _uiState.value = _uiState.value.copy(categories = categories)
+        }
     }
 
     fun onBillReminderNameChange(text: String) {
@@ -135,19 +148,7 @@ class InputViewModel(
         updateSaveEnabled()
     }
 
-    fun onTransactionTypeChange(type: com.example.expense_tracker.data.TransactionType) {
-        _uiState.value = _uiState.value.copy(
-            transactionType = type,
-            selectedCategoryId = null,
-            isSaveEnabled = false
-        )
-        viewModelScope.launch {
-            val categories = withContext(ioDispatcher) {
-                repository.getCategoriesByType(type.name)
-            }
-            _uiState.value = _uiState.value.copy(categories = categories)
-        }
-    }
+
 
     fun onSave() {
         val state = _uiState.value

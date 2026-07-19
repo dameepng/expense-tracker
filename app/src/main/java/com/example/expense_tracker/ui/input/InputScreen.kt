@@ -4,17 +4,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -58,11 +59,15 @@ import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 
 @Composable
 fun InputHeader(
-    transactionType: TransactionType,
+    inputTypeOption: InputTypeOption,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val title = if (transactionType == TransactionType.INCOME) "Tambah Pemasukan" else "Tambah Pengeluaran"
+    val title = when (inputTypeOption) {
+        InputTypeOption.INCOME -> "Tambah Pemasukan"
+        InputTypeOption.EXPENSE -> "Tambah Pengeluaran"
+        InputTypeOption.BILL_REMINDER -> "Tambah Tagihan"
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -159,7 +164,7 @@ fun AmountInput(
 
 // ── Category Grid ──────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CategoryGrid(
     categories: List<Category>,
@@ -175,22 +180,19 @@ fun CategoryGrid(
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(categories, key = { it.id }) { category ->
+            categories.forEach { category ->
                 val isSelected = category.id == selectedId
                 FilterChip(
                     selected = isSelected,
                     onClick = { onCategorySelected(category.id) },
                     label = { 
                         Text(
-                            text = category.name, 
-                            modifier = Modifier.fillMaxWidth(), 
-                            textAlign = TextAlign.Center,
+                            text = category.name,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         ) 
                     },
@@ -198,8 +200,7 @@ fun CategoryGrid(
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    modifier = Modifier.height(48.dp)
+                    )
                 )
             }
         }
@@ -240,13 +241,13 @@ fun SaveButton(
     }
 }
 
-// ── Transaction Type Toggle ───────────────────────────────────────
+// ── Input Type Toggle ──────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionTypeToggle(
-    selectedType: TransactionType,
-    onTypeChange: (TransactionType) -> Unit,
+fun InputTypeSegmentedButton(
+    selectedOption: InputTypeOption,
+    onOptionSelected: (InputTypeOption) -> Unit,
     modifier: Modifier = Modifier
 ) {
     SingleChoiceSegmentedButtonRow(
@@ -254,49 +255,36 @@ fun TransactionTypeToggle(
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
     ) {
-        val types = TransactionType.entries
-        types.forEachIndexed { index, type ->
-            SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = types.size),
-                onClick = { onTypeChange(type) },
-                selected = selectedType == type,
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = if (type == TransactionType.INCOME) Color(0xFFE8F5E9) else MaterialTheme.colorScheme.errorContainer,
-                    activeContentColor = if (type == TransactionType.INCOME) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onErrorContainer
-                )
-            ) {
-                Text(if (type == TransactionType.INCOME) "Pemasukan" else "Pengeluaran")
+        val options = InputTypeOption.entries
+        options.forEachIndexed { index, option ->
+            val label = when (option) {
+                InputTypeOption.INCOME -> "Pemasukan"
+                InputTypeOption.EXPENSE -> "Pengeluaran"
+                InputTypeOption.BILL_REMINDER -> "Bill Reminder"
             }
-        }
-    }
-}
-
-// ── Input Mode Toggle ──────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun InputModeToggle(
-    selectedMode: InputMode,
-    onModeChange: (InputMode) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    SingleChoiceSegmentedButtonRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-    ) {
-        val modes = InputMode.entries
-        modes.forEachIndexed { index, mode ->
-            SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
-                onClick = { onModeChange(mode) },
-                selected = selectedMode == mode,
-                colors = SegmentedButtonDefaults.colors(
+            
+            val colors = when (option) {
+                InputTypeOption.INCOME -> SegmentedButtonDefaults.colors(
+                    activeContainerColor = Color(0xFFE8F5E9),
+                    activeContentColor = Color(0xFF2E7D32)
+                )
+                InputTypeOption.EXPENSE -> SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.errorContainer,
+                    activeContentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
+                InputTypeOption.BILL_REMINDER -> SegmentedButtonDefaults.colors(
                     activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                     activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
+            }
+            
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                onClick = { onOptionSelected(option) },
+                selected = selectedOption == option,
+                colors = colors
             ) {
-                Text(if (mode == InputMode.TRANSACTION) "Transaksi" else "Bill Reminder")
+                Text(label)
             }
         }
     }
@@ -323,26 +311,23 @@ fun InputScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         InputHeader(
-            transactionType = state.transactionType,
+            inputTypeOption = state.inputTypeOption,
             onNavigateBack = onNavigateBack
         )
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        TransactionTypeToggle(
-            selectedType = state.transactionType,
-            onTypeChange = { viewModel.onTransactionTypeChange(it) }
+        InputTypeSegmentedButton(
+            selectedOption = state.inputTypeOption,
+            onOptionSelected = { viewModel.onInputTypeSelected(it) }
         )
         
-        if (state.transactionType == TransactionType.EXPENSE) {
-            Spacer(modifier = Modifier.height(16.dp))
-            InputModeToggle(
-                selectedMode = state.inputMode,
-                onModeChange = { viewModel.onInputModeChange(it) }
-            )
-        }
-        
-        // Amount input
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Amount input
         AmountInput(
             amountText = state.amountText,
             transactionType = state.transactionType,
@@ -420,9 +405,11 @@ fun InputScreen(
         CategoryGrid(
             categories = state.categories,
             selectedId = state.selectedCategoryId,
-            onCategorySelected = { viewModel.onCategorySelected(it) },
-            modifier = Modifier.weight(1f)
+            onCategorySelected = { viewModel.onCategorySelected(it) }
         )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        }
 
         // Save button
         SaveButton(
@@ -452,12 +439,12 @@ fun InputScreenEmptyPreview() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            InputHeader(transactionType = TransactionType.EXPENSE, onNavigateBack = {})
+            InputHeader(inputTypeOption = InputTypeOption.EXPENSE, onNavigateBack = {})
             Spacer(modifier = Modifier.height(16.dp))
-            TransactionTypeToggle(selectedType = TransactionType.EXPENSE, onTypeChange = {})
+            InputTypeSegmentedButton(selectedOption = InputTypeOption.EXPENSE, onOptionSelected = {})
             AmountInput(amountText = "", transactionType = TransactionType.EXPENSE, onAmountChange = {})
             Spacer(modifier = Modifier.height(16.dp))
-            CategoryGrid(categories = categories, selectedId = null, onCategorySelected = {}, modifier = Modifier.weight(1f))
+            CategoryGrid(categories = categories, selectedId = null, onCategorySelected = {})
             SaveButton(enabled = false, onClick = {})
         }
     }
@@ -481,12 +468,12 @@ fun InputScreenFilledPreview() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            InputHeader(transactionType = TransactionType.EXPENSE, onNavigateBack = {})
+            InputHeader(inputTypeOption = InputTypeOption.EXPENSE, onNavigateBack = {})
             Spacer(modifier = Modifier.height(16.dp))
-            TransactionTypeToggle(selectedType = TransactionType.EXPENSE, onTypeChange = {})
+            InputTypeSegmentedButton(selectedOption = InputTypeOption.EXPENSE, onOptionSelected = {})
             AmountInput(amountText = "75000", transactionType = TransactionType.EXPENSE, onAmountChange = {})
             Spacer(modifier = Modifier.height(16.dp))
-            CategoryGrid(categories = categories, selectedId = 1L, onCategorySelected = {}, modifier = Modifier.weight(1f))
+            CategoryGrid(categories = categories, selectedId = 1L, onCategorySelected = {})
             SaveButton(enabled = true, onClick = {})
         }
     }

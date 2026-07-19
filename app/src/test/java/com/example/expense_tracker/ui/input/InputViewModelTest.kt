@@ -229,7 +229,7 @@ class InputViewModelTest {
         val repo = FakeInputRepository()
         val vm = initViewModel(repo)
 
-        vm.onTransactionTypeChange(com.example.expense_tracker.data.TransactionType.INCOME)
+        vm.onInputTypeSelected(InputTypeOption.INCOME)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -252,7 +252,7 @@ class InputViewModelTest {
         vm.onWalletSelected(1L)
         assertTrue(vm.uiState.value.isSaveEnabled)
 
-        vm.onTransactionTypeChange(com.example.expense_tracker.data.TransactionType.INCOME)
+        vm.onInputTypeSelected(InputTypeOption.INCOME)
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertNull(vm.uiState.value.selectedCategoryId)
