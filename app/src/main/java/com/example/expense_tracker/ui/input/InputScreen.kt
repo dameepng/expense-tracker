@@ -4,8 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -164,7 +162,7 @@ fun AmountInput(
 
 // ── Category Grid ──────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryGrid(
     categories: List<Category>,
@@ -180,28 +178,36 @@ fun CategoryGrid(
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        
+        val chunkedCategories = categories.chunked(3)
+        Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            categories.forEach { category ->
-                val isSelected = category.id == selectedId
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onCategorySelected(category.id) },
-                    label = { 
-                        Text(
-                            text = category.name,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                        ) 
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
+            chunkedCategories.forEach { rowCategories ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    rowCategories.forEach { category ->
+                        val isSelected = category.id == selectedId
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { onCategorySelected(category.id) },
+                            label = { 
+                                Text(
+                                    text = category.name,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                ) 
+                            },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        )
+                    }
+                }
             }
         }
     }
