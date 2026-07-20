@@ -78,8 +78,6 @@ fun SummaryFilterTabs(
     onSelected: (FilterPeriod, Long?, Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showDatePicker by remember { mutableStateOf(false) }
-
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -87,7 +85,7 @@ fun SummaryFilterTabs(
         verticalAlignment = Alignment.CenterVertically
     ) {
         SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.fillMaxWidth()
         ) {
             val standardFilters = FilterPeriod.entries.filter { it != FilterPeriod.CUSTOM }
             standardFilters.forEachIndexed { index, filter ->
@@ -104,68 +102,10 @@ fun SummaryFilterTabs(
                 }
             }
         }
-
-        IconButton(
-            onClick = { showDatePicker = true },
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.DateRange,
-                contentDescription = "Custom Date",
-                tint = if (selected == FilterPeriod.CUSTOM) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-
-    if (showDatePicker) {
-        val dateRangePickerState = rememberDateRangePickerState()
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-            modifier = Modifier.padding(16.dp),
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDatePicker = false
-                        val start = dateRangePickerState.selectedStartDateMillis
-                        val end = dateRangePickerState.selectedEndDateMillis
-                        if (start != null && end != null) {
-                            onSelected(FilterPeriod.CUSTOM, start, end)
-                        } else if (start != null) {
-                            onSelected(FilterPeriod.CUSTOM, start, start) // Same day if only one selected
-                        }
-                    }
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DateRangePicker(
-                state = dateRangePickerState,
-                modifier = Modifier.weight(1f),
-                title = {
-                    Text(
-                        text = "Pilih Tanggal",
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                    )
-                },
-                headline = {
-                    Text(
-                        text = "Tentukan rentang tanggal filter",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
-                    )
-                },
-                showModeToggle = false
-            )
-        }
     }
 }
+
+
 
 // ── Breakdown Card Item ──────────────────────────────────────────────
 
@@ -280,6 +220,7 @@ fun SummaryTotalFooter(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.inverseSurface)
             .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -287,13 +228,13 @@ fun SummaryTotalFooter(
             text = "Total",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface
         )
         Text(
             text = CurrencyFormatter.format(totalAmount),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface
         )
     }
 }
@@ -307,6 +248,7 @@ fun SummaryScreen(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    var showDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -317,6 +259,15 @@ fun SummaryScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Kembali"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Custom Date",
+                            tint = if (state.filter == FilterPeriod.CUSTOM) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -368,10 +319,59 @@ fun SummaryScreen(
                     BreakdownCardItem(item = item)
                 }
             }
+            }
             // Total footer
             SummaryTotalFooter(totalAmount = state.totalAmount)
         }
     }
+
+    if (showDatePicker) {
+        val dateRangePickerState = rememberDateRangePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            modifier = Modifier.padding(16.dp),
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDatePicker = false
+                        val start = dateRangePickerState.selectedStartDateMillis
+                        val end = dateRangePickerState.selectedEndDateMillis
+                        if (start != null && end != null) {
+                            viewModel.onFilterSelected(FilterPeriod.CUSTOM, start, end)
+                        } else if (start != null) {
+                            viewModel.onFilterSelected(FilterPeriod.CUSTOM, start, start) // Same day if only one selected
+                        }
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DateRangePicker(
+                state = dateRangePickerState,
+                modifier = Modifier.weight(1f),
+                title = {
+                    Text(
+                        text = "Pilih Tanggal",
+                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)
+                    )
+                },
+                headline = {
+                    Text(
+                        text = "Tentukan rentang tanggal filter",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
+                    )
+                },
+                showModeToggle = false
+            )
+        }
     }
 }
 
