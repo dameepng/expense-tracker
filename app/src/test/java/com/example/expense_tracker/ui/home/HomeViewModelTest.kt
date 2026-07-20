@@ -36,6 +36,7 @@ class HomeViewModelTest {
         override fun getWalletById(id: Long): com.example.expense_tracker.data.Wallet? = wallets.find { it.id == id }
         override fun insertWallet(wallet: com.example.expense_tracker.data.Wallet) { wallets = wallets + wallet }
         override fun deleteWallet(wallet: com.example.expense_tracker.data.Wallet) { wallets = wallets.filterNot { it.id == wallet.id } }
+        override fun getComputedBalance(walletId: Long): Long = 0L
         fun setData(newWallets: List<com.example.expense_tracker.data.Wallet>) { wallets = newWallets }
     }
 

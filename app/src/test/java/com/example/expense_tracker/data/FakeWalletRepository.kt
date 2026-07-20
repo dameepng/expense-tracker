@@ -21,4 +21,8 @@ class FakeWalletRepository : WalletRepository {
     override fun deleteWallet(wallet: Wallet) {
         wallets.removeIf { it.id == wallet.id }
     }
+
+    override fun getComputedBalance(walletId: Long): Long {
+        return 0L
+    }
 }

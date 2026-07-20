@@ -36,6 +36,7 @@ class WalletDetailViewModelTest {
         override fun deleteWallet(wallet: Wallet) {
             wallets = wallets.filterNot { it.id == wallet.id }
         }
+        override fun getComputedBalance(walletId: Long): Long = 0L
     }
 
     private class FakeExpenseRepository(
