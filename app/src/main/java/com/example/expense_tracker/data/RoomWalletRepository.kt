@@ -22,4 +22,8 @@ class RoomWalletRepository(
     override fun deleteWallet(wallet: Wallet) {
         dao.deleteWallet(wallet)
     }
+
+    override fun getComputedBalance(walletId: Long): Long {
+        return dao.getComputedBalance(walletId)
+    }
 }

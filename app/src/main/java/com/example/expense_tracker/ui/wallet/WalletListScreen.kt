@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,7 +61,8 @@ fun WalletListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Wallet Saya") }
+                title = { Text("Wallet Saya") },
+                windowInsets = WindowInsets.statusBars
             )
         },
         floatingActionButton = {
@@ -91,6 +94,7 @@ fun WalletListScreen(
                     ) { wallet ->
                         WalletListItem(
                             wallet = wallet,
+                            computedBalance = uiState.balanceMap[wallet.id] ?: 0L,
                             onDelete = { viewModel.deleteWallet(wallet) },
                             onClick = { onNavigateToWalletDetail(wallet.id) }
                         )
@@ -140,6 +144,7 @@ fun WalletListScreen(
 @Composable
 fun WalletListItem(
     wallet: Wallet,
+    computedBalance: Long,
     onDelete: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -204,7 +209,7 @@ fun WalletListItem(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = formatRp.format(wallet.balance),
+                    text = formatRp.format(computedBalance),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )

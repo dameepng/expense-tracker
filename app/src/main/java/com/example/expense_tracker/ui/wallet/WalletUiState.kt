@@ -4,5 +4,6 @@ import com.example.expense_tracker.data.Wallet
 
 data class WalletUiState(
     val wallets: List<Wallet> = emptyList(),
+    val balanceMap: Map<Long, Long> = emptyMap(),
     val isLoading: Boolean = false
 )

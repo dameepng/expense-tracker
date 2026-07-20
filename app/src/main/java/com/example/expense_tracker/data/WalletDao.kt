@@ -19,4 +19,11 @@ interface WalletDao {
 
     @Query("SELECT * FROM wallets WHERE id = :id")
     fun getWalletById(id: Long): Wallet?
+
+    @Query("""
+        SELECT COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END), 0) - 
+               COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END), 0) 
+        FROM expenses WHERE walletId = :walletId
+    """)
+    fun getComputedBalance(walletId: Long): Long
 }

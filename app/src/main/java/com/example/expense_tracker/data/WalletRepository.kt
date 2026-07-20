@@ -9,4 +9,5 @@ interface WalletRepository {
     fun getWalletById(id: Long): Wallet?
     fun insertWallet(wallet: Wallet)
     fun deleteWallet(wallet: Wallet)
+    fun getComputedBalance(walletId: Long): Long
 }

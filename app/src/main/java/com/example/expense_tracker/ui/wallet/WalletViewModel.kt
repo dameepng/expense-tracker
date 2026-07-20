@@ -28,9 +28,13 @@ class WalletViewModel(
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch(ioDispatcher) {
             val wallets = repository.getAllWallets()
+            val balances = wallets.associate { wallet ->
+                wallet.id to repository.getComputedBalance(wallet.id)
+            }
             _uiState.update {
                 it.copy(
                     wallets = wallets,
+                    balanceMap = balances,
                     isLoading = false
                 )
             }
