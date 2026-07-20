@@ -273,7 +273,8 @@ fun SummaryScreen(
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -288,7 +289,7 @@ fun SummaryScreen(
             onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Breakdown list or empty state
         if (state.isLoading) {
@@ -312,7 +313,7 @@ fun SummaryScreen(
                         totalAmount = state.totalAmount,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp)
+                            .padding(bottom = 16.dp, top = 4.dp)
                     )
                 }
                 items(state.items, key = { it.categoryId }) { item ->
