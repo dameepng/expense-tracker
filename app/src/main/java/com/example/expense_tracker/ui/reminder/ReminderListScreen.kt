@@ -57,7 +57,7 @@ fun ReminderListScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Bill Reminders") },
-                windowInsets = WindowInsets.statusBars,
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")

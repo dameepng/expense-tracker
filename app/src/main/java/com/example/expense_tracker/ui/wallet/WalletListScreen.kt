@@ -62,7 +62,7 @@ fun WalletListScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Wallet Saya") },
-                windowInsets = WindowInsets.statusBars
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         floatingActionButton = {
