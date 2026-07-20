@@ -33,6 +33,8 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -106,12 +108,26 @@ fun WalletListScreen(
     }
 
     if (showAddDialog) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         var newWalletName by remember { mutableStateOf("") }
         
-        AlertDialog(
+        ModalBottomSheet(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("Tambah Wallet Baru") },
-            text = {
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = "Tambah Wallet Baru",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
                 OutlinedTextField(
                     value = newWalletName,
                     onValueChange = { newWalletName = it },
@@ -119,24 +135,31 @@ fun WalletListScreen(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.addWallet(newWalletName)
-                        showAddDialog = false
-                    },
-                    enabled = newWalletName.isNotBlank()
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
                 ) {
-                    Text("Simpan")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) {
-                    Text("Batal")
+                    TextButton(
+                        onClick = { showAddDialog = false },
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text("Batal")
+                    }
+                    Button(
+                        onClick = {
+                            viewModel.addWallet(newWalletName)
+                            showAddDialog = false
+                        },
+                        enabled = newWalletName.isNotBlank()
+                    ) {
+                        Text("Simpan")
+                    }
                 }
             }
-        )
+        }
     }
 }
 
