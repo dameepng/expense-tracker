@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     implementation(libs.androidx.work.runtime.ktx)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // Room
     implementation(libs.androidx.room.runtime)

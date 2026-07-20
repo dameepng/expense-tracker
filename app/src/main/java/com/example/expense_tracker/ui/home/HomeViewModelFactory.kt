@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.RoomExpenseRepository
+import com.example.expense_tracker.data.UserPreferencesRepository
+import com.example.expense_tracker.data.dataStore
 
 class HomeViewModelFactory : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -29,7 +31,8 @@ class HomeViewModelFactory : ViewModelProvider.Factory {
                         val repository = RoomExpenseRepository(db.expenseDao())
                         val walletRepository = com.example.expense_tracker.data.RoomWalletRepository(db.walletDao())
                         val billReminderRepository = com.example.expense_tracker.data.RoomBillReminderRepository(db.billReminderDao())
-                        return HomeViewModel(repository, walletRepository, billReminderRepository) as T
+                        val userPreferencesRepository = com.example.expense_tracker.data.UserPreferencesRepositoryImpl(application.dataStore)
+                        return HomeViewModel(repository, walletRepository, billReminderRepository, userPreferencesRepository) as T
                     }
                     throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
                 }

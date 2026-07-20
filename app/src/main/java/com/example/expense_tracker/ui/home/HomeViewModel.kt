@@ -17,6 +17,7 @@ class HomeViewModel(
     private val repository: ExpenseRepository,
     private val walletRepository: com.example.expense_tracker.data.WalletRepository,
     private val billReminderRepository: com.example.expense_tracker.data.BillReminderRepository,
+    private val userPreferencesRepository: com.example.expense_tracker.data.UserPreferencesRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -24,16 +25,18 @@ class HomeViewModel(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        refresh()
+        viewModelScope.launch {
+            userPreferencesRepository.selectedWalletIdFlow.collect { savedWalletId ->
+                _uiState.value = _uiState.value.copy(selectedWalletId = savedWalletId)
+                refresh()
+            }
+        }
     }
 
     fun selectWallet(walletId: Long?) {
-        val selectedWallet = _uiState.value.wallets.find { it.id == walletId }
-        _uiState.value = _uiState.value.copy(
-            selectedWalletId = walletId,
-            selectedWalletName = selectedWallet?.name ?: "All Wallets"
-        )
-        refresh()
+        viewModelScope.launch {
+            userPreferencesRepository.saveSelectedWalletId(walletId)
+        }
     }
     
     fun refresh() {
@@ -76,7 +79,13 @@ class HomeViewModel(
                 )
             }
 
+            val selectedWallet = wallets.find { it.id == walletId }
+            val finalWalletId = if (walletId != null && selectedWallet == null) null else walletId
+            val finalWalletName = selectedWallet?.name ?: "All Wallets"
+
             _uiState.value = _uiState.value.copy(
+                selectedWalletId = finalWalletId,
+                selectedWalletName = finalWalletName,
                 totalAmount = totalIncome - totalExpense,
                 totalIncome = totalIncome,
                 totalExpense = totalExpense,

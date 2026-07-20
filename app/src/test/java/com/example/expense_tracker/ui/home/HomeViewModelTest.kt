@@ -25,6 +25,7 @@ class HomeViewModelTest {
     private lateinit var fakeRepository: FakeExpenseRepository
     private lateinit var fakeWalletRepository: FakeWalletRepository
     private lateinit var fakeBillReminderRepository: FakeBillReminderRepository
+    private lateinit var fakeUserPreferencesRepository: FakeUserPreferencesRepository
     private val testDispatcher = StandardTestDispatcher()
 
     // ── Fake Repository ────────────────────────────────────────────
@@ -38,6 +39,14 @@ class HomeViewModelTest {
         override fun deleteWallet(wallet: com.example.expense_tracker.data.Wallet) { wallets = wallets.filterNot { it.id == wallet.id } }
         override fun getComputedBalance(walletId: Long): Long = 0L
         fun setData(newWallets: List<com.example.expense_tracker.data.Wallet>) { wallets = newWallets }
+    }
+
+    private class FakeUserPreferencesRepository : com.example.expense_tracker.data.UserPreferencesRepository {
+        private val _flow = kotlinx.coroutines.flow.MutableStateFlow<Long?>(null)
+        override val selectedWalletIdFlow: kotlinx.coroutines.flow.Flow<Long?> = _flow
+        override suspend fun saveSelectedWalletId(walletId: Long?) {
+            _flow.value = walletId
+        }
     }
 
     private class FakeExpenseRepository(
@@ -130,6 +139,7 @@ class HomeViewModelTest {
         fakeRepository = FakeExpenseRepository()
         fakeWalletRepository = FakeWalletRepository()
         fakeBillReminderRepository = FakeBillReminderRepository()
+        fakeUserPreferencesRepository = FakeUserPreferencesRepository()
     }
 
     @After
@@ -138,7 +148,7 @@ class HomeViewModelTest {
     }
 
     private fun initAndAdvance() {
-        viewModel = HomeViewModel(fakeRepository, fakeWalletRepository, fakeBillReminderRepository, testDispatcher)
+        viewModel = HomeViewModel(fakeRepository, fakeWalletRepository, fakeBillReminderRepository, fakeUserPreferencesRepository, testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
     }
 
