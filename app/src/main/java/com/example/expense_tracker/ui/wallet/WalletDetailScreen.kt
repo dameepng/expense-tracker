@@ -19,11 +19,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -33,6 +36,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,11 +45,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.expense_tracker.data.Expense
+import com.example.expense_tracker.data.ExpenseWithCategory
 import com.example.expense_tracker.ui.home.BalanceCard
 import com.example.expense_tracker.ui.home.EmptyState
 import com.example.expense_tracker.ui.home.IncomeExpenseSummary
@@ -62,6 +71,7 @@ fun WalletDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    var transactionToDelete by remember { mutableStateOf<ExpenseWithCategory?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.refresh()
@@ -154,18 +164,8 @@ fun WalletDetailScreen(
                                 confirmValueChange = { dismissValue ->
                                     when (dismissValue) {
                                         SwipeToDismissBoxValue.EndToStart -> {
-                                            viewModel.deleteTransaction(expense)
-                                            coroutineScope.launch {
-                                                val result = snackbarHostState.showSnackbar(
-                                                    message = "Transaksi dihapus",
-                                                    actionLabel = "Batal",
-                                                    duration = SnackbarDuration.Short
-                                                )
-                                                if (result == SnackbarResult.ActionPerformed) {
-                                                    viewModel.undoDeleteTransaction(expense)
-                                                }
-                                            }
-                                            true
+                                            transactionToDelete = expense
+                                            false
                                         }
                                         SwipeToDismissBoxValue.StartToEnd -> {
                                             onNavigateToInput(expense.id)
@@ -221,6 +221,70 @@ fun WalletDetailScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    if (transactionToDelete != null) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { transactionToDelete = null },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = "Hapus Transaksi?",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Text(
+                    text = "Apakah Anda yakin ingin menghapus transaksi ini? Aksi ini tidak dapat dibatalkan.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
+                ) {
+                    TextButton(
+                        onClick = { transactionToDelete = null },
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text("Batal")
+                    }
+                    Button(
+                        onClick = {
+                            val expenseToDel = transactionToDelete
+                            if (expenseToDel != null) {
+                                viewModel.deleteTransaction(expenseToDel)
+                                coroutineScope.launch {
+                                    val result = snackbarHostState.showSnackbar(
+                                        message = "Transaksi dihapus",
+                                        actionLabel = "Batal",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        viewModel.undoDeleteTransaction(expenseToDel)
+                                    }
+                                }
+                            }
+                            transactionToDelete = null
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text("Hapus")
                     }
                 }
             }
