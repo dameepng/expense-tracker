@@ -31,6 +31,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import com.example.expense_tracker.ui.home.HomeScreen
 import com.example.expense_tracker.ui.home.HomeViewModel
 import com.example.expense_tracker.ui.home.HomeViewModelFactory
@@ -102,9 +107,19 @@ fun ExpenseTrackerApp() {
             startDestination = NavRoutes.HOME,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            enterTransition = { slideInHorizontally(animationSpec = tween(300), initialOffsetX = { fullWidth -> fullWidth }) + fadeIn(animationSpec = tween(300)) },
+            exitTransition = { slideOutHorizontally(animationSpec = tween(300), targetOffsetX = { fullWidth -> -fullWidth }) + fadeOut(animationSpec = tween(300)) },
+            popEnterTransition = { slideInHorizontally(animationSpec = tween(300), initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn(animationSpec = tween(300)) },
+            popExitTransition = { slideOutHorizontally(animationSpec = tween(300), targetOffsetX = { fullWidth -> fullWidth }) + fadeOut(animationSpec = tween(300)) }
         ) {
-            composable(NavRoutes.HOME) {
+            composable(
+                route = NavRoutes.HOME,
+                enterTransition = { fadeIn(animationSpec = tween(300)) },
+                exitTransition = { fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+            ) {
                 val homeViewModel: HomeViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = HomeViewModelFactory.create(applicationContext()))
                 val streakViewModel: StreakCounterViewModel =
@@ -145,7 +160,13 @@ fun ExpenseTrackerApp() {
                 )
             }
             
-            composable(NavRoutes.WALLET) {
+            composable(
+                route = NavRoutes.WALLET,
+                enterTransition = { fadeIn(animationSpec = tween(300)) },
+                exitTransition = { fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+            ) {
                 val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(applicationContext()))
                 com.example.expense_tracker.ui.wallet.WalletListScreen(
@@ -172,7 +193,13 @@ fun ExpenseTrackerApp() {
                 )
             }
 
-            composable(NavRoutes.PROFILE) {
+            composable(
+                route = NavRoutes.PROFILE,
+                enterTransition = { fadeIn(animationSpec = tween(300)) },
+                exitTransition = { fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+            ) {
                 com.example.expense_tracker.ui.profile.ProfileScreen()
             }
             
