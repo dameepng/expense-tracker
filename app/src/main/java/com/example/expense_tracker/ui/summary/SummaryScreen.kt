@@ -210,35 +210,6 @@ fun SummaryEmptyState(modifier: Modifier = Modifier) {
     }
 }
 
-// ── Total Footer ───────────────────────────────────────────────────
-
-@Composable
-fun SummaryTotalFooter(
-    totalAmount: Long,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.inverseSurface)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = "Total",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.inverseOnSurface
-        )
-        Text(
-            text = CurrencyFormatter.format(totalAmount),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.inverseOnSurface
-        )
-    }
-}
-
 // ── Summary Screen ─────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -312,8 +283,6 @@ fun SummaryScreen(
                 }
             }
             }
-            // Total footer
-            SummaryTotalFooter(totalAmount = state.totalAmount)
         }
     }
 
@@ -407,7 +376,6 @@ fun SummaryScreenWithDataPreview() {
                     BreakdownCardItem(item = item)
                 }
             }
-            SummaryTotalFooter(totalAmount = 150_000L)
         }
     }
 }
@@ -422,10 +390,3 @@ fun BreakdownCardItemPreview() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SummaryTotalFooterPreview() {
-    Expense_trackerTheme {
-        SummaryTotalFooter(totalAmount = 150_000L)
-    }
-}
