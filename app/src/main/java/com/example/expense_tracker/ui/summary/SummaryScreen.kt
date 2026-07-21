@@ -63,7 +63,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -244,8 +244,7 @@ fun SummaryTotalFooter(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryScreen(
-    viewModel: SummaryViewModel,
-    onNavigateBack: () -> Unit
+    viewModel: SummaryViewModel
 ) {
     val state by viewModel.uiState.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
@@ -254,14 +253,6 @@ fun SummaryScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Ringkasan") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali"
-                        )
-                    }
-                },
                 actions = {
                     IconButton(onClick = { showDatePicker = true }) {
                         Icon(
