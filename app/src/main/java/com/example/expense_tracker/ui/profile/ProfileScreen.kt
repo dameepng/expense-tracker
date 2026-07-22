@@ -37,11 +37,19 @@ import androidx.compose.ui.unit.dp
 
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.foundation.clickable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,8 +100,47 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
             
+            item {
+                var biometricsEnabled by remember { mutableStateOf(false) }
+                
+                SettingsGroup(title = "Keamanan & Data") {
+                    SettingsItem(
+                        icon = Icons.Default.Download,
+                        title = "Export Data Transaksi",
+                        subtitle = "CSV / PDF",
+                        onClick = { /* TODO */ }
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.Lock,
+                        title = "Kunci Layar",
+                        subtitle = "Biometric / PIN",
+                        onClick = { biometricsEnabled = !biometricsEnabled },
+                        trailingComponent = {
+                            Switch(
+                                checked = biometricsEnabled,
+                                onCheckedChange = { biometricsEnabled = it }
+                            )
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            item {
+                SettingsGroup(title = "Danger Zone") {
+                    SettingsItem(
+                        icon = Icons.AutoMirrored.Filled.Logout,
+                        title = "Keluar Akun",
+                        subtitle = "Anda harus login kembali nanti",
+                        titleColor = MaterialTheme.colorScheme.error,
+                        iconColor = MaterialTheme.colorScheme.error,
+                        onClick = { /* TODO */ }
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+            
             // To be added in next issues:
-            // SettingsSection(Security & Data)
             // SettingsSection(About)
         }
     }
@@ -213,6 +260,8 @@ fun SettingsItem(
     icon: ImageVector,
     title: String,
     subtitle: String? = null,
+    titleColor: Color = MaterialTheme.colorScheme.onSurface,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit,
     trailingComponent: (@Composable () -> Unit)? = null
 ) {
@@ -232,7 +281,7 @@ fun SettingsItem(
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = iconColor,
                 modifier = Modifier
                     .padding(8.dp)
                     .fillMaxSize()
@@ -249,7 +298,7 @@ fun SettingsItem(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = titleColor
             )
             if (subtitle != null) {
                 Text(
