@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.expense_tracker.data.Category
 
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
@@ -107,7 +108,7 @@ fun AmountInput(
     onAmountChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val prefix = if (transactionType == TransactionType.INCOME) "+Rp " else "-Rp "
+    val prefix = "Rp "
     val displayText = if (amountText.isEmpty()) {
         "Rp 0"
     } else {
@@ -117,7 +118,15 @@ fun AmountInput(
     val textColor = if (amountText.isEmpty()) {
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     } else {
-        if (transactionType == TransactionType.INCOME) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onBackground
+        Color.White
+    }
+
+    val dynamicFontSize = when {
+        displayText.length > 20 -> 20.sp
+        displayText.length > 16 -> 24.sp
+        displayText.length > 13 -> 28.sp
+        displayText.length > 10 -> 34.sp
+        else -> 44.sp
     }
 
     Column(
@@ -133,7 +142,8 @@ fun AmountInput(
             },
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.displayLarge.copy(
-                color = Color.Transparent // Hide the raw text
+                color = Color.Transparent, // Hide the raw text
+                fontSize = dynamicFontSize
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
@@ -143,13 +153,16 @@ fun AmountInput(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Visible formatted text — always perfectly centered
+                    // Visible formatted text — always perfectly centered and responsive
                     Text(
                         text = displayText,
-                        style = MaterialTheme.typography.displayLarge,
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontSize = dynamicFontSize
+                        ),
                         fontWeight = FontWeight.Bold,
                         color = textColor,
                         textAlign = TextAlign.Center,
+                        maxLines = 1,
                         modifier = Modifier.fillMaxWidth()
                     )
                     // Invisible text field (still needed for keyboard input)
