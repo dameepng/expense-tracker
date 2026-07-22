@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -52,11 +53,10 @@ class ReminderFormViewModel(
     private fun loadInitialData() {
         viewModelScope.launch {
             val categories = withContext(ioDispatcher) {
-                // Bill reminders are usually EXPENSE
-                expenseRepository.getCategoriesByType("EXPENSE")
+                expenseRepository.getCategories().first()
             }
             val wallets = withContext(ioDispatcher) {
-                walletRepository.getAllWallets()
+                walletRepository.getAllWallets().first()
             }
             
             var loadedName = ""

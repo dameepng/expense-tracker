@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -18,56 +19,72 @@ class SummaryViewModel(
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SummaryUiState())
+    private val _uiState = MutableStateFlow(SummaryUiState(isLoading = true))
     val uiState: StateFlow<SummaryUiState> = _uiState.asStateFlow()
 
+    private data class SummaryFilterParams(
+        val filter: FilterPeriod,
+        val type: TransactionType,
+        val customStartDate: Long?,
+        val customEndDate: Long?
+    )
+
+    private val filterParamsFlow = MutableStateFlow(
+        SummaryFilterParams(
+            filter = FilterPeriod.MONTH,
+            type = TransactionType.EXPENSE,
+            customStartDate = null,
+            customEndDate = null
+        )
+    )
+
     init {
-        loadData()
+        viewModelScope.launch {
+            filterParamsFlow
+                .flatMapLatest { params ->
+                    val (start, end) = if (params.filter == FilterPeriod.CUSTOM && params.customStartDate != null && params.customEndDate != null) {
+                        Pair(params.customStartDate, params.customEndDate + 86400000L)
+                    } else {
+                        TimeRangeCalculator.calculateRange(params.filter)
+                    }
+                    
+                    repository.getBreakdownByCategory(start, end, params.type)
+                }
+                .collect { breakdown ->
+                    val total = breakdown.sumOf { it.totalAmount }
+                    val items = breakdown.map { item ->
+                        BreakdownItem(
+                            categoryId = item.categoryId,
+                            categoryName = item.categoryName,
+                            amount = item.totalAmount,
+                            percentage = if (total > 0) item.totalAmount.toFloat() / total.toFloat() else 0f
+                        )
+                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        items = items,
+                        totalAmount = total,
+                        isLoading = false,
+                        filter = filterParamsFlow.value.filter,
+                        customStartDate = filterParamsFlow.value.customStartDate,
+                        customEndDate = filterParamsFlow.value.customEndDate,
+                        transactionType = filterParamsFlow.value.type
+                    )
+                }
+        }
     }
 
     fun onFilterSelected(filter: FilterPeriod, customStartDate: Long? = null, customEndDate: Long? = null) {
-        _uiState.value = _uiState.value.copy(
+        filterParamsFlow.value = filterParamsFlow.value.copy(
             filter = filter,
-            customStartDate = customStartDate ?: _uiState.value.customStartDate,
-            customEndDate = customEndDate ?: _uiState.value.customEndDate
+            customStartDate = customStartDate ?: filterParamsFlow.value.customStartDate,
+            customEndDate = customEndDate ?: filterParamsFlow.value.customEndDate
         )
-        loadData()
+        _uiState.value = _uiState.value.copy(isLoading = true)
     }
 
     fun onTransactionTypeSelected(type: TransactionType) {
-        _uiState.value = _uiState.value.copy(transactionType = type)
-        loadData()
-    }
-
-    private fun loadData() {
+        filterParamsFlow.value = filterParamsFlow.value.copy(type = type)
         _uiState.value = _uiState.value.copy(isLoading = true)
-        viewModelScope.launch {
-            val state = _uiState.value
-            val (start, end) = if (state.filter == FilterPeriod.CUSTOM && state.customStartDate != null && state.customEndDate != null) {
-                // For custom dates, make sure end includes the entire day
-                Pair(state.customStartDate, state.customEndDate + 86400000L) // Add 1 day to end to be exclusive boundary
-            } else {
-                TimeRangeCalculator.calculateRange(state.filter)
-            }
-            val breakdown = withContext(ioDispatcher) {
-                repository.getBreakdownByCategory(start, end, state.transactionType)
-            }
-
-            val total = breakdown.sumOf { it.totalAmount }
-            val items = breakdown.map { item ->
-                BreakdownItem(
-                    categoryId = item.categoryId,
-                    categoryName = item.categoryName,
-                    amount = item.totalAmount,
-                    percentage = if (total > 0) item.totalAmount.toFloat() / total.toFloat() else 0f
-                )
-            }
-
-            _uiState.value = _uiState.value.copy(
-                items = items,
-                totalAmount = total,
-                isLoading = false
-            )
-        }
     }
 }

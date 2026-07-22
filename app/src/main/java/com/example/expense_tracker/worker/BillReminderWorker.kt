@@ -7,6 +7,7 @@ import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.RoomBillReminderRepository
 import com.example.expense_tracker.utils.NotificationHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -23,7 +24,7 @@ class BillReminderWorker(
             val database = AppDatabase.getInstance(applicationContext)
             val repository = RoomBillReminderRepository(database.billReminderDao())
 
-            val activeReminders = repository.getActiveReminders()
+            val activeReminders = repository.getActiveReminders().first()
             if (activeReminders.isEmpty()) {
                 return@withContext Result.success()
             }

@@ -3,7 +3,6 @@ package com.example.expense_tracker.data
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-
 import androidx.compose.runtime.Immutable
 
 @Entity(tableName = "wallets")

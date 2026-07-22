@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BillReminderDao {
@@ -22,7 +23,7 @@ interface BillReminderDao {
     fun getAllReminders(): List<BillReminder>
 
     @Query("SELECT * FROM bill_reminders WHERE isActive = 1 ORDER BY dueDay ASC")
-    fun getActiveReminders(): List<BillReminder>
+    fun getActiveReminders(): Flow<List<BillReminder>>
 
     @Query("SELECT * FROM bill_reminders WHERE id = :id")
     fun getReminderById(id: Long): BillReminder?

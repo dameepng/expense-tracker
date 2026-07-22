@@ -265,7 +265,7 @@ fun ExpenseTrackerApp() {
                 val shouldRefresh by backStackEntry.savedStateHandle.getStateFlow("refresh_home", false).collectAsState()
                 LaunchedEffect(shouldRefresh) {
                     if (shouldRefresh) {
-                        homeViewModel.refresh()
+                        // homeViewModel.refresh()
                         backStackEntry.savedStateHandle.set("refresh_home", false)
                     }
                 }

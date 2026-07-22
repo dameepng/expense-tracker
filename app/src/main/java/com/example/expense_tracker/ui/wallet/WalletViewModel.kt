@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -29,7 +30,7 @@ class WalletViewModel(
     fun refresh() {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch(ioDispatcher) {
-            val wallets = repository.getAllWallets()
+            val wallets = repository.getAllWallets().first()
             val balances = wallets.associate { wallet ->
                 wallet.id to repository.getComputedBalance(wallet.id)
             }

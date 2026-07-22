@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {
@@ -24,34 +25,34 @@ interface ExpenseDao {
     fun getAllTransactions(): List<Expense>
 
     @Query("SELECT * FROM categories ORDER BY id ASC")
-    fun getAllCategories(): List<Category>
+    fun getAllCategories(): Flow<List<Category>>
 
     @Query("SELECT * FROM categories WHERE id = :id")
     fun getCategoryById(id: Long): Category?
 
     @Query("SELECT * FROM categories WHERE type = :type OR type = 'BOTH' ORDER BY id ASC")
-    fun getCategoriesByType(type: String): List<Category>
+    fun getCategoriesByType(type: String): Flow<List<Category>>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime AND type = 'EXPENSE'")
-    fun getTotalExpense(startTime: Long, endTime: Long): Long
+    fun getTotalExpense(startTime: Long, endTime: Long): Flow<Long>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime AND type = 'INCOME'")
-    fun getTotalIncome(startTime: Long, endTime: Long): Long
+    fun getTotalIncome(startTime: Long, endTime: Long): Flow<Long>
 
     @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime AND type = 'EXPENSE' ORDER BY timestamp DESC")
-    fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense>
+    fun getExpensesBetween(startTime: Long, endTime: Long): Flow<List<Expense>>
 
     @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
-    fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense>
+    fun getAllTransactionsBetween(startTime: Long, endTime: Long): Flow<List<Expense>>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime AND type = 'EXPENSE'")
-    fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long
+    fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime AND type = 'INCOME'")
-    fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Long
+    fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long>
 
     @Query("SELECT * FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
-    fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense>
+    fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>>
 
     @Query("""
         SELECT c.id AS categoryId, c.name AS categoryName, COALESCE(SUM(e.amount), 0) AS totalAmount
@@ -71,7 +72,7 @@ interface ExpenseDao {
         HAVING totalAmount > 0
         ORDER BY totalAmount DESC
     """)
-    fun getBreakdownByCategoryAndType(startTime: Long, endTime: Long, type: String): List<CategoryBreakdown>
+    fun getBreakdownByCategoryAndType(startTime: Long, endTime: Long, type: String): Flow<List<CategoryBreakdown>>
 
     @Query("SELECT DISTINCT timestamp FROM expenses ORDER BY timestamp DESC")
     fun getDistinctDatesWithExpense(): List<Long>

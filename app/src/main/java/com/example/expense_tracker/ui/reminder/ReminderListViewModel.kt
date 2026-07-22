@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -54,13 +55,13 @@ class ReminderListViewModel(
                 repository.getActiveReminders()
             }
             val categories = withContext(ioDispatcher) {
-                expenseRepository.getCategories().associateBy { it.id }
+                expenseRepository.getCategories().first().associateBy { it.id }
             }
             val wallets = withContext(ioDispatcher) {
-                walletRepository.getAllWallets().associateBy { it.id }
+                walletRepository.getAllWallets().first().associateBy { it.id }
             }
             
-            val items = reminders.map { reminder ->
+            val items = reminders.first().map { reminder ->
                 ReminderItemUiState(
                     reminder = reminder,
                     categoryName = categories[reminder.categoryId]?.name ?: "Unknown",

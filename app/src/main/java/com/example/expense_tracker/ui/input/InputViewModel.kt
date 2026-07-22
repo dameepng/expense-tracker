@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -27,7 +28,7 @@ class InputViewModel(
     private fun loadInitialData() {
         viewModelScope.launch {
             val wallets = withContext(ioDispatcher) {
-                walletRepository.getAllWallets()
+                walletRepository.getAllWallets().first()
             }
             var loadedAmount = ""
             var loadedDescription = ""
@@ -53,7 +54,7 @@ class InputViewModel(
             }
 
             val categories = withContext(ioDispatcher) {
-                repository.getCategoriesByType(loadedTransactionType.name)
+                repository.getCategoriesByType(loadedTransactionType.name).first()
             }
 
             _uiState.value = _uiState.value.copy(
@@ -104,7 +105,7 @@ class InputViewModel(
         
         viewModelScope.launch {
             val categories = withContext(ioDispatcher) {
-                repository.getCategoriesByType(newTransactionType.name)
+                repository.getCategoriesByType(newTransactionType.name).first()
             }
             _uiState.value = _uiState.value.copy(categories = categories)
         }

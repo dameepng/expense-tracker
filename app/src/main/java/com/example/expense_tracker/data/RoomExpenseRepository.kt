@@ -1,5 +1,7 @@
 package com.example.expense_tracker.data
 
+import kotlinx.coroutines.flow.Flow
+
 /**
  * Room-backed implementation of ExpenseRepository.
  */
@@ -7,19 +9,19 @@ class RoomExpenseRepository(
     private val dao: ExpenseDao
 ) : ExpenseRepository {
 
-    override fun getTotalExpense(startTime: Long, endTime: Long): Long {
+    override fun getTotalExpense(startTime: Long, endTime: Long): Flow<Long> {
         return dao.getTotalExpense(startTime, endTime)
     }
 
-    override fun getTotalIncome(startTime: Long, endTime: Long): Long {
+    override fun getTotalIncome(startTime: Long, endTime: Long): Flow<Long> {
         return dao.getTotalIncome(startTime, endTime)
     }
 
-    override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> {
+    override fun getExpensesBetween(startTime: Long, endTime: Long): Flow<List<Expense>> {
         return dao.getExpensesBetween(startTime, endTime)
     }
 
-    override fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense> {
+    override fun getAllTransactionsBetween(startTime: Long, endTime: Long): Flow<List<Expense>> {
         return dao.getAllTransactionsBetween(startTime, endTime)
     }
 
@@ -27,10 +29,10 @@ class RoomExpenseRepository(
         return dao.getAllTransactions()
     }
 
-    override fun getCategories(): List<Category> =
+    override fun getCategories(): Flow<List<Category>> =
         dao.getAllCategories()
 
-    override fun getCategoriesByType(type: String): List<Category> =
+    override fun getCategoriesByType(type: String): Flow<List<Category>> =
         dao.getCategoriesByType(type)
     override fun deleteExpense(expense: Expense) =
         dao.deleteExpense(expense)
@@ -41,15 +43,15 @@ class RoomExpenseRepository(
     override fun getExpenseById(id: Long): Expense? =
         dao.getExpenseById(id)
 
-    override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long {
+    override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long> {
         return dao.getTotalExpenseByWallet(walletId, startTime, endTime)
     }
 
-    override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Long {
+    override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long> {
         return dao.getTotalIncomeByWallet(walletId, startTime, endTime)
     }
 
-    override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense> {
+    override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> {
         return dao.getTransactionsByWallet(walletId, startTime, endTime)
     }
 }

@@ -3,11 +3,13 @@ package com.example.expense_tracker.data
 /**
  * Room-backed implementation of WalletRepository.
  */
+import kotlinx.coroutines.flow.Flow
+
 class RoomWalletRepository(
     private val dao: WalletDao
 ) : WalletRepository {
 
-    override fun getAllWallets(): List<Wallet> {
+    override fun getAllWallets(): Flow<List<Wallet>> {
         return dao.getAllWallets()
     }
 
