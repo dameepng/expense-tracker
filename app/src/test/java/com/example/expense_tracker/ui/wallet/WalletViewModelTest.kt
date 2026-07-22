@@ -21,12 +21,32 @@ class WalletViewModelTest {
 
     private lateinit var viewModel: WalletViewModel
     private lateinit var repository: FakeWalletRepository
+    private lateinit var userPrefs: FakeUserPreferencesRepository
     private val testDispatcher = StandardTestDispatcher()
+
+    class FakeUserPreferencesRepository : com.example.expense_tracker.data.UserPreferencesRepository {
+        override val selectedWalletIdFlow = kotlinx.coroutines.flow.flowOf<Long?>(null)
+        override val themeModeFlow = kotlinx.coroutines.flow.flowOf("System Default")
+        override val currencyFlow = kotlinx.coroutines.flow.flowOf("IDR")
+        override val languageFlow = kotlinx.coroutines.flow.flowOf("Indonesia")
+        override val isBiometricsEnabledFlow = kotlinx.coroutines.flow.flowOf(false)
+        override val userNameFlow = kotlinx.coroutines.flow.flowOf("Adam")
+        override val userPhotoUriFlow = kotlinx.coroutines.flow.flowOf<String?>(null)
+        
+        override suspend fun saveSelectedWalletId(walletId: Long?) {}
+        override suspend fun saveThemeMode(mode: String) {}
+        override suspend fun saveCurrency(currency: String) {}
+        override suspend fun saveLanguage(language: String) {}
+        override suspend fun saveBiometricsEnabled(enabled: Boolean) {}
+        override suspend fun saveUserProfile(name: String, photoUri: String?) {}
+        override suspend fun clearAllPreferences() {}
+    }
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = FakeWalletRepository()
+        userPrefs = FakeUserPreferencesRepository()
     }
 
     @After
@@ -38,7 +58,7 @@ class WalletViewModelTest {
     fun initialState_loadsWallets() = runTest(testDispatcher) {
         repository.insertWallet(Wallet(name = "BCA", balance = 50000L))
         
-        viewModel = WalletViewModel(repository, testDispatcher)
+        viewModel = WalletViewModel(repository, userPrefs, testDispatcher)
         
         // Wait for coroutine to finish
         testScheduler.advanceUntilIdle()
@@ -51,7 +71,7 @@ class WalletViewModelTest {
 
     @Test
     fun addWallet_insertsAndRefreshes() = runTest(testDispatcher) {
-        viewModel = WalletViewModel(repository, testDispatcher)
+        viewModel = WalletViewModel(repository, userPrefs, testDispatcher)
         testScheduler.advanceUntilIdle()
         
         viewModel.addWallet("Mandiri")
@@ -67,7 +87,7 @@ class WalletViewModelTest {
         val wallet = Wallet(id = 1L, name = "Cash", balance = 100L)
         repository.insertWallet(wallet)
         
-        viewModel = WalletViewModel(repository, testDispatcher)
+        viewModel = WalletViewModel(repository, userPrefs, testDispatcher)
         testScheduler.advanceUntilIdle()
         
         assertEquals(1, viewModel.uiState.first().wallets.size)

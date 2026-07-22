@@ -2,7 +2,7 @@
 
 ## Priority: 🟡 Medium
 ## Type: Performance / Code Quality
-## Status: Open
+## Status: Closed
 
 ## Deskripsi
 Di `MainActivity.kt` (line 318-320), halaman Wallet membuat instance `UserPreferencesRepositoryImpl` baru di dalam `composable { }` block menggunakan `remember`:

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.expense_tracker.data.Wallet
 import com.example.expense_tracker.data.WalletRepository
+import com.example.expense_tracker.data.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class WalletViewModel(
     private val repository: WalletRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -38,6 +40,12 @@ class WalletViewModel(
                     isLoading = false
                 )
             }
+        }
+    }
+
+    fun selectWallet(walletId: Long) {
+        viewModelScope.launch(ioDispatcher) {
+            userPreferencesRepository.saveSelectedWalletId(walletId)
         }
     }
 

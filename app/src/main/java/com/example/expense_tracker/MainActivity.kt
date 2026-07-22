@@ -326,17 +326,10 @@ fun ExpenseTrackerApp() {
                 popEnterTransition = { fadeIn(animationSpec = tween(150)) },
                 popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) {
-                val coroutineScope = rememberCoroutineScope()
-                val context = LocalContext.current
-                val userPrefsRepo = remember(context) {
-                    com.example.expense_tracker.data.UserPreferencesRepositoryImpl(context.dataStore)
-                }
                 com.example.expense_tracker.ui.wallet.WalletListScreen(
                     viewModel = walletViewModel,
                     onSelectWallet = { walletId ->
-                        coroutineScope.launch {
-                            userPrefsRepo.saveSelectedWalletId(walletId)
-                        }
+                        walletViewModel.selectWallet(walletId)
                         navController.navigate(NavRoutes.HOME) {
                             popUpTo(NavRoutes.HOME) {
                                 inclusive = true
