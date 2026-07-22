@@ -1,5 +1,6 @@
 package com.example.expense_tracker.ui.profile
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -227,17 +228,43 @@ fun ProfileScreen(
                     SettingsItem(
                         icon = Icons.Default.Info,
                         title = "Pusat Bantuan / FAQ",
-                        onClick = { /* TODO */ }
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=kasflow+help"))
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(context, "Browser tidak ditemukan", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                     SettingsItem(
                         icon = Icons.Default.Star,
                         title = "Beri Rating Aplikasi",
-                        onClick = { /* TODO */ }
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=${context.packageName}"))
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                val webIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}"))
+                                try {
+                                    context.startActivity(webIntent)
+                                } catch (e2: Exception) {
+                                    android.widget.Toast.makeText(context, "Aplikasi Play Store tidak ditemukan", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
                     )
                     SettingsItem(
                         icon = Icons.Default.Lock,
                         title = "Kebijakan Privasi",
-                        onClick = { /* TODO */ }
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=kasflow+privacy+policy"))
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(context, "Browser tidak ditemukan", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
