@@ -27,7 +27,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -39,13 +38,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,6 +51,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -109,10 +107,9 @@ fun WalletListScreen(
                         items = uiState.wallets,
                         key = { it.id }
                     ) { wallet ->
-                        WalletListItem(
+                        CreditCardItem(
                             wallet = wallet,
                             computedBalance = uiState.balanceMap[wallet.id] ?: 0L,
-                            onDelete = { viewModel.deleteWallet(wallet) },
                             onClick = { onNavigateToWalletDetail(wallet.id) }
                         )
                     }
@@ -126,8 +123,11 @@ fun WalletListScreen(
         var newWalletName by remember { mutableStateOf("") }
         var newCardNumber by remember { mutableStateOf("") }
         var newCardHolderName by remember { mutableStateOf("") }
-        var newCardExpiry by remember { mutableStateOf("") }
+        var expiryMonth by remember { mutableStateOf("") }
+        var expiryYear by remember { mutableStateOf("") }
         var selectedColorId by remember { mutableStateOf(CardGradients.SunsetRose.id) }
+
+        val yearFocusRequester = remember { FocusRequester() }
 
         ModalBottomSheet(
             onDismissRequest = { showAddDialog = false },
@@ -181,20 +181,55 @@ fun WalletListScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
-                    value = newCardExpiry,
-                    onValueChange = { input ->
-                        val digits = input.filter { it.isDigit() }.take(4)
-                        newCardExpiry = when {
-                            digits.length >= 3 -> "${digits.substring(0, 2)}/${digits.substring(2)}"
-                            else -> digits
-                        }
-                    },
-                    label = { Text("Kadaluarsa (MM/YY)") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    text = "Kadaluarsa (MM/YY)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = expiryMonth,
+                        onValueChange = { input ->
+                            val digits = input.filter { it.isDigit() }.take(2)
+                            expiryMonth = digits
+                            if (digits.length == 2) {
+                                yearFocusRequester.requestFocus()
+                            }
+                        },
+                        placeholder = { Text("MM") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.width(80.dp)
+                    )
+
+                    Text(
+                        text = "/",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedTextField(
+                        value = expiryYear,
+                        onValueChange = { input ->
+                            val digits = input.filter { it.isDigit() }.take(2)
+                            expiryYear = digits
+                        },
+                        placeholder = { Text("YY") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier
+                            .width(80.dp)
+                            .focusRequester(yearFocusRequester)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -252,11 +287,15 @@ fun WalletListScreen(
                     }
                     Button(
                         onClick = {
+                            val formattedExpiry = if (expiryMonth.isNotBlank() || expiryYear.isNotBlank()) {
+                                "${expiryMonth.padStart(2, '0')}/${expiryYear.padStart(2, '0')}"
+                            } else ""
+
                             viewModel.addWallet(
                                 name = newWalletName,
                                 cardNumber = newCardNumber,
                                 cardHolderName = newCardHolderName,
-                                cardExpiry = newCardExpiry,
+                                cardExpiry = formattedExpiry,
                                 color = selectedColorId
                             )
                             showAddDialog = false
@@ -268,58 +307,6 @@ fun WalletListScreen(
                 }
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun WalletListItem(
-    wallet: Wallet,
-    computedBalance: Long,
-    onDelete: () -> Unit,
-    onClick: () -> Unit
-) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { dismissValue ->
-            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                onDelete()
-                true
-            } else {
-                false
-            }
-        }
-    )
-
-    SwipeToDismissBox(
-        state = dismissState,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = {
-            val color = when (dismissState.targetValue) {
-                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
-                else -> Color.Transparent
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color, RoundedCornerShape(16.dp))
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
-        }
-    ) {
-        CreditCardItem(
-            wallet = wallet,
-            computedBalance = computedBalance,
-            onClick = onClick
-        )
     }
 }
 
@@ -448,7 +435,7 @@ fun CardChip(modifier: Modifier = Modifier) {
             .width(36.dp)
             .height(26.dp)
             .clip(RoundedCornerShape(5.dp))
-            .background(Color(0xFFE6C875)) // Golden chip color
+            .background(Color(0xFFE6C875))
             .border(1.dp, Color(0xFFD4AF37), RoundedCornerShape(5.dp))
     ) {
         Box(
