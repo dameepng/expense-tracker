@@ -29,6 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -109,37 +111,28 @@ fun SummaryFilterTabs(
 
 // ── Summary Type Tabs ──────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryTypeTabs(
     selectedType: TransactionType,
     onTypeSelected: (TransactionType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    val tabs = listOf(TransactionType.EXPENSE, TransactionType.INCOME)
+    val selectedTabIndex = tabs.indexOf(selectedType)
+    
+    TabRow(
+        selectedTabIndex = selectedTabIndex,
+        modifier = modifier.fillMaxWidth()
     ) {
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            val types = listOf(TransactionType.EXPENSE, TransactionType.INCOME)
-            types.forEachIndexed { index, type ->
-                val label = if (type == TransactionType.EXPENSE) "Pengeluaran" else "Pemasukan"
-                SegmentedButton(
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = types.size),
-                    onClick = { onTypeSelected(type) },
-                    selected = selectedType == type,
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = if (type == TransactionType.INCOME) Color(0xFF10B981).copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
-                        activeContentColor = if (type == TransactionType.INCOME) Color(0xFF10B981) else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    Text(label, fontWeight = FontWeight.SemiBold)
-                }
-            }
+        tabs.forEachIndexed { index, type ->
+            val label = if (type == TransactionType.EXPENSE) "Pengeluaran" else "Pemasukan"
+            Tab(
+                selected = selectedTabIndex == index,
+                onClick = { onTypeSelected(type) },
+                text = { Text(label, fontWeight = FontWeight.SemiBold) },
+                selectedContentColor = if (type == TransactionType.INCOME) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
+                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -285,20 +278,18 @@ fun SummaryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Type switcher (Expense vs Income Tabs)
+            SummaryTypeTabs(
+                selectedType = state.transactionType,
+                onTypeSelected = { type -> viewModel.onTransactionTypeSelected(type) }
+            )
+
             Spacer(modifier = Modifier.height(12.dp))
 
             // Filter tabs (Period)
             SummaryFilterTabs(
                 selected = state.filter,
                 onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) }
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Type switcher (Expense vs Income)
-            SummaryTypeTabs(
-                selectedType = state.transactionType,
-                onTypeSelected = { type -> viewModel.onTransactionTypeSelected(type) }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
