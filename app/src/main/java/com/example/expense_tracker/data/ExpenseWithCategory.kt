@@ -1,8 +1,11 @@
 package com.example.expense_tracker.data
 
+import androidx.compose.runtime.Immutable
+
 /**
  * Join result: Expense + Category name for displaying in list.
  */
+@Immutable
 data class ExpenseWithCategory(
     val id: Long,
     val amount: Long,

@@ -2,7 +2,7 @@
 
 ## Priority: 🟠 High
 ## Type: Performance
-## Status: Open
+## Status: Closed
 
 ## Deskripsi
 Beberapa composable di aplikasi ini berpotensi menyebabkan **unnecessary recomposition**, yaitu Compose menggambar ulang komponen yang sebenarnya tidak berubah. Ini membuat perpindahan dan scroll terasa janky.

@@ -3,7 +3,9 @@ package com.example.expense_tracker.ui.home
 import com.example.expense_tracker.data.ExpenseWithCategory
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.Wallet
+import androidx.compose.runtime.Immutable
 
+@Immutable
 data class HomeUiState(
     val totalAmount: Long = 0L,
     val totalIncome: Long = 0L,

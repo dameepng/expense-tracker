@@ -60,6 +60,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -624,7 +625,32 @@ fun HomeScreen(
         }
     }
 
-
+    val currentOnNavigateToInput by rememberUpdatedState(onNavigateToInput)
+    val onDismissTransaction = remember(viewModel, coroutineScope, snackbarHostState) {
+        { expense: ExpenseWithCategory, dismissValue: SwipeToDismissBoxValue ->
+            when (dismissValue) {
+                SwipeToDismissBoxValue.EndToStart -> {
+                    viewModel.deleteExpense(expense)
+                    coroutineScope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = "Transaksi dihapus",
+                            actionLabel = "Batal",
+                            duration = SnackbarDuration.Short
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            viewModel.undoDeleteExpense(expense)
+                        }
+                    }
+                    true
+                }
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    currentOnNavigateToInput(expense.id)
+                    false
+                }
+                else -> false
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -720,30 +746,13 @@ fun HomeScreen(
                         items = state.transactions,
                         key = { it.id }
                     ) { expense ->
+                        val currentExpense by rememberUpdatedState(expense)
+                        val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember {
+                            { dismissValue -> onDismissTransaction(currentExpense, dismissValue) }
+                        }
+                        
                         val dismissState = rememberSwipeToDismissBoxState(
-                            confirmValueChange = { dismissValue ->
-                                when (dismissValue) {
-                                    SwipeToDismissBoxValue.EndToStart -> {
-                                        viewModel.deleteExpense(expense)
-                                        coroutineScope.launch {
-                                            val result = snackbarHostState.showSnackbar(
-                                                message = "Transaksi dihapus",
-                                                actionLabel = "Batal",
-                                                duration = SnackbarDuration.Short
-                                            )
-                                            if (result == SnackbarResult.ActionPerformed) {
-                                                viewModel.undoDeleteExpense(expense)
-                                            }
-                                        }
-                                        true
-                                    }
-                                    SwipeToDismissBoxValue.StartToEnd -> {
-                                        onNavigateToInput(expense.id)
-                                        false
-                                    }
-                                    else -> false
-                                }
-                            }
+                            confirmValueChange = confirmValueChange
                         )
 
                         SwipeToDismissBox(

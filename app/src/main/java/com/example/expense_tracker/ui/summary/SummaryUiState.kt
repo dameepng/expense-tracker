@@ -1,8 +1,10 @@
 package com.example.expense_tracker.ui.summary
 
+import androidx.compose.runtime.Immutable
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.TransactionType
 
+@Immutable
 data class SummaryUiState(
     val filter: FilterPeriod = FilterPeriod.TODAY,
     val transactionType: TransactionType = TransactionType.EXPENSE,
@@ -13,6 +15,7 @@ data class SummaryUiState(
     val isLoading: Boolean = false
 )
 
+@Immutable
 data class BreakdownItem(
     val categoryId: Long,
     val categoryName: String,
