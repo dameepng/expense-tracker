@@ -41,10 +41,22 @@ class WalletViewModel(
         }
     }
 
-    fun addWallet(name: String) {
+    fun addWallet(
+        name: String,
+        cardNumber: String = "",
+        cardHolderName: String = "",
+        cardExpiry: String = "",
+        color: String = ""
+    ) {
         if (name.isBlank()) return
         viewModelScope.launch(ioDispatcher) {
-            val newWallet = Wallet(name = name.trim())
+            val newWallet = Wallet(
+                name = name.trim(),
+                cardNumber = cardNumber.trim(),
+                cardHolderName = cardHolderName.trim(),
+                cardExpiry = cardExpiry.trim(),
+                color = color.trim()
+            )
             repository.insertWallet(newWallet)
             refresh()
         }

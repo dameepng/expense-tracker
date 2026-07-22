@@ -10,7 +10,7 @@ import androidx.room.migration.Migration
 
 @Database(
     entities = [Expense::class, Category::class, Wallet::class, BillReminder::class],
-    version = 8,
+    version = 9,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -32,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "expense_tracker.db"
                 )
                     .addCallback(SeedCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                     .build()
                     .also { INSTANCE = it }
             }
@@ -114,6 +114,14 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE bill_reminders ADD COLUMN lastPaidMonth TEXT")
             }
         }
+
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE wallets ADD COLUMN cardNumber TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE wallets ADD COLUMN cardHolderName TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE wallets ADD COLUMN cardExpiry TEXT NOT NULL DEFAULT ''")
+            }
+        }
     }
 
     class SeedCallback : Callback() {
@@ -147,6 +155,9 @@ abstract class AppDatabase : RoomDatabase() {
                     put("balance", 0)
                     put("icon", "")
                     put("color", "")
+                    put("cardNumber", "")
+                    put("cardHolderName", "")
+                    put("cardExpiry", "")
                 }
                 db.insert("wallets", 0, walletValues)
                 
