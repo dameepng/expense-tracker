@@ -183,6 +183,15 @@ class MainActivity : FragmentActivity() {
 @Composable
 fun ExpenseTrackerApp() {
     val context = LocalContext.current
+    val app = context.applicationContext as android.app.Application
+    
+    val homeViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = HomeViewModelFactory.create(app))
+    val streakViewModel: StreakCounterViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = StreakViewModelFactory.create(app))
+    val summaryViewModel: SummaryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = SummaryViewModelFactory.create(app))
+    val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(app))
+    val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(app))
+    val reminderListViewModel: com.example.expense_tracker.ui.reminder.ReminderListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory(app))
+    
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -253,11 +262,6 @@ fun ExpenseTrackerApp() {
                 popEnterTransition = { fadeIn(animationSpec = tween(150)) },
                 popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) { backStackEntry ->
-                val homeViewModel: HomeViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(factory = HomeViewModelFactory.create(applicationContext()))
-                val streakViewModel: StreakCounterViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(factory = StreakViewModelFactory.create(applicationContext()))
-                
                 val shouldRefresh by backStackEntry.savedStateHandle.getStateFlow("refresh_home", false).collectAsState()
                 LaunchedEffect(shouldRefresh) {
                     if (shouldRefresh) {
@@ -310,8 +314,6 @@ fun ExpenseTrackerApp() {
                 popEnterTransition = { fadeIn(animationSpec = tween(150)) },
                 popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) {
-                val summaryViewModel: SummaryViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(factory = SummaryViewModelFactory.create(applicationContext()))
                 SummaryScreen(
                     viewModel = summaryViewModel
                 )
@@ -324,8 +326,6 @@ fun ExpenseTrackerApp() {
                 popEnterTransition = { fadeIn(animationSpec = tween(150)) },
                 popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) {
-                val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(applicationContext()))
                 val coroutineScope = rememberCoroutineScope()
                 val context = LocalContext.current
                 val userPrefsRepo = remember(context) {
@@ -354,8 +354,6 @@ fun ExpenseTrackerApp() {
                 popEnterTransition = { fadeIn(animationSpec = tween(150)) },
                 popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) {
-                val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(applicationContext()))
                 com.example.expense_tracker.ui.profile.ProfileScreen(
                     viewModel = profileViewModel,
                     onLogoutSuccess = {
@@ -367,10 +365,6 @@ fun ExpenseTrackerApp() {
             }
             
             composable(NavRoutes.REMINDER_LIST) {
-                val reminderListViewModel: com.example.expense_tracker.ui.reminder.ReminderListViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(
-                        factory = com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory(applicationContext())
-                    )
                 com.example.expense_tracker.ui.reminder.ReminderListScreen(
                     viewModel = reminderListViewModel,
                     onNavigateBack = { navController.popBackStack() },

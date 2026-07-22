@@ -2,7 +2,7 @@
 
 ## Priority: 🔴 Critical
 ## Type: Performance / Architecture
-## Status: Open
+## Status: Closed
 
 ## Deskripsi
 Setiap kali pengguna berpindah ke sebuah tab (Home, Summary, Wallet, Profile), ViewModel baru dibuat dari nol melalui `viewModel(factory = ...)` di dalam `composable { }`. Karena Navigation Compose me-*destroy* composable saat keluar dari backstack, ViewModel juga ikut hancur, lalu **dibuat ulang + query database ulang** saat kembali.
