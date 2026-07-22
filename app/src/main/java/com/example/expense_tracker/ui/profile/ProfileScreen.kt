@@ -38,10 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Switch
@@ -127,6 +129,27 @@ fun ProfileScreen(
             }
             
             item {
+                SettingsGroup(title = "Bantuan & Informasi") {
+                    SettingsItem(
+                        icon = Icons.Default.Info,
+                        title = "Pusat Bantuan / FAQ",
+                        onClick = { /* TODO */ }
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.Star,
+                        title = "Beri Rating Aplikasi",
+                        onClick = { /* TODO */ }
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.Lock,
+                        title = "Kebijakan Privasi",
+                        onClick = { /* TODO */ }
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            item {
                 SettingsGroup(title = "Danger Zone") {
                     SettingsItem(
                         icon = Icons.AutoMirrored.Filled.Logout,
@@ -138,10 +161,20 @@ fun ProfileScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(24.dp))
+                
+                // Footer
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Kasflow v1.0.0",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
-            
-            // To be added in next issues:
-            // SettingsSection(About)
         }
     }
 }
