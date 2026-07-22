@@ -2,7 +2,7 @@
 
 ## Priority: 🟡 Medium
 ## Type: Performance / Database
-## Status: Open
+## Status: Closed
 
 ## Deskripsi
 Beberapa query yang sering dieksekusi melakukan filter pada kolom `timestamp`, `type`, dan `walletId`, namun hanya `categoryId` yang memiliki index di tabel `expenses`.
