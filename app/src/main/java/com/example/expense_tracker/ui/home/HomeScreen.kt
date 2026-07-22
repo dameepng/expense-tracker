@@ -81,6 +81,9 @@ import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.TimeFormatter
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 import kotlinx.coroutines.flow.MutableStateFlow
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 
 // ── Custom Header ───────────────────────────────────────────────────
 
@@ -88,6 +91,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 fun HeaderSection(
     modifier: Modifier = Modifier,
     userName: String = "Pelanggan",
+    userPhotoUri: String? = null,
     activeRemindersCount: Int = 0,
     onNavigateToReminder: () -> Unit = {}
 ) {
@@ -104,12 +108,21 @@ fun HeaderSection(
                 color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(48.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profil",
-                    modifier = Modifier.padding(12.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                if (userPhotoUri != null && userPhotoUri.isNotEmpty()) {
+                    AsyncImage(
+                        model = userPhotoUri,
+                        contentDescription = "Profil",
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profil",
+                        modifier = Modifier.padding(12.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {
@@ -620,6 +633,7 @@ fun HomeScreen(
         topBar = {
             HeaderSection(
                 userName = state.userName,
+                userPhotoUri = state.userPhotoUri,
                 activeRemindersCount = state.activeRemindersCount,
                 onNavigateToReminder = onNavigateToReminder,
                 modifier = Modifier.padding(top = 8.dp)

@@ -15,5 +15,6 @@ data class HomeUiState(
     val activeRemindersCount: Int = 0,
     val isLoading: Boolean = false,
     val periodLabel: String = "Bulan Ini",
-    val userName: String = "Pelanggan"
+    val userName: String = "Pelanggan",
+    val userPhotoUri: String? = null
 )

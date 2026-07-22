@@ -37,6 +37,11 @@ class HomeViewModel(
                     _uiState.value = _uiState.value.copy(userName = name)
                 }
             }
+            launch {
+                userPreferencesRepository.userPhotoUriFlow.collect { uri ->
+                    _uiState.value = _uiState.value.copy(userPhotoUri = uri)
+                }
+            }
         }
     }
 
