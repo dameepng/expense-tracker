@@ -35,6 +35,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.vector.ImageVector
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -59,8 +68,31 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
             
+            item {
+                SettingsGroup(title = "Preferensi") {
+                    SettingsItem(
+                        icon = Icons.Default.Palette,
+                        title = "Tema Aplikasi",
+                        subtitle = "System Default",
+                        onClick = { /* TODO */ }
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.AttachMoney,
+                        title = "Mata Uang Utama",
+                        subtitle = "IDR",
+                        onClick = { /* TODO */ }
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.Language,
+                        title = "Bahasa",
+                        subtitle = "Indonesia",
+                        onClick = { /* TODO */ }
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
             // To be added in next issues:
-            // SettingsSection(Preferences)
             // SettingsSection(Security & Data)
             // SettingsSection(About)
         }
@@ -137,6 +169,107 @@ fun ProfileHeader(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingsGroup(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp, start = 8.dp)
+        )
+        
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    onClick: () -> Unit,
+    trailingComponent: (@Composable () -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Leading Icon
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxSize()
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(16.dp))
+        
+        // Texts
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.width(8.dp))
+        
+        // Trailing
+        if (trailingComponent != null) {
+            trailingComponent()
+        } else {
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Next",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
