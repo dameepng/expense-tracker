@@ -595,7 +595,6 @@ fun HomeScreen(
     streakViewModel: StreakCounterViewModel? = null,
     onNavigateToInput: (Long?) -> Unit = {},
     onNavigateToSummary: () -> Unit = {},
-    onNavigateToWalletDetail: (Long) -> Unit = {},
     onNavigateToReminder: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()

@@ -22,6 +22,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.example.expense_tracker.data.dataStore
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
@@ -129,7 +133,6 @@ fun ExpenseTrackerApp() {
                     streakViewModel = streakViewModel,
                     onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) },
                     onNavigateToSummary = { navController.navigate(NavRoutes.SUMMARY) },
-                    onNavigateToWalletDetail = { id -> navController.navigate(NavRoutes.walletDetailRoute(id)) },
                     onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) }
                 )
             }
@@ -168,27 +171,24 @@ fun ExpenseTrackerApp() {
             ) {
                 val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(applicationContext()))
+                val coroutineScope = rememberCoroutineScope()
+                val context = LocalContext.current
+                val userPrefsRepo = remember(context) {
+                    com.example.expense_tracker.data.UserPreferencesRepositoryImpl(context.dataStore)
+                }
                 com.example.expense_tracker.ui.wallet.WalletListScreen(
                     viewModel = walletViewModel,
-                    onNavigateToWalletDetail = { id -> navController.navigate(NavRoutes.walletDetailRoute(id)) }
-                )
-            }
-
-            composable(
-                route = NavRoutes.WALLET_DETAIL,
-                arguments = listOf(navArgument("walletId") {
-                    type = NavType.LongType
-                })
-            ) { backStackEntry ->
-                val walletId = backStackEntry.arguments?.getLong("walletId") ?: return@composable
-                val walletDetailViewModel: com.example.expense_tracker.ui.wallet.WalletDetailViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(
-                        factory = com.example.expense_tracker.ui.wallet.WalletDetailViewModelFactory(applicationContext(), walletId)
-                    )
-                com.example.expense_tracker.ui.wallet.WalletDetailScreen(
-                    viewModel = walletDetailViewModel,
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToInput = { expenseId -> navController.navigate(NavRoutes.inputRoute(expenseId)) }
+                    onSelectWallet = { walletId ->
+                        coroutineScope.launch {
+                            userPrefsRepo.saveSelectedWalletId(walletId)
+                        }
+                        navController.navigate(NavRoutes.HOME) {
+                            popUpTo(NavRoutes.HOME) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 

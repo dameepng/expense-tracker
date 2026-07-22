@@ -11,8 +11,6 @@ object NavRoutes {
         return if (expenseId != null) "input?expenseId=$expenseId" else "input"
     }
 
-    const val WALLET_DETAIL = "wallet/{walletId}"
-    fun walletDetailRoute(walletId: Long): String = "wallet/$walletId"
 
     const val REMINDER_LIST = "reminder_list"
     const val REMINDER_FORM = "reminder_form?reminderId={reminderId}"

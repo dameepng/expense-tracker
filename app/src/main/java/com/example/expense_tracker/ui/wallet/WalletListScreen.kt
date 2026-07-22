@@ -67,7 +67,7 @@ import java.util.Locale
 @Composable
 fun WalletListScreen(
     viewModel: WalletViewModel,
-    onNavigateToWalletDetail: (Long) -> Unit
+    onSelectWallet: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
@@ -110,7 +110,7 @@ fun WalletListScreen(
                         CreditCardItem(
                             wallet = wallet,
                             computedBalance = uiState.balanceMap[wallet.id] ?: 0L,
-                            onClick = { onNavigateToWalletDetail(wallet.id) }
+                            onClick = { onSelectWallet(wallet.id) }
                         )
                     }
                 }
