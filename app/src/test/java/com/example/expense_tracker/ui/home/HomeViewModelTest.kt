@@ -100,6 +100,10 @@ class HomeViewModelTest {
                 .sortedByDescending { it.timestamp }
         }
 
+        override fun getAllTransactions(): List<Expense> {
+            return expenses.sortedByDescending { it.timestamp }
+        }
+
         override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense> {
             return expenses
                 .filter { it.walletId == walletId && it.timestamp in startTime until endTime }

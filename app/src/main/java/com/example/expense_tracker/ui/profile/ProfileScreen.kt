@@ -57,6 +57,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +66,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     
     var showThemeDialog by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
@@ -153,8 +155,8 @@ fun ProfileScreen(
                     SettingsItem(
                         icon = Icons.Default.Download,
                         title = "Export Data Transaksi",
-                        subtitle = "CSV / PDF",
-                        onClick = { /* TODO */ }
+                        subtitle = "CSV",
+                        onClick = { viewModel.exportData(context) }
                     )
                     SettingsItem(
                         icon = Icons.Default.Lock,

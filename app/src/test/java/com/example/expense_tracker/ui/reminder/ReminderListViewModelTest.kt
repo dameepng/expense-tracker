@@ -41,6 +41,7 @@ class ReminderListViewModelTest {
         override fun getExpenseById(id: Long): Expense? = null
         override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> = emptyList()
         override fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense> = emptyList()
+        override fun getAllTransactions(): List<Expense> = emptyList()
         override fun getTotalExpense(startTime: Long, endTime: Long): Long = 0
         override fun getTotalIncome(startTime: Long, endTime: Long): Long = 0
         override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long = 0

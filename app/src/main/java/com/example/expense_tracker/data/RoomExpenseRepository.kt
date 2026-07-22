@@ -23,6 +23,10 @@ class RoomExpenseRepository(
         return dao.getAllTransactionsBetween(startTime, endTime)
     }
 
+    override fun getAllTransactions(): List<Expense> {
+        return dao.getAllTransactions()
+    }
+
     override fun getCategories(): List<Category> =
         dao.getAllCategories()
 
