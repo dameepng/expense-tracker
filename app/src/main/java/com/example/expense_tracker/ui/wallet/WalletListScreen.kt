@@ -60,8 +60,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.expense_tracker.data.Wallet
-import java.text.NumberFormat
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +107,6 @@ fun WalletListScreen(
                     ) { wallet ->
                         CreditCardItem(
                             wallet = wallet,
-                            computedBalance = uiState.balanceMap[wallet.id] ?: 0L,
                             onClick = { onSelectWallet(wallet.id) }
                         )
                     }
@@ -313,21 +310,15 @@ fun WalletListScreen(
 @Composable
 fun CreditCardItem(
     wallet: Wallet,
-    computedBalance: Long,
     onClick: () -> Unit
 ) {
     val gradient = CardGradients.getGradient(wallet.color)
-    val formatRp = remember {
-        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("id").setRegion("ID").build()).apply {
-            maximumFractionDigits = 0
-        }
-    }
 
     Card(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1.586f),
+            .aspectRatio(1.8f),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
@@ -412,13 +403,6 @@ fun CreditCardItem(
                             text = wallet.cardExpiry.ifBlank { "12/28" },
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = formatRp.format(computedBalance),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                     }
