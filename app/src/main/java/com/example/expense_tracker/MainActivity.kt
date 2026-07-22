@@ -55,6 +55,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.compose.runtime.getValue
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -224,17 +225,17 @@ fun ExpenseTrackerApp() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            enterTransition = { slideInHorizontally(animationSpec = tween(300), initialOffsetX = { fullWidth -> fullWidth }) + fadeIn(animationSpec = tween(300)) },
-            exitTransition = { slideOutHorizontally(animationSpec = tween(300), targetOffsetX = { fullWidth -> -fullWidth }) + fadeOut(animationSpec = tween(300)) },
-            popEnterTransition = { slideInHorizontally(animationSpec = tween(300), initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn(animationSpec = tween(300)) },
-            popExitTransition = { slideOutHorizontally(animationSpec = tween(300), targetOffsetX = { fullWidth -> fullWidth }) + fadeOut(animationSpec = tween(300)) }
+            enterTransition = { slideInHorizontally(animationSpec = tween(200, easing = FastOutSlowInEasing), initialOffsetX = { fullWidth -> fullWidth / 3 }) + fadeIn(animationSpec = tween(200)) },
+            exitTransition = { slideOutHorizontally(animationSpec = tween(200, easing = FastOutSlowInEasing), targetOffsetX = { fullWidth -> -fullWidth / 3 }) + fadeOut(animationSpec = tween(200)) },
+            popEnterTransition = { slideInHorizontally(animationSpec = tween(200, easing = FastOutSlowInEasing), initialOffsetX = { fullWidth -> -fullWidth / 3 }) + fadeIn(animationSpec = tween(200)) },
+            popExitTransition = { slideOutHorizontally(animationSpec = tween(200, easing = FastOutSlowInEasing), targetOffsetX = { fullWidth -> fullWidth / 3 }) + fadeOut(animationSpec = tween(200)) }
         ) {
             composable(
                 route = NavRoutes.ONBOARDING,
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
-                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
+                popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) {
                 com.example.expense_tracker.ui.onboarding.OnboardingScreen(
                     onNavigateToHome = {
@@ -247,10 +248,10 @@ fun ExpenseTrackerApp() {
             
             composable(
                 route = NavRoutes.HOME,
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
-                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
+                popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) { backStackEntry ->
                 val homeViewModel: HomeViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = HomeViewModelFactory.create(applicationContext()))
@@ -304,10 +305,10 @@ fun ExpenseTrackerApp() {
 
             composable(
                 route = NavRoutes.SUMMARY,
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
-                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
+                popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) {
                 val summaryViewModel: SummaryViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = SummaryViewModelFactory.create(applicationContext()))
@@ -318,10 +319,10 @@ fun ExpenseTrackerApp() {
             
             composable(
                 route = NavRoutes.WALLET,
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
-                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
+                popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) {
                 val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(applicationContext()))
@@ -348,10 +349,10 @@ fun ExpenseTrackerApp() {
 
             composable(
                 route = NavRoutes.PROFILE,
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
-                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
+                popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) {
                 val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(applicationContext()))

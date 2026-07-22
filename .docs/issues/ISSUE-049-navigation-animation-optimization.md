@@ -2,7 +2,7 @@
 
 ## Priority: 🟡 Medium
 ## Type: Performance / UX
-## Status: Open
+## Status: Closed
 
 ## Deskripsi
 Saat ini, setiap perpindahan halaman menggunakan `slideInHorizontally + fadeIn` dengan durasi 300ms. Animasi ini diterapkan secara global di `NavHost`, termasuk untuk navigasi **antar tab** (bottom navigation).
