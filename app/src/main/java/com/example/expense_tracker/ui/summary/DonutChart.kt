@@ -32,6 +32,7 @@ import com.example.expense_tracker.ui.theme.categoryColor
 fun DonutChart(
     items: List<BreakdownItem>,
     totalAmount: Long,
+    isIncome: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var animationPlayed by remember { mutableStateOf(false) }
@@ -79,7 +80,7 @@ fun DonutChart(
                 val sweepAngle = item.percentage * totalSweep
                 if (sweepAngle > 0f) {
                     drawArc(
-                        color = categoryColor(item.categoryId.toInt()),
+                        color = categoryColor(item.categoryId.toInt(), isIncome),
                         startAngle = startAngle,
                         sweepAngle = sweepAngle,
                         useCenter = false,

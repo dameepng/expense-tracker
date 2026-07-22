@@ -68,6 +68,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.graphics.Color
+import com.example.expense_tracker.data.TransactionType
 
 // ── Summary Filter Tabs ────────────────────────────────────────────
 
@@ -105,13 +107,49 @@ fun SummaryFilterTabs(
     }
 }
 
+// ── Summary Type Tabs ──────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SummaryTypeTabs(
+    selectedType: TransactionType,
+    onTypeSelected: (TransactionType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val types = listOf(TransactionType.EXPENSE, TransactionType.INCOME)
+            types.forEachIndexed { index, type ->
+                val label = if (type == TransactionType.EXPENSE) "Pengeluaran" else "Pemasukan"
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = types.size),
+                    onClick = { onTypeSelected(type) },
+                    selected = selectedType == type,
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = if (type == TransactionType.INCOME) Color(0xFF10B981).copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                        activeContentColor = if (type == TransactionType.INCOME) Color(0xFF10B981) else MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text(label, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
 
 // ── Breakdown Card Item ──────────────────────────────────────────────
 
 @Composable
 fun BreakdownCardItem(
     item: BreakdownItem,
+    isIncome: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val icon = when (item.categoryId) {
@@ -164,7 +202,7 @@ fun BreakdownCardItem(
                     modifier = Modifier
                         .size(8.dp)
                         .background(
-                            color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt()),
+                            color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt(), isIncome),
                             shape = CircleShape
                         )
                 )
@@ -190,19 +228,22 @@ fun BreakdownCardItem(
 // ── Empty State ────────────────────────────────────────────────────
 
 @Composable
-fun SummaryEmptyState(modifier: Modifier = Modifier) {
+fun SummaryEmptyState(
+    isIncome: Boolean = false,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "📊",
+                text = if (isIncome) "💰" else "📊",
                 fontSize = 48.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Belum ada data pengeluaran",
+                text = if (isIncome) "Belum ada data pemasukan" else "Belum ada data pengeluaran",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -219,6 +260,7 @@ fun SummaryScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
+    val isIncome = state.transactionType == TransactionType.INCOME
 
     Scaffold(
         topBar = {
@@ -243,45 +285,54 @@ fun SummaryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        // Filter tabs
-        SummaryFilterTabs(
-            selected = state.filter,
-            onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) }
-        )
+            // Filter tabs (Period)
+            SummaryFilterTabs(
+                selected = state.filter,
+                onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) }
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-        // Breakdown list or empty state
-        if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (state.items.isEmpty()) {
-            SummaryEmptyState()
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                item(span = { GridItemSpan(2) }) {
-                    // Donut Chart placed at the top of the grid
-                    DonutChart(
-                        items = state.items,
-                        totalAmount = state.totalAmount,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp, top = 4.dp)
-                    )
+            // Type switcher (Expense vs Income)
+            SummaryTypeTabs(
+                selectedType = state.transactionType,
+                onTypeSelected = { type -> viewModel.onTransactionTypeSelected(type) }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Breakdown list or empty state
+            if (state.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-                items(state.items, key = { it.categoryId }) { item ->
-                    BreakdownCardItem(item = item)
+            } else if (state.items.isEmpty()) {
+                SummaryEmptyState(isIncome = isIncome)
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    item(span = { GridItemSpan(2) }) {
+                        // Donut Chart placed at the top of the grid
+                        DonutChart(
+                            items = state.items,
+                            totalAmount = state.totalAmount,
+                            isIncome = isIncome,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp, top = 4.dp)
+                        )
+                    }
+                    items(state.items, key = { it.categoryId }) { item ->
+                        BreakdownCardItem(item = item, isIncome = isIncome)
+                    }
                 }
-            }
             }
         }
     }

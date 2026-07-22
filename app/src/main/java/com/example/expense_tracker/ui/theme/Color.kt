@@ -67,5 +67,19 @@ val CategoryColors = listOf(
     Color(0xFF708090), // Lainnya - Gray
 )
 
-fun categoryColor(index: Int): Color =
-    CategoryColors.getOrElse(index % CategoryColors.size) { Color.Gray }
+val IncomeCategoryColors = listOf(
+    Color(0xFF10B981), // Emerald Green
+    Color(0xFF06B6D4), // Cyan
+    Color(0xFF14B8A6), // Teal
+    Color(0xFF34D399), // Mint
+    Color(0xFF059669), // Dark Emerald
+    Color(0xFF2DD4BF), // Light Teal
+    Color(0xFF84CC16), // Lime Green
+)
+
+fun categoryColor(index: Int, isIncome: Boolean = false): Color =
+    if (isIncome) {
+        IncomeCategoryColors.getOrElse((index - 1).coerceAtLeast(0) % IncomeCategoryColors.size) { Color(0xFF10B981) }
+    } else {
+        CategoryColors.getOrElse((index - 1).coerceAtLeast(0) % CategoryColors.size) { Color.Gray }
+    }

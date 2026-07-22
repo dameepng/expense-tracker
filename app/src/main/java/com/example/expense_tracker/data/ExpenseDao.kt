@@ -63,6 +63,16 @@ interface ExpenseDao {
     """)
     fun getBreakdownByCategory(startTime: Long, endTime: Long): List<CategoryBreakdown>
 
+    @Query("""
+        SELECT c.id AS categoryId, c.name AS categoryName, COALESCE(SUM(e.amount), 0) AS totalAmount
+        FROM categories c
+        LEFT JOIN expenses e ON c.id = e.categoryId AND e.timestamp >= :startTime AND e.timestamp < :endTime AND e.type = :type
+        GROUP BY c.id, c.name
+        HAVING totalAmount > 0
+        ORDER BY totalAmount DESC
+    """)
+    fun getBreakdownByCategoryAndType(startTime: Long, endTime: Long, type: String): List<CategoryBreakdown>
+
     @Query("SELECT DISTINCT timestamp FROM expenses ORDER BY timestamp DESC")
     fun getDistinctDatesWithExpense(): List<Long>
 }

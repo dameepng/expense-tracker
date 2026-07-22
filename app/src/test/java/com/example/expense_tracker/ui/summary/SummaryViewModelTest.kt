@@ -13,6 +13,8 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
+import com.example.expense_tracker.data.TransactionType
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class SummaryViewModelTest {
 
@@ -20,8 +22,11 @@ class SummaryViewModelTest {
 
     private class FakeSummaryRepository : SummaryRepository {
         var breakdown = listOf<CategoryBreakdown>()
-        override fun getBreakdownByCategory(startTime: Long, endTime: Long): List<CategoryBreakdown> =
-            breakdown.toList()
+        var lastType: TransactionType? = null
+        override fun getBreakdownByCategory(startTime: Long, endTime: Long, type: TransactionType): List<CategoryBreakdown> {
+            lastType = type
+            return breakdown.toList()
+        }
     }
 
     @Before
@@ -108,5 +113,15 @@ class SummaryViewModelTest {
         val state = vm.uiState.value
         assertTrue(state.items.isEmpty())
         assertEquals(0L, state.totalAmount)
+    }
+
+    @Test
+    fun `switching to INCOME loads income breakdown`() {
+        val repo = FakeSummaryRepository()
+        val vm = initViewModel(repo)
+        vm.onTransactionTypeSelected(TransactionType.INCOME)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(TransactionType.INCOME, vm.uiState.value.transactionType)
+        assertEquals(TransactionType.INCOME, repo.lastType)
     }
 }

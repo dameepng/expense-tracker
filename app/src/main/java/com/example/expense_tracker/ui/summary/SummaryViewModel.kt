@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import com.example.expense_tracker.data.TransactionType
+
 class SummaryViewModel(
     private val repository: SummaryRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
@@ -32,6 +34,11 @@ class SummaryViewModel(
         loadData()
     }
 
+    fun onTransactionTypeSelected(type: TransactionType) {
+        _uiState.value = _uiState.value.copy(transactionType = type)
+        loadData()
+    }
+
     private fun loadData() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
@@ -44,7 +51,7 @@ class SummaryViewModel(
                 TimeRangeCalculator.calculateRange(state.filter)
             }
             val breakdown = withContext(ioDispatcher) {
-                repository.getBreakdownByCategory(start, end)
+                repository.getBreakdownByCategory(start, end, state.transactionType)
             }
 
             val total = breakdown.sumOf { it.totalAmount }
