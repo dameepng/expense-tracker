@@ -206,7 +206,7 @@ fun ExpenseTrackerApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = NavRoutes.HOME,
+            startDestination = NavRoutes.HOME, // We could make this dynamic based on preferences later, but HOME is fine for now
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
@@ -215,6 +215,22 @@ fun ExpenseTrackerApp() {
             popEnterTransition = { slideInHorizontally(animationSpec = tween(300), initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn(animationSpec = tween(300)) },
             popExitTransition = { slideOutHorizontally(animationSpec = tween(300), targetOffsetX = { fullWidth -> fullWidth }) + fadeOut(animationSpec = tween(300)) }
         ) {
+            composable(
+                route = NavRoutes.ONBOARDING,
+                enterTransition = { fadeIn(animationSpec = tween(300)) },
+                exitTransition = { fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+            ) {
+                com.example.expense_tracker.ui.onboarding.OnboardingScreen(
+                    onNavigateToHome = {
+                        navController.navigate(NavRoutes.HOME) {
+                            popUpTo(NavRoutes.ONBOARDING) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            
             composable(
                 route = NavRoutes.HOME,
                 enterTransition = { fadeIn(animationSpec = tween(300)) },
@@ -314,7 +330,12 @@ fun ExpenseTrackerApp() {
                 val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(applicationContext()))
                 com.example.expense_tracker.ui.profile.ProfileScreen(
-                    viewModel = profileViewModel
+                    viewModel = profileViewModel,
+                    onLogoutSuccess = {
+                        navController.navigate(NavRoutes.ONBOARDING) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
                 )
             }
             

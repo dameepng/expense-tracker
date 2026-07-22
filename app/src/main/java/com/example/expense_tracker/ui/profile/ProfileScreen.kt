@@ -63,7 +63,8 @@ import androidx.compose.ui.platform.LocalContext
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLogoutSuccess: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -71,6 +72,20 @@ fun ProfileScreen(
     var showThemeDialog by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
+
+    if (showEditProfileDialog) {
+        EditProfileDialog(
+            currentName = uiState.userName,
+            currentStatus = uiState.userStatus,
+            currentPhotoUri = uiState.userPhotoUri,
+            onDismiss = { showEditProfileDialog = false },
+            onSave = { name, status, photoUri ->
+                viewModel.updateProfile(name, status, photoUri)
+                showEditProfileDialog = false
+            }
+        )
+    }
 
     if (showThemeDialog) {
         val options = listOf("System Default", "Light Mode", "Dark Mode")
@@ -120,7 +135,12 @@ fun ProfileScreen(
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             item {
-                ProfileHeader()
+                ProfileHeader(
+                    name = uiState.userName,
+                    status = uiState.userStatus,
+                    photoUri = uiState.userPhotoUri,
+                    onEditClick = { showEditProfileDialog = true }
+                )
                 Spacer(modifier = Modifier.height(24.dp))
             }
             
@@ -231,7 +251,9 @@ fun ProfileScreen(
                         subtitle = "Anda harus login kembali nanti",
                         titleColor = MaterialTheme.colorScheme.error,
                         iconColor = MaterialTheme.colorScheme.error,
-                        onClick = { /* TODO */ }
+                        onClick = {
+                            viewModel.logout(context, onLogoutSuccess)
+                        }
                     )
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -254,7 +276,13 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileHeader(modifier: Modifier = Modifier) {
+fun ProfileHeader(
+    name: String,
+    status: String,
+    photoUri: String?,
+    onEditClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -271,14 +299,25 @@ fun ProfileHeader(modifier: Modifier = Modifier) {
                     .clip(CircleShape),
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile Picture",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                )
+                if (photoUri != null && photoUri.isNotEmpty()) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profile Picture",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profile Picture",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    )
+                }
             }
             
             // Edit Badge
@@ -290,7 +329,7 @@ fun ProfileHeader(modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.primary,
                 shadowElevation = 4.dp
             ) {
-                IconButton(onClick = { /* TODO: Edit Profile Action */ }) {
+                IconButton(onClick = onEditClick) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit Profile",
@@ -304,7 +343,7 @@ fun ProfileHeader(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
         
         Text(
-            text = "Adam",
+            text = name,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -318,7 +357,7 @@ fun ProfileHeader(modifier: Modifier = Modifier) {
             shape = CircleShape
         ) {
             Text(
-                text = "Pro Member",
+                text = status,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -474,3 +513,62 @@ fun SingleChoiceDialog(
         }
     )
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProfileDialog(
+    currentName: String,
+    currentStatus: String,
+    currentPhotoUri: String?,
+    onDismiss: () -> Unit,
+    onSave: (String, String, String?) -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    var status by remember { mutableStateOf(currentStatus) }
+    var photoUri by remember { mutableStateOf(currentPhotoUri) }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Edit Profil")
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                androidx.compose.material3.OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nama") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                androidx.compose.material3.OutlinedTextField(
+                    value = status,
+                    onValueChange = { status = it },
+                    label = { Text("Status") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(name, status, photoUri) }
+            ) {
+                Text("Simpan")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text("Batal")
+            }
+        }
+    )
+}
+

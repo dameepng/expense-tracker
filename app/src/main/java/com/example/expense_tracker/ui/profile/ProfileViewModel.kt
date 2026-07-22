@@ -32,7 +32,10 @@ data class ProfileUiState(
     val themeMode: String = "System Default",
     val currency: String = "IDR",
     val language: String = "Indonesia",
-    val isBiometricsEnabled: Boolean = false
+    val isBiometricsEnabled: Boolean = false,
+    val userName: String = "Adam",
+    val userStatus: String = "Premium Member",
+    val userPhotoUri: String? = null
 )
 
 class ProfileViewModel(
@@ -41,16 +44,35 @@ class ProfileViewModel(
 ) : ViewModel() {
 
     val uiState: StateFlow<ProfileUiState> = combine(
-        preferencesRepository.themeModeFlow,
-        preferencesRepository.currencyFlow,
-        preferencesRepository.languageFlow,
-        preferencesRepository.isBiometricsEnabledFlow
-    ) { theme, currency, language, isBiometricsEnabled ->
-        ProfileUiState(
-            themeMode = theme,
-            currency = currency,
-            language = language,
-            isBiometricsEnabled = isBiometricsEnabled
+        combine(
+            preferencesRepository.themeModeFlow,
+            preferencesRepository.currencyFlow,
+            preferencesRepository.languageFlow,
+            preferencesRepository.isBiometricsEnabledFlow
+        ) { theme, currency, language, isBiometricsEnabled ->
+            ProfileUiState(
+                themeMode = theme,
+                currency = currency,
+                language = language,
+                isBiometricsEnabled = isBiometricsEnabled
+            )
+        },
+        combine(
+            preferencesRepository.userNameFlow,
+            preferencesRepository.userStatusFlow,
+            preferencesRepository.userPhotoUriFlow
+        ) { userName, userStatus, userPhotoUri ->
+            ProfileUiState(
+                userName = userName,
+                userStatus = userStatus,
+                userPhotoUri = userPhotoUri
+            )
+        }
+    ) { state1, state2 ->
+        state1.copy(
+            userName = state2.userName,
+            userStatus = state2.userStatus,
+            userPhotoUri = state2.userPhotoUri
         )
     }.stateIn(
         scope = viewModelScope,
@@ -79,6 +101,32 @@ class ProfileViewModel(
     fun setBiometricsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.saveBiometricsEnabled(enabled)
+        }
+    }
+
+    fun updateProfile(name: String, status: String, photoUri: String?) {
+        viewModelScope.launch {
+            preferencesRepository.saveUserProfile(name, status, photoUri)
+        }
+    }
+
+    fun logout(context: Context, onLogoutSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                // Clear all DataStore preferences
+                preferencesRepository.clearAllPreferences()
+                
+                // Clear the database file
+                val db = AppDatabase.getInstance(context)
+                AppDatabase.resetInstance()
+                context.deleteDatabase("expense_tracker.db")
+
+                withContext(Dispatchers.Main) {
+                    onLogoutSuccess()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

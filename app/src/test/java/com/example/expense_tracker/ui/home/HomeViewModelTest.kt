@@ -57,6 +57,15 @@ class HomeViewModelTest {
         private val _isBiometricsEnabledFlow = kotlinx.coroutines.flow.MutableStateFlow(false)
         override val isBiometricsEnabledFlow: kotlinx.coroutines.flow.Flow<Boolean> = _isBiometricsEnabledFlow
 
+        private val _userNameFlow = kotlinx.coroutines.flow.MutableStateFlow("Adam")
+        override val userNameFlow: kotlinx.coroutines.flow.Flow<String> = _userNameFlow
+
+        private val _userStatusFlow = kotlinx.coroutines.flow.MutableStateFlow("Premium Member")
+        override val userStatusFlow: kotlinx.coroutines.flow.Flow<String> = _userStatusFlow
+
+        private val _userPhotoUriFlow = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+        override val userPhotoUriFlow: kotlinx.coroutines.flow.Flow<String?> = _userPhotoUriFlow
+
         override suspend fun saveSelectedWalletId(walletId: Long?) {
             _flow.value = walletId
         }
@@ -75,6 +84,16 @@ class HomeViewModelTest {
         
         override suspend fun saveBiometricsEnabled(enabled: Boolean) {
             _isBiometricsEnabledFlow.value = enabled
+        }
+        
+        override suspend fun saveUserProfile(name: String, status: String, photoUri: String?) {
+            _userNameFlow.value = name
+            _userStatusFlow.value = status
+            _userPhotoUriFlow.value = photoUri
+        }
+        
+        override suspend fun clearAllPreferences() {
+            // clear fake
         }
     }
 
