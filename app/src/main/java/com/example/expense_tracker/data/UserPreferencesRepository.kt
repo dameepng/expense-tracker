@@ -3,6 +3,7 @@ package com.example.expense_tracker.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -17,11 +18,13 @@ interface UserPreferencesRepository {
     val themeModeFlow: Flow<String>
     val currencyFlow: Flow<String>
     val languageFlow: Flow<String>
+    val isBiometricsEnabledFlow: Flow<Boolean>
     
     suspend fun saveSelectedWalletId(walletId: Long?)
     suspend fun saveThemeMode(mode: String)
     suspend fun saveCurrency(currency: String)
     suspend fun saveLanguage(language: String)
+    suspend fun saveBiometricsEnabled(enabled: Boolean)
 }
 
 class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences>) : UserPreferencesRepository {
@@ -29,6 +32,7 @@ class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences
     private val THEME_MODE = stringPreferencesKey("theme_mode")
     private val CURRENCY = stringPreferencesKey("currency")
     private val LANGUAGE = stringPreferencesKey("language")
+    private val IS_BIOMETRICS_ENABLED = booleanPreferencesKey("is_biometrics_enabled")
 
     override val selectedWalletIdFlow: Flow<Long?> = dataStore.data
         .map { preferences ->
@@ -44,6 +48,9 @@ class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences
 
     override val languageFlow: Flow<String> = dataStore.data
         .map { preferences -> preferences[LANGUAGE] ?: "Indonesia" }
+
+    override val isBiometricsEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[IS_BIOMETRICS_ENABLED] ?: false }
 
     override suspend fun saveSelectedWalletId(walletId: Long?) {
         dataStore.edit { preferences ->
@@ -65,5 +72,9 @@ class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences
 
     override suspend fun saveLanguage(language: String) {
         dataStore.edit { preferences -> preferences[LANGUAGE] = language }
+    }
+
+    override suspend fun saveBiometricsEnabled(enabled: Boolean) {
+        dataStore.edit { preferences -> preferences[IS_BIOMETRICS_ENABLED] = enabled }
     }
 }

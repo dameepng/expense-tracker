@@ -56,6 +56,8 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
     // Room
     implementation(libs.androidx.room.runtime)

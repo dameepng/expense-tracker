@@ -3,16 +3,27 @@ package com.example.expense_tracker
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -22,9 +33,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.example.expense_tracker.data.dataStore
@@ -56,7 +72,7 @@ import com.example.expense_tracker.ui.summary.SummaryViewModel
 import com.example.expense_tracker.ui.summary.SummaryViewModelFactory
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -67,6 +83,8 @@ class MainActivity : ComponentActivity() {
             }
             val themeMode by userPrefsRepo.themeModeFlow.collectAsState(initial = "System Default")
             
+            val isBiometricsEnabled by userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = false)
+            
             val isSystemDark = isSystemInDarkTheme()
             val darkTheme = when (themeMode) {
                 "Dark Mode" -> true
@@ -74,8 +92,73 @@ class MainActivity : ComponentActivity() {
                 else -> isSystemDark
             }
             
+            var isAuthenticated by rememberSaveable { mutableStateOf(false) }
+            val lifecycleOwner = LocalLifecycleOwner.current
+            
+            DisposableEffect(lifecycleOwner, isBiometricsEnabled) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_STOP) {
+                        if (isBiometricsEnabled) {
+                            isAuthenticated = false
+                        }
+                    } else if (event == Lifecycle.Event.ON_START) {
+                        if (isBiometricsEnabled && !isAuthenticated) {
+                            val fragmentActivity = context as? FragmentActivity
+                            if (fragmentActivity != null) {
+                                com.example.expense_tracker.utils.BiometricHelper.authenticate(
+                                    activity = fragmentActivity,
+                                    title = "Kasflow Terkunci",
+                                    subtitle = "Gunakan sidik jari untuk membuka Kasflow",
+                                    onSuccess = { isAuthenticated = true },
+                                    onError = {}
+                                )
+                            }
+                        } else if (!isBiometricsEnabled) {
+                            isAuthenticated = true
+                        }
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose {
+                    lifecycleOwner.lifecycle.removeObserver(observer)
+                }
+            }
+            
             Expense_trackerTheme(darkTheme = darkTheme) {
-                ExpenseTrackerApp()
+                if (isBiometricsEnabled && !isAuthenticated) {
+                    androidx.compose.material3.Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.background
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.Lock, contentDescription = "Locked", modifier = Modifier.size(64.dp), tint = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text("Aplikasi Terkunci", style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+                                Spacer(modifier = Modifier.height(32.dp))
+                                androidx.compose.material3.Button(onClick = {
+                                    val fragmentActivity = context as? FragmentActivity
+                                    if (fragmentActivity != null) {
+                                        com.example.expense_tracker.utils.BiometricHelper.authenticate(
+                                            activity = fragmentActivity,
+                                            title = "Kasflow Terkunci",
+                                            subtitle = "Gunakan sidik jari untuk membuka Kasflow",
+                                            onSuccess = { isAuthenticated = true },
+                                            onError = {}
+                                        )
+                                    }
+                                }) {
+                                    Text("Buka Kunci")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    ExpenseTrackerApp()
+                }
             }
         }
     }

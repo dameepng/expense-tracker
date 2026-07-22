@@ -149,8 +149,6 @@ fun ProfileScreen(
             }
             
             item {
-                var biometricsEnabled by remember { mutableStateOf(false) }
-                
                 SettingsGroup(title = "Keamanan & Data") {
                     SettingsItem(
                         icon = Icons.Default.Download,
@@ -162,11 +160,41 @@ fun ProfileScreen(
                         icon = Icons.Default.Lock,
                         title = "Kunci Layar",
                         subtitle = "Biometric / PIN",
-                        onClick = { biometricsEnabled = !biometricsEnabled },
+                        onClick = { 
+                            val fragmentActivity = context as? androidx.fragment.app.FragmentActivity
+                            if (fragmentActivity != null) {
+                                com.example.expense_tracker.utils.BiometricHelper.authenticate(
+                                    activity = fragmentActivity,
+                                    onSuccess = {
+                                        viewModel.setBiometricsEnabled(!uiState.isBiometricsEnabled)
+                                    },
+                                    onError = { error ->
+                                        android.widget.Toast.makeText(context, error, android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            } else {
+                                android.widget.Toast.makeText(context, "FragmentActivity not found", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         trailingComponent = {
                             Switch(
-                                checked = biometricsEnabled,
-                                onCheckedChange = { biometricsEnabled = it }
+                                checked = uiState.isBiometricsEnabled,
+                                onCheckedChange = { isChecked -> 
+                                    val fragmentActivity = context as? androidx.fragment.app.FragmentActivity
+                                    if (fragmentActivity != null) {
+                                        com.example.expense_tracker.utils.BiometricHelper.authenticate(
+                                            activity = fragmentActivity,
+                                            onSuccess = {
+                                                viewModel.setBiometricsEnabled(isChecked)
+                                            },
+                                            onError = { error ->
+                                                android.widget.Toast.makeText(context, error, android.widget.Toast.LENGTH_SHORT).show()
+                                            }
+                                        )
+                                    } else {
+                                        android.widget.Toast.makeText(context, "FragmentActivity not found", android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                             )
                         }
                     )

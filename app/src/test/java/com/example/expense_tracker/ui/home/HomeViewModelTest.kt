@@ -54,6 +54,9 @@ class HomeViewModelTest {
         private val _languageFlow = kotlinx.coroutines.flow.MutableStateFlow("Indonesia")
         override val languageFlow: kotlinx.coroutines.flow.Flow<String> = _languageFlow
 
+        private val _isBiometricsEnabledFlow = kotlinx.coroutines.flow.MutableStateFlow(false)
+        override val isBiometricsEnabledFlow: kotlinx.coroutines.flow.Flow<Boolean> = _isBiometricsEnabledFlow
+
         override suspend fun saveSelectedWalletId(walletId: Long?) {
             _flow.value = walletId
         }
@@ -68,6 +71,10 @@ class HomeViewModelTest {
         
         override suspend fun saveLanguage(language: String) {
             _languageFlow.value = language
+        }
+        
+        override suspend fun saveBiometricsEnabled(enabled: Boolean) {
+            _isBiometricsEnabledFlow.value = enabled
         }
     }
 

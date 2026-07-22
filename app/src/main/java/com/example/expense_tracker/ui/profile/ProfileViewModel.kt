@@ -32,7 +32,7 @@ data class ProfileUiState(
     val themeMode: String = "System Default",
     val currency: String = "IDR",
     val language: String = "Indonesia",
-    val isBiometricsEnabled: Boolean = false // to be implemented later
+    val isBiometricsEnabled: Boolean = false
 )
 
 class ProfileViewModel(
@@ -43,12 +43,14 @@ class ProfileViewModel(
     val uiState: StateFlow<ProfileUiState> = combine(
         preferencesRepository.themeModeFlow,
         preferencesRepository.currencyFlow,
-        preferencesRepository.languageFlow
-    ) { theme, currency, language ->
+        preferencesRepository.languageFlow,
+        preferencesRepository.isBiometricsEnabledFlow
+    ) { theme, currency, language, isBiometricsEnabled ->
         ProfileUiState(
             themeMode = theme,
             currency = currency,
-            language = language
+            language = language,
+            isBiometricsEnabled = isBiometricsEnabled
         )
     }.stateIn(
         scope = viewModelScope,
@@ -71,6 +73,12 @@ class ProfileViewModel(
     fun setLanguage(language: String) {
         viewModelScope.launch {
             preferencesRepository.saveLanguage(language)
+        }
+    }
+
+    fun setBiometricsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.saveBiometricsEnabled(enabled)
         }
     }
 
