@@ -54,7 +54,6 @@ class HomeViewModel(
     fun refresh() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
-            kotlinx.coroutines.delay(300) // Artificial delay for smoother transition feel
             val (start, end) = TimeRangeCalculator.calculateRange(FilterPeriod.MONTH)
             val walletId = _uiState.value.selectedWalletId
             

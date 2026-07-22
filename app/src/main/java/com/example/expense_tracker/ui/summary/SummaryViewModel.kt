@@ -42,7 +42,6 @@ class SummaryViewModel(
     private fun loadData() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
-            kotlinx.coroutines.delay(300) // Artificial delay for smoother transition feel
             val state = _uiState.value
             val (start, end) = if (state.filter == FilterPeriod.CUSTOM && state.customStartDate != null && state.customEndDate != null) {
                 // For custom dates, make sure end includes the entire day
