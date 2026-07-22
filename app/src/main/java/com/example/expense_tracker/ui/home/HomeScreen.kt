@@ -87,6 +87,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun HeaderSection(
     modifier: Modifier = Modifier,
+    userName: String = "Pelanggan",
     activeRemindersCount: Int = 0,
     onNavigateToReminder: () -> Unit = {}
 ) {
@@ -118,7 +119,7 @@ fun HeaderSection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Pengguna",
+                    text = userName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -618,8 +619,10 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             HeaderSection(
+                userName = state.userName,
                 activeRemindersCount = state.activeRemindersCount,
-                onNavigateToReminder = onNavigateToReminder
+                onNavigateToReminder = onNavigateToReminder,
+                modifier = Modifier.padding(top = 8.dp)
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

@@ -26,9 +26,16 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            userPreferencesRepository.selectedWalletIdFlow.collect { savedWalletId ->
-                _uiState.value = _uiState.value.copy(selectedWalletId = savedWalletId)
-                refresh()
+            launch {
+                userPreferencesRepository.selectedWalletIdFlow.collect { savedWalletId ->
+                    _uiState.value = _uiState.value.copy(selectedWalletId = savedWalletId)
+                    refresh()
+                }
+            }
+            launch {
+                userPreferencesRepository.userNameFlow.collect { name ->
+                    _uiState.value = _uiState.value.copy(userName = name)
+                }
             }
         }
     }

@@ -34,7 +34,6 @@ data class ProfileUiState(
     val language: String = "Indonesia",
     val isBiometricsEnabled: Boolean = false,
     val userName: String = "Adam",
-    val userStatus: String = "Premium Member",
     val userPhotoUri: String? = null
 )
 
@@ -59,19 +58,16 @@ class ProfileViewModel(
         },
         combine(
             preferencesRepository.userNameFlow,
-            preferencesRepository.userStatusFlow,
             preferencesRepository.userPhotoUriFlow
-        ) { userName, userStatus, userPhotoUri ->
+        ) { userName, userPhotoUri ->
             ProfileUiState(
                 userName = userName,
-                userStatus = userStatus,
                 userPhotoUri = userPhotoUri
             )
         }
     ) { state1, state2 ->
         state1.copy(
             userName = state2.userName,
-            userStatus = state2.userStatus,
             userPhotoUri = state2.userPhotoUri
         )
     }.stateIn(
@@ -104,9 +100,9 @@ class ProfileViewModel(
         }
     }
 
-    fun updateProfile(name: String, status: String, photoUri: String?) {
+    fun updateProfile(name: String, photoUri: String?) {
         viewModelScope.launch {
-            preferencesRepository.saveUserProfile(name, status, photoUri)
+            preferencesRepository.saveUserProfile(name, photoUri)
         }
     }
 

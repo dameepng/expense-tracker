@@ -21,7 +21,6 @@ interface UserPreferencesRepository {
     val isBiometricsEnabledFlow: Flow<Boolean>
     
     val userNameFlow: Flow<String>
-    val userStatusFlow: Flow<String>
     val userPhotoUriFlow: Flow<String?>
     
     suspend fun saveSelectedWalletId(walletId: Long?)
@@ -29,7 +28,7 @@ interface UserPreferencesRepository {
     suspend fun saveCurrency(currency: String)
     suspend fun saveLanguage(language: String)
     suspend fun saveBiometricsEnabled(enabled: Boolean)
-    suspend fun saveUserProfile(name: String, status: String, photoUri: String?)
+    suspend fun saveUserProfile(name: String, photoUri: String?)
     suspend fun clearAllPreferences()
 }
 
@@ -41,7 +40,6 @@ class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences
     private val IS_BIOMETRICS_ENABLED = booleanPreferencesKey("is_biometrics_enabled")
     
     private val USER_NAME = stringPreferencesKey("user_name")
-    private val USER_STATUS = stringPreferencesKey("user_status")
     private val USER_PHOTO_URI = stringPreferencesKey("user_photo_uri")
 
     override val selectedWalletIdFlow: Flow<Long?> = dataStore.data
@@ -64,9 +62,6 @@ class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences
 
     override val userNameFlow: Flow<String> = dataStore.data
         .map { preferences -> preferences[USER_NAME] ?: "Adam" }
-
-    override val userStatusFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[USER_STATUS] ?: "Premium Member" }
 
     override val userPhotoUriFlow: Flow<String?> = dataStore.data
         .map { preferences -> preferences[USER_PHOTO_URI] }
@@ -97,10 +92,9 @@ class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences
         dataStore.edit { preferences -> preferences[IS_BIOMETRICS_ENABLED] = enabled }
     }
 
-    override suspend fun saveUserProfile(name: String, status: String, photoUri: String?) {
+    override suspend fun saveUserProfile(name: String, photoUri: String?) {
         dataStore.edit { preferences ->
             preferences[USER_NAME] = name
-            preferences[USER_STATUS] = status
             if (photoUri == null) {
                 preferences.remove(USER_PHOTO_URI)
             } else {

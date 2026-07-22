@@ -14,5 +14,6 @@ data class HomeUiState(
     val selectedWalletName: String = "All Wallets",
     val activeRemindersCount: Int = 0,
     val isLoading: Boolean = false,
-    val periodLabel: String = "Bulan Ini"
+    val periodLabel: String = "Bulan Ini",
+    val userName: String = "Pelanggan"
 )

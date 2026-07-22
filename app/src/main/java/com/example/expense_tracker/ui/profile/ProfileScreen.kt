@@ -78,11 +78,10 @@ fun ProfileScreen(
     if (showEditProfileDialog) {
         EditProfileDialog(
             currentName = uiState.userName,
-            currentStatus = uiState.userStatus,
             currentPhotoUri = uiState.userPhotoUri,
             onDismiss = { showEditProfileDialog = false },
-            onSave = { name, status, photoUri ->
-                viewModel.updateProfile(name, status, photoUri)
+            onSave = { name, photoUri ->
+                viewModel.updateProfile(name, photoUri)
                 showEditProfileDialog = false
             }
         )
@@ -138,7 +137,6 @@ fun ProfileScreen(
             item {
                 ProfileHeader(
                     name = uiState.userName,
-                    status = uiState.userStatus,
                     photoUri = uiState.userPhotoUri,
                     onEditClick = { showEditProfileDialog = true }
                 )
@@ -305,7 +303,6 @@ fun ProfileScreen(
 @Composable
 fun ProfileHeader(
     name: String,
-    status: String,
     photoUri: String?,
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -376,21 +373,6 @@ fun ProfileHeader(
             color = MaterialTheme.colorScheme.onBackground
         )
         
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        // Status Badge / Email
-        Surface(
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            shape = CircleShape
-        ) {
-            Text(
-                text = status,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-            )
-        }
     }
 }
 
@@ -545,13 +527,11 @@ fun SingleChoiceDialog(
 @Composable
 fun EditProfileDialog(
     currentName: String,
-    currentStatus: String,
     currentPhotoUri: String?,
     onDismiss: () -> Unit,
-    onSave: (String, String, String?) -> Unit
+    onSave: (String, String?) -> Unit
 ) {
     var name by remember { mutableStateOf(currentName) }
-    var status by remember { mutableStateOf(currentStatus) }
     var photoUri by remember { mutableStateOf(currentPhotoUri) }
 
     androidx.compose.material3.AlertDialog(
@@ -573,18 +553,11 @@ fun EditProfileDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                androidx.compose.material3.OutlinedTextField(
-                    value = status,
-                    onValueChange = { status = it },
-                    label = { Text("Status") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(name, status, photoUri) }
+                onClick = { onSave(name, photoUri) }
             ) {
                 Text("Simpan")
             }
