@@ -44,8 +44,30 @@ class HomeViewModelTest {
     private class FakeUserPreferencesRepository : com.example.expense_tracker.data.UserPreferencesRepository {
         private val _flow = kotlinx.coroutines.flow.MutableStateFlow<Long?>(null)
         override val selectedWalletIdFlow: kotlinx.coroutines.flow.Flow<Long?> = _flow
+        
+        private val _themeFlow = kotlinx.coroutines.flow.MutableStateFlow("System Default")
+        override val themeModeFlow: kotlinx.coroutines.flow.Flow<String> = _themeFlow
+        
+        private val _currencyFlow = kotlinx.coroutines.flow.MutableStateFlow("IDR")
+        override val currencyFlow: kotlinx.coroutines.flow.Flow<String> = _currencyFlow
+        
+        private val _languageFlow = kotlinx.coroutines.flow.MutableStateFlow("Indonesia")
+        override val languageFlow: kotlinx.coroutines.flow.Flow<String> = _languageFlow
+
         override suspend fun saveSelectedWalletId(walletId: Long?) {
             _flow.value = walletId
+        }
+        
+        override suspend fun saveThemeMode(mode: String) {
+            _themeFlow.value = mode
+        }
+        
+        override suspend fun saveCurrency(currency: String) {
+            _currencyFlow.value = currency
+        }
+        
+        override suspend fun saveLanguage(language: String) {
+            _languageFlow.value = language
         }
     }
 

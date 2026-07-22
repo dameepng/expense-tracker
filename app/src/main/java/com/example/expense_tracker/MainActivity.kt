@@ -20,8 +20,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -59,7 +61,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Expense_trackerTheme {
+            val context = LocalContext.current
+            val userPrefsRepo = remember(context) {
+                com.example.expense_tracker.data.UserPreferencesRepositoryImpl(context.dataStore)
+            }
+            val themeMode by userPrefsRepo.themeModeFlow.collectAsState(initial = "System Default")
+            
+            val isSystemDark = isSystemInDarkTheme()
+            val darkTheme = when (themeMode) {
+                "Dark Mode" -> true
+                "Light Mode" -> false
+                else -> isSystemDark
+            }
+            
+            Expense_trackerTheme(darkTheme = darkTheme) {
                 ExpenseTrackerApp()
             }
         }
@@ -213,7 +228,11 @@ fun ExpenseTrackerApp() {
                 popEnterTransition = { fadeIn(animationSpec = tween(300)) },
                 popExitTransition = { fadeOut(animationSpec = tween(300)) }
             ) {
-                com.example.expense_tracker.ui.profile.ProfileScreen()
+                val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(applicationContext()))
+                com.example.expense_tracker.ui.profile.ProfileScreen(
+                    viewModel = profileViewModel
+                )
             }
             
             composable(NavRoutes.REMINDER_LIST) {

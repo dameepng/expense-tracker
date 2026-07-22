@@ -44,10 +44,14 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.clickable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,8 +61,48 @@ import androidx.compose.ui.graphics.vector.ImageVector
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    viewModel: ProfileViewModel,
     modifier: Modifier = Modifier
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    
+    var showThemeDialog by remember { mutableStateOf(false) }
+    var showCurrencyDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
+
+    if (showThemeDialog) {
+        val options = listOf("System Default", "Light Mode", "Dark Mode")
+        SingleChoiceDialog(
+            title = "Pilih Tema",
+            options = options,
+            selectedOption = uiState.themeMode,
+            onOptionSelected = { viewModel.setThemeMode(it) },
+            onDismissRequest = { showThemeDialog = false }
+        )
+    }
+
+    if (showCurrencyDialog) {
+        val options = listOf("IDR", "USD", "EUR")
+        SingleChoiceDialog(
+            title = "Pilih Mata Uang",
+            options = options,
+            selectedOption = uiState.currency,
+            onOptionSelected = { viewModel.setCurrency(it) },
+            onDismissRequest = { showCurrencyDialog = false }
+        )
+    }
+
+    if (showLanguageDialog) {
+        val options = listOf("Indonesia", "English")
+        SingleChoiceDialog(
+            title = "Pilih Bahasa",
+            options = options,
+            selectedOption = uiState.language,
+            onOptionSelected = { viewModel.setLanguage(it) },
+            onDismissRequest = { showLanguageDialog = false }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -83,20 +127,20 @@ fun ProfileScreen(
                     SettingsItem(
                         icon = Icons.Default.Palette,
                         title = "Tema Aplikasi",
-                        subtitle = "System Default",
-                        onClick = { /* TODO */ }
+                        subtitle = uiState.themeMode,
+                        onClick = { showThemeDialog = true }
                     )
                     SettingsItem(
                         icon = Icons.Default.AttachMoney,
                         title = "Mata Uang Utama",
-                        subtitle = "IDR",
-                        onClick = { /* TODO */ }
+                        subtitle = uiState.currency,
+                        onClick = { showCurrencyDialog = true }
                     )
                     SettingsItem(
                         icon = Icons.Default.Language,
                         title = "Bahasa",
-                        subtitle = "Indonesia",
-                        onClick = { /* TODO */ }
+                        subtitle = uiState.language,
+                        onClick = { showLanguageDialog = true }
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -355,4 +399,48 @@ fun SettingsItem(
             )
         }
     }
+}
+
+@Composable
+fun SingleChoiceDialog(
+    title: String,
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit,
+    onDismissRequest: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(text = title, style = MaterialTheme.typography.titleLarge)
+        },
+        text = {
+            Column {
+                options.forEach { option ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onOptionSelected(option)
+                                onDismissRequest()
+                            }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = option == selectedOption,
+                            onClick = null
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = option, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Batal")
+            }
+        }
+    )
 }
