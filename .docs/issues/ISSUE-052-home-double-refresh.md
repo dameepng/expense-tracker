@@ -2,7 +2,7 @@
 
 ## Priority: 🟠 High
 ## Type: Performance / Bug
-## Status: Open
+## Status: Closed
 
 ## Deskripsi
 `HomeScreen` saat ini memicu **dua kali refresh** setiap kali ditampilkan:

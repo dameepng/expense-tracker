@@ -251,11 +251,20 @@ fun ExpenseTrackerApp() {
                 exitTransition = { fadeOut(animationSpec = tween(300)) },
                 popEnterTransition = { fadeIn(animationSpec = tween(300)) },
                 popExitTransition = { fadeOut(animationSpec = tween(300)) }
-            ) {
+            ) { backStackEntry ->
                 val homeViewModel: HomeViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = HomeViewModelFactory.create(applicationContext()))
                 val streakViewModel: StreakCounterViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = StreakViewModelFactory.create(applicationContext()))
+                
+                val shouldRefresh by backStackEntry.savedStateHandle.getStateFlow("refresh_home", false).collectAsState()
+                LaunchedEffect(shouldRefresh) {
+                    if (shouldRefresh) {
+                        homeViewModel.refresh()
+                        backStackEntry.savedStateHandle.set("refresh_home", false)
+                    }
+                }
+                
                 HomeScreen(
                     viewModel = homeViewModel,
                     streakViewModel = streakViewModel,
@@ -285,7 +294,10 @@ fun ExpenseTrackerApp() {
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = InputViewModelFactory.create(applicationContext(), expenseId))
                 InputScreen(
                     viewModel = inputViewModel,
-                    onSaved = { navController.popBackStack() },
+                    onSaved = { 
+                        navController.previousBackStackEntry?.savedStateHandle?.set("refresh_home", true)
+                        navController.popBackStack() 
+                    },
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
@@ -379,7 +391,10 @@ fun ExpenseTrackerApp() {
                     )
                 com.example.expense_tracker.ui.reminder.ReminderFormScreen(
                     viewModel = reminderFormViewModel,
-                    onSaved = { navController.popBackStack() },
+                    onSaved = { 
+                        navController.previousBackStackEntry?.savedStateHandle?.set("refresh_home", true)
+                        navController.popBackStack() 
+                    },
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

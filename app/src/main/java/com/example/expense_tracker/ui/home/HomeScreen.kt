@@ -624,10 +624,7 @@ fun HomeScreen(
         }
     }
 
-    // Refresh data when HomeScreen enters composition (e.g. after navigating back from InputScreen)
-    LaunchedEffect(Unit) {
-        viewModel.refresh()
-    }
+
 
     Scaffold(
         topBar = {
