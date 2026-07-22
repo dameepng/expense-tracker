@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 import com.example.expense_tracker.data.dataStore
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.example.expense_tracker.utils.AuthManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -83,7 +84,8 @@ class MainActivity : FragmentActivity() {
             }
             val themeMode by userPrefsRepo.themeModeFlow.collectAsState(initial = "System Default")
             
-            val isBiometricsEnabled by userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = false)
+            val isBiometricsEnabledState = userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = null)
+            val isBiometricsEnabled = isBiometricsEnabledState.value
             
             val isSystemDark = isSystemInDarkTheme()
             val darkTheme = when (themeMode) {
@@ -92,29 +94,36 @@ class MainActivity : FragmentActivity() {
                 else -> isSystemDark
             }
             
-            var isAuthenticated by rememberSaveable { mutableStateOf(false) }
+            val isAuthenticated by AuthManager.isAuthenticated.collectAsState()
             val lifecycleOwner = LocalLifecycleOwner.current
             
             DisposableEffect(lifecycleOwner, isBiometricsEnabled) {
                 val observer = LifecycleEventObserver { _, event ->
                     if (event == Lifecycle.Event.ON_STOP) {
-                        if (isBiometricsEnabled) {
-                            isAuthenticated = false
+                        if (isBiometricsEnabled == true) {
+                            AuthManager.lastBackgroundTime = System.currentTimeMillis()
                         }
                     } else if (event == Lifecycle.Event.ON_START) {
-                        if (isBiometricsEnabled && !isAuthenticated) {
-                            val fragmentActivity = context as? FragmentActivity
-                            if (fragmentActivity != null) {
-                                com.example.expense_tracker.utils.BiometricHelper.authenticate(
-                                    activity = fragmentActivity,
-                                    title = "Kasflow Terkunci",
-                                    subtitle = "Gunakan sidik jari untuk membuka Kasflow",
-                                    onSuccess = { isAuthenticated = true },
-                                    onError = {}
-                                )
+                        if (isBiometricsEnabled == true) {
+                            val timeElapsed = System.currentTimeMillis() - AuthManager.lastBackgroundTime
+                            if (AuthManager.lastBackgroundTime > 0 && timeElapsed > 5 * 60 * 1000) {
+                                AuthManager.lock()
                             }
-                        } else if (!isBiometricsEnabled) {
-                            isAuthenticated = true
+                            
+                            if (!AuthManager.isAuthenticated.value) {
+                                val fragmentActivity = context as? FragmentActivity
+                                if (fragmentActivity != null) {
+                                    com.example.expense_tracker.utils.BiometricHelper.authenticate(
+                                        activity = fragmentActivity,
+                                        title = "Kasflow Terkunci",
+                                        subtitle = "Gunakan sidik jari untuk membuka Kasflow",
+                                        onSuccess = { AuthManager.unlock() },
+                                        onError = {}
+                                    )
+                                }
+                            }
+                        } else if (isBiometricsEnabled == false) {
+                            AuthManager.unlock()
                         }
                     }
                 }
@@ -124,8 +133,13 @@ class MainActivity : FragmentActivity() {
                 }
             }
             
+            if (isBiometricsEnabled == null) {
+                // Return empty screen while reading DataStore to prevent bypass
+                return@setContent
+            }
+
             Expense_trackerTheme(darkTheme = darkTheme) {
-                if (isBiometricsEnabled && !isAuthenticated) {
+                if (isBiometricsEnabled == true && !isAuthenticated) {
                     androidx.compose.material3.Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = androidx.compose.material3.MaterialTheme.colorScheme.background
@@ -146,7 +160,7 @@ class MainActivity : FragmentActivity() {
                                             activity = fragmentActivity,
                                             title = "Kasflow Terkunci",
                                             subtitle = "Gunakan sidik jari untuk membuka Kasflow",
-                                            onSuccess = { isAuthenticated = true },
+                                            onSuccess = { AuthManager.unlock() },
                                             onError = {}
                                         )
                                     }
