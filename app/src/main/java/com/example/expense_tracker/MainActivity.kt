@@ -132,7 +132,15 @@ fun ExpenseTrackerApp() {
                     viewModel = homeViewModel,
                     streakViewModel = streakViewModel,
                     onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) },
-                    onNavigateToSummary = { navController.navigate(NavRoutes.SUMMARY) },
+                    onNavigateToSummary = {
+                        navController.navigate(NavRoutes.SUMMARY) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) }
                 )
             }
@@ -154,7 +162,13 @@ fun ExpenseTrackerApp() {
                 )
             }
 
-            composable(NavRoutes.SUMMARY) {
+            composable(
+                route = NavRoutes.SUMMARY,
+                enterTransition = { fadeIn(animationSpec = tween(300)) },
+                exitTransition = { fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { fadeOut(animationSpec = tween(300)) }
+            ) {
                 val summaryViewModel: SummaryViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(factory = SummaryViewModelFactory.create(applicationContext()))
                 SummaryScreen(
