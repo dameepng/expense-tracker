@@ -59,6 +59,7 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -72,39 +73,69 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.graphics.Color
 import com.example.expense_tracker.data.TransactionType
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 
 // ── Summary Filter Tabs ────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SummaryFilterTabs(
+fun SummaryPeriodDropdown(
     selected: FilterPeriod,
     onSelected: (FilterPeriod, Long?, Long?) -> Unit,
+    onCustomClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth()
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
+        Row(
+            modifier = Modifier.clickable { expanded = true },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = selected.label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "Pilih Periode",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
         ) {
             val standardFilters = FilterPeriod.entries.filter { it != FilterPeriod.CUSTOM }
-            standardFilters.forEachIndexed { index, filter ->
-                SegmentedButton(
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = standardFilters.size),
-                    onClick = { onSelected(filter, null, null) },
-                    selected = selected == filter,
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    Text(filter.label)
-                }
+            standardFilters.forEach { filter ->
+                DropdownMenuItem(
+                    text = { Text(filter.label) },
+                    onClick = {
+                        expanded = false
+                        onSelected(filter, null, null)
+                    },
+                    trailingIcon = if (selected == filter) {
+                        { Icon(Icons.Default.Check, contentDescription = "Selected") }
+                    } else null
+                )
             }
+            DropdownMenuItem(
+                text = { Text(FilterPeriod.CUSTOM.label) },
+                onClick = {
+                    expanded = false
+                    onCustomClick()
+                },
+                trailingIcon = if (selected == FilterPeriod.CUSTOM) {
+                    { Icon(Icons.Default.Check, contentDescription = "Selected") }
+                } else null
+            )
         }
     }
 }
@@ -323,6 +354,45 @@ fun SummaryScreen(
                             tint = if (state.filter == FilterPeriod.CUSTOM) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    if (state.wallets.size > 1) {
+                        var walletMenuExpanded by remember { mutableStateOf(false) }
+                        Box {
+                            IconButton(onClick = { walletMenuExpanded = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.AccountBalanceWallet,
+                                    contentDescription = "Pilih Wallet",
+                                    tint = if (state.selectedWalletId != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = walletMenuExpanded,
+                                onDismissRequest = { walletMenuExpanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Semua Wallet") },
+                                    onClick = {
+                                        walletMenuExpanded = false
+                                        viewModel.onWalletSelected(null)
+                                    },
+                                    trailingIcon = if (state.selectedWalletId == null) {
+                                        { Icon(Icons.Default.Check, contentDescription = "Selected") }
+                                    } else null
+                                )
+                                state.wallets.forEach { wallet ->
+                                    DropdownMenuItem(
+                                        text = { Text(wallet.name) },
+                                        onClick = {
+                                            walletMenuExpanded = false
+                                            viewModel.onWalletSelected(wallet.id)
+                                        },
+                                        trailingIcon = if (state.selectedWalletId == wallet.id) {
+                                            { Icon(Icons.Default.Check, contentDescription = "Selected") }
+                                        } else null
+                                    )
+                                }
+                            }
+                        }
+                    }
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
@@ -336,15 +406,6 @@ fun SummaryScreen(
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Wallet filter chips
-                WalletFilterChips(
-                    wallets = state.wallets,
-                    selectedWalletId = state.selectedWalletId,
-                    onWalletSelected = { walletId -> viewModel.onWalletSelected(walletId) }
-                )
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Hero Balance Card
@@ -353,23 +414,27 @@ fun SummaryScreen(
                     percentageChange = state.balancePercentageChange
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Period Filter
-                SummaryFilterTabs(
-                    selected = state.filter,
-                    onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) }
-                )
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Cash Flow Insight Section
-                Text(
-                    text = "Cash flow insight",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Cash flow insight",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    SummaryPeriodDropdown(
+                        selected = state.filter,
+                        onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) },
+                        onCustomClick = { showDatePicker = true }
+                    )
+                }
 
                 Row(
                     modifier = Modifier
@@ -570,8 +635,6 @@ fun SummaryScreenEmptyPreview() {
     Expense_trackerTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.height(16.dp))
-            SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = { _, _, _ -> })
-            Spacer(modifier = Modifier.height(16.dp))
             SummaryEmptyState()
         }
     }
@@ -588,8 +651,6 @@ fun SummaryScreenWithDataPreview() {
             BreakdownItem(4, "Hiburan", 15_000L, 0.10f),
         )
         Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(16.dp))
-            SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = { _, _, _ -> })
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
                 modifier = Modifier.weight(1f),
