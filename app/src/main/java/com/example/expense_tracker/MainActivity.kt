@@ -213,16 +213,15 @@ fun ExpenseTrackerApp() {
             com.example.expense_tracker.ui.navigation.BottomNavBar(
                 currentRoute = currentRoute,
                 onNavigate = { route ->
-                    if (route.startsWith("input")) {
-                        navController.navigate(route)
-                    } else {
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
+                    if (route == currentRoute || (route.startsWith("input") && currentRoute?.startsWith("input") == true)) {
+                        return@BottomNavBar
+                    }
+                    navController.navigate(route) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
                         }
+                        launchSingleTop = true
+                        restoreState = true
                     }
                 }
             )
