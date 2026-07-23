@@ -361,29 +361,10 @@ fun ExpenseTrackerApp() {
                 com.example.expense_tracker.ui.reminder.ReminderListScreen(
                     viewModel = reminderListViewModel,
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToForm = { id -> navController.navigate(NavRoutes.reminderFormRoute(id)) }
-                )
-            }
-
-            composable(
-                route = NavRoutes.REMINDER_FORM,
-                arguments = listOf(navArgument("reminderId") {
-                    type = NavType.StringType
-                    nullable = true
-                })
-            ) { backStackEntry ->
-                val reminderId = backStackEntry.arguments?.getString("reminderId")?.toLongOrNull()
-                val reminderFormViewModel: com.example.expense_tracker.ui.reminder.ReminderFormViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(
-                        factory = com.example.expense_tracker.ui.reminder.ReminderFormViewModelFactory(applicationContext(), reminderId)
-                    )
-                com.example.expense_tracker.ui.reminder.ReminderFormScreen(
-                    viewModel = reminderFormViewModel,
-                    onSaved = { 
-                        navController.previousBackStackEntry?.savedStateHandle?.set("refresh_home", true)
-                        navController.popBackStack() 
-                    },
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateToForm = { _ -> 
+                        // Note: Edit is currently not supported for Bill Reminders in InputScreen
+                        navController.navigate(NavRoutes.inputRoute(null)) 
+                    }
                 )
             }
         }

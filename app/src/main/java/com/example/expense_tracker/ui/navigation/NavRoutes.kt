@@ -12,10 +12,5 @@ object NavRoutes {
         return if (expenseId != null) "input?expenseId=$expenseId" else "input"
     }
 
-
     const val REMINDER_LIST = "reminder_list"
-    const val REMINDER_FORM = "reminder_form?reminderId={reminderId}"
-    fun reminderFormRoute(reminderId: Long? = null): String {
-        return if (reminderId != null) "reminder_form?reminderId=$reminderId" else "reminder_form"
-    }
 }

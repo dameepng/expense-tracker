@@ -99,6 +99,7 @@ class InputViewModel(
             amountText = "",
             billReminderName = "",
             billReminderDueDay = "",
+            isRepeat = true,
             description = "",
             isSaveEnabled = false
         )
@@ -122,6 +123,10 @@ class InputViewModel(
             _uiState.value = _uiState.value.copy(billReminderDueDay = text)
             updateSaveEnabled()
         }
+    }
+
+    fun onRepeatChange(isRepeat: Boolean) {
+        _uiState.value = _uiState.value.copy(isRepeat = isRepeat)
     }
 
     fun onAmountChange(text: String) {
@@ -184,6 +189,7 @@ class InputViewModel(
                         categoryId = categoryId,
                         walletId = walletId,
                         isActive = true,
+                        isRepeat = state.isRepeat,
                         createdAt = System.currentTimeMillis()
                     )
                     billReminderRepository.insertReminder(reminder)

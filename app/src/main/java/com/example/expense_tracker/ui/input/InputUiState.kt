@@ -18,6 +18,7 @@ data class InputUiState(
     val description: String = "",
     val billReminderName: String = "",
     val billReminderDueDay: String = "",
+    val isRepeat: Boolean = true,
     val categories: List<Category> = emptyList(),
     val selectedCategoryId: Long? = null,
     val isSaveEnabled: Boolean = false,

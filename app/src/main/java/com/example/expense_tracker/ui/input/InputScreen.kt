@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Switch
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -389,6 +390,32 @@ fun InputScreen(
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Repeat Every Month",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "Tagihan otomatis muncul bulan depan",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = state.isRepeat,
+                    onCheckedChange = { viewModel.onRepeatChange(it) }
+                )
+            }
         } else {
             // Description Input
             OutlinedTextField(
