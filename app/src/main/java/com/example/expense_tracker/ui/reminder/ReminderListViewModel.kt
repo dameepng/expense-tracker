@@ -45,34 +45,32 @@ class ReminderListViewModel(
     val uiState: StateFlow<ReminderListUiState> = _uiState.asStateFlow()
 
     init {
-        loadReminders()
-    }
-
-    fun loadReminders() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            val reminders = withContext(ioDispatcher) {
-                repository.getActiveReminders()
-            }
-            val categories = withContext(ioDispatcher) {
-                expenseRepository.getCategories().first().associateBy { it.id }
-            }
-            val wallets = withContext(ioDispatcher) {
-                walletRepository.getAllWallets().first().associateBy { it.id }
-            }
-            
-            val items = reminders.first().map { reminder ->
-                ReminderItemUiState(
-                    reminder = reminder,
-                    categoryName = categories[reminder.categoryId]?.name ?: "Unknown",
-                    walletName = wallets[reminder.walletId]?.name ?: "Unknown"
+            val remindersFlow = repository.getActiveReminders()
+            val categoriesFlow = expenseRepository.getCategories()
+            val walletsFlow = walletRepository.getAllWallets()
+
+            kotlinx.coroutines.flow.combine(
+                remindersFlow,
+                categoriesFlow,
+                walletsFlow
+            ) { reminders, categoriesList, walletsList ->
+                val categories = categoriesList.associateBy { it.id }
+                val wallets = walletsList.associateBy { it.id }
+                
+                reminders.map { reminder ->
+                    ReminderItemUiState(
+                        reminder = reminder,
+                        categoryName = categories[reminder.categoryId]?.name ?: "Unknown",
+                        walletName = wallets[reminder.walletId]?.name ?: "Unknown"
+                    )
+                }
+            }.collect { items ->
+                _uiState.value = _uiState.value.copy(
+                    activeReminders = items,
+                    isLoading = false
                 )
             }
-            
-            _uiState.value = _uiState.value.copy(
-                activeReminders = items,
-                isLoading = false
-            )
         }
     }
 
@@ -81,7 +79,6 @@ class ReminderListViewModel(
             withContext(ioDispatcher) {
                 repository.deleteReminder(reminder)
             }
-            loadReminders()
         }
     }
 
@@ -109,7 +106,6 @@ class ReminderListViewModel(
                 val currentMonth = java.time.YearMonth.now().toString() // e.g., "2026-07"
                 repository.updateReminder(reminder.copy(lastPaidMonth = currentMonth))
             }
-            loadReminders()
         }
     }
 }
