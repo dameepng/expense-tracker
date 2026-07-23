@@ -217,11 +217,8 @@ fun ExpenseTrackerApp() {
                         return@BottomNavBar
                     }
                     navController.navigate(route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
+                        popUpTo(navController.graph.startDestinationId)
                         launchSingleTop = true
-                        restoreState = true
                     }
                 }
             )
@@ -275,11 +272,8 @@ fun ExpenseTrackerApp() {
                     onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) },
                     onNavigateToSummary = {
                         navController.navigate(NavRoutes.SUMMARY) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
+                            popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
-                            restoreState = true
                         }
                     },
                     onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) }

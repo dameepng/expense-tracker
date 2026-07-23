@@ -691,7 +691,7 @@ fun HomeScreen(
             totalExpense = state.totalExpense
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Transactions Section Header
         Row(
