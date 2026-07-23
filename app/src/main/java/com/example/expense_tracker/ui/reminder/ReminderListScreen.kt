@@ -48,8 +48,7 @@ import java.util.Locale
 @Composable
 fun ReminderListScreen(
     viewModel: ReminderListViewModel,
-    onNavigateBack: () -> Unit,
-    onNavigateToForm: (Long?) -> Unit
+    onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -64,11 +63,6 @@ fun ReminderListScreen(
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { onNavigateToForm(null) }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Reminder")
-            }
         }
     ) { padding ->
         if (uiState.isLoading) {
@@ -120,7 +114,6 @@ fun ReminderListScreen(
                     ) {
                         ReminderItemCard(
                             item = item,
-                            onClick = { onNavigateToForm(item.reminder.id) },
                             onClickMarkAsPaid = { viewModel.markAsPaid(item.reminder) }
                         )
                     }
@@ -134,13 +127,11 @@ fun ReminderListScreen(
 @Composable
 fun ReminderItemCard(
     item: ReminderItemUiState,
-    onClick: () -> Unit,
     onClickMarkAsPaid: () -> Unit
 ) {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
     
     Card(
-        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),

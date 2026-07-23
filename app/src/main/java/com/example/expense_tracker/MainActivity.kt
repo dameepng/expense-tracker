@@ -360,11 +360,7 @@ fun ExpenseTrackerApp() {
             composable(NavRoutes.REMINDER_LIST) {
                 com.example.expense_tracker.ui.reminder.ReminderListScreen(
                     viewModel = reminderListViewModel,
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToForm = { _ -> 
-                        // Note: Edit is currently not supported for Bill Reminders in InputScreen
-                        navController.navigate(NavRoutes.inputRoute(null)) 
-                    }
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }
