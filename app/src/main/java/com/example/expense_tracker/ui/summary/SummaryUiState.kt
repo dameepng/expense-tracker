@@ -14,7 +14,22 @@ data class SummaryUiState(
     val customEndDate: Long? = null,
     val isLoading: Boolean = false,
     val wallets: List<com.example.expense_tracker.data.Wallet> = emptyList(),
-    val selectedWalletId: Long? = null // null = all wallets
+    val selectedWalletId: Long? = null, // null = all wallets
+    
+    // Premium Dashboard Fields
+    val totalBalance: Long = 0L,
+    val balancePercentageChange: Float = 0f,
+    val totalIncome: Long = 0L,
+    val totalExpense: Long = 0L,
+    val netCashFlow: Long = 0L,
+    val dailyCashFlow: List<DailyCashFlow> = emptyList()
+)
+
+@Immutable
+data class DailyCashFlow(
+    val dateMillis: Long,
+    val income: Long,
+    val expense: Long
 )
 
 @Immutable

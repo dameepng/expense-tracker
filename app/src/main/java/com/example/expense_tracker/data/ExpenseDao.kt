@@ -86,4 +86,18 @@ interface ExpenseDao {
 
     @Query("SELECT DISTINCT timestamp FROM expenses ORDER BY timestamp DESC")
     fun getDistinctDatesWithExpense(): List<Long>
+
+    @Query("""
+        SELECT COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END), 0) - 
+               COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END), 0) 
+        FROM expenses
+    """)
+    fun getTotalBalance(): Flow<Long>
+
+    @Query("""
+        SELECT COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END), 0) - 
+               COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END), 0) 
+        FROM expenses WHERE walletId = :walletId
+    """)
+    fun getTotalBalanceByWallet(walletId: Long): Flow<Long>
 }

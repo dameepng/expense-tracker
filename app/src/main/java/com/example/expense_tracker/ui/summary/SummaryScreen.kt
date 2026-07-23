@@ -329,50 +329,105 @@ fun SummaryScreen(
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            // Type switcher (Expense vs Income Tabs)
-            SummaryTypeTabs(
-                selectedType = state.transactionType,
-                onTypeSelected = { type -> viewModel.onTransactionTypeSelected(type) }
-            )
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+                // Wallet filter chips
+                WalletFilterChips(
+                    wallets = state.wallets,
+                    selectedWalletId = state.selectedWalletId,
+                    onWalletSelected = { walletId -> viewModel.onWalletSelected(walletId) }
+                )
 
-            // Wallet filter chips
-            WalletFilterChips(
-                wallets = state.wallets,
-                selectedWalletId = state.selectedWalletId,
-                onWalletSelected = { walletId -> viewModel.onWalletSelected(walletId) }
-            )
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+                // Hero Balance Card
+                HeroBalanceCard(
+                    totalBalance = state.totalBalance,
+                    percentageChange = state.balancePercentageChange
+                )
 
-            // Filter tabs (Period)
-            SummaryFilterTabs(
-                selected = state.filter,
-                onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) }
-            )
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+                // Period Filter
+                SummaryFilterTabs(
+                    selected = state.filter,
+                    onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Cash Flow Insight Section
+                Text(
+                    text = "Cash flow insight",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("Income", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(CurrencyFormatter.format(state.totalIncome), style = MaterialTheme.typography.titleMedium, color = Color(0xFF10B981), fontWeight = FontWeight.Bold)
+                    }
+                    Column {
+                        Text("Expenses", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(CurrencyFormatter.format(state.totalExpense), style = MaterialTheme.typography.titleMedium, color = Color(0xFF1E293B), fontWeight = FontWeight.Bold)
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("Net cash flow", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(CurrencyFormatter.format(state.netCashFlow), style = MaterialTheme.typography.titleMedium, color = Color(0xFF2DD4BF), fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                CashFlowChart(
+                    dailyCashFlow = state.dailyCashFlow,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Spending By Category Title
+                Text(
+                    text = "Spending by category",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                // Type switcher (Expense vs Income Tabs)
+                SummaryTypeTabs(
+                    selectedType = state.transactionType,
+                    onTypeSelected = { type -> viewModel.onTransactionTypeSelected(type) }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Breakdown list or empty state
             if (state.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
             } else if (state.items.isEmpty()) {
-                SummaryEmptyState(isIncome = isIncome)
+                item {
+                    SummaryEmptyState(isIncome = isIncome, modifier = Modifier.height(200.dp))
+                }
             } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    item {
+                item {
                         // Total amount at the top
                         Column(
                             modifier = Modifier
@@ -447,15 +502,15 @@ fun SummaryScreen(
                                     )
                                 }
                             }
-                        }
-                    }
+                        } // Closes Row
+                    } // Closes item
+
                     items(state.items, key = { it.categoryId }) { item ->
-                        BreakdownCardItem(item = item, isIncome = isIncome)
+                        BreakdownCardItem(item = item, isIncome = isIncome, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
                     }
-                }
-            }
-        }
-    }
+                } // Closes else
+            } // Closes LazyColumn
+        } // Closes Scaffold content lambda
 
     if (showDatePicker) {
         val dateRangePickerState = rememberDateRangePickerState()
@@ -537,12 +592,11 @@ fun SummaryScreenWithDataPreview() {
             SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = { _, _, _ -> })
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
-                modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(items, key = { it.categoryId }) { item ->
-                    BreakdownCardItem(item = item)
+                    BreakdownCardItem(item = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
                 }
             }
         }
