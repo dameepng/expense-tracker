@@ -506,22 +506,11 @@ fun TransactionListItem(
             )
         },
         supportingContent = {
-            Column {
-                if (transaction.description.isNotBlank()) {
-                    Text(
-                        text = transaction.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
-                }
-                Text(
-                    text = TimeFormatter.formatTime(transaction.timestamp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
-            }
+            Text(
+                text = TimeFormatter.formatTime(transaction.timestamp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
         },
         leadingContent = {
             if (isIncome) {
@@ -557,12 +546,23 @@ fun TransactionListItem(
             }
         },
         trailingContent = {
-            Text(
-                text = amountPrefix + CurrencyFormatter.format(transaction.amount),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = amountColor
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = amountPrefix + CurrencyFormatter.format(transaction.amount),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = amountColor
+                )
+                if (transaction.description.isNotBlank()) {
+                    Text(
+                        text = transaction.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+            }
         },
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent
