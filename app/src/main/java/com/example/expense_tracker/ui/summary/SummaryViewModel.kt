@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.TimeRangeCalculator
+import com.example.expense_tracker.data.WalletRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +17,7 @@ import com.example.expense_tracker.data.TransactionType
 
 class SummaryViewModel(
     private val repository: SummaryRepository,
+    private val walletRepository: WalletRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -26,7 +28,8 @@ class SummaryViewModel(
         val filter: FilterPeriod,
         val type: TransactionType,
         val customStartDate: Long?,
-        val customEndDate: Long?
+        val customEndDate: Long?,
+        val walletId: Long? // null = all wallets
     )
 
     private val filterParamsFlow = MutableStateFlow(
@@ -34,11 +37,20 @@ class SummaryViewModel(
             filter = FilterPeriod.MONTH,
             type = TransactionType.EXPENSE,
             customStartDate = null,
-            customEndDate = null
+            customEndDate = null,
+            walletId = null
         )
     )
 
     init {
+        // Load wallets
+        viewModelScope.launch {
+            walletRepository.getAllWallets().collect { wallets ->
+                _uiState.value = _uiState.value.copy(wallets = wallets)
+            }
+        }
+
+        // React to filter changes
         viewModelScope.launch {
             filterParamsFlow
                 .flatMapLatest { params ->
@@ -48,7 +60,7 @@ class SummaryViewModel(
                         TimeRangeCalculator.calculateRange(params.filter)
                     }
                     
-                    repository.getBreakdownByCategory(start, end, params.type)
+                    repository.getBreakdownByCategory(start, end, params.type, params.walletId)
                 }
                 .collect { breakdown ->
                     val total = breakdown.sumOf { it.totalAmount }
@@ -68,7 +80,8 @@ class SummaryViewModel(
                         filter = filterParamsFlow.value.filter,
                         customStartDate = filterParamsFlow.value.customStartDate,
                         customEndDate = filterParamsFlow.value.customEndDate,
-                        transactionType = filterParamsFlow.value.type
+                        transactionType = filterParamsFlow.value.type,
+                        selectedWalletId = filterParamsFlow.value.walletId
                     )
                 }
         }
@@ -85,6 +98,11 @@ class SummaryViewModel(
 
     fun onTransactionTypeSelected(type: TransactionType) {
         filterParamsFlow.value = filterParamsFlow.value.copy(type = type)
+        _uiState.value = _uiState.value.copy(isLoading = true)
+    }
+
+    fun onWalletSelected(walletId: Long?) {
+        filterParamsFlow.value = filterParamsFlow.value.copy(walletId = walletId)
         _uiState.value = _uiState.value.copy(isLoading = true)
     }
 }

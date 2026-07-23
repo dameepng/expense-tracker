@@ -12,7 +12,12 @@ class RoomSummaryRepository(
     override fun getBreakdownByCategory(
         startTime: Long,
         endTime: Long,
-        type: TransactionType
+        type: TransactionType,
+        walletId: Long?
     ): Flow<List<CategoryBreakdown>> =
-        dao.getBreakdownByCategoryAndType(startTime, endTime, type.name)
+        if (walletId != null) {
+            dao.getBreakdownByCategoryAndTypeAndWallet(startTime, endTime, type.name, walletId)
+        } else {
+            dao.getBreakdownByCategoryAndType(startTime, endTime, type.name)
+        }
 }

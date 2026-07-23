@@ -12,7 +12,9 @@ data class SummaryUiState(
     val totalAmount: Long = 0L,
     val customStartDate: Long? = null,
     val customEndDate: Long? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val wallets: List<com.example.expense_tracker.data.Wallet> = emptyList(),
+    val selectedWalletId: Long? = null // null = all wallets
 )
 
 @Immutable

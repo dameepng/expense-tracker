@@ -74,6 +74,16 @@ interface ExpenseDao {
     """)
     fun getBreakdownByCategoryAndType(startTime: Long, endTime: Long, type: String): Flow<List<CategoryBreakdown>>
 
+    @Query("""
+        SELECT c.id AS categoryId, c.name AS categoryName, COALESCE(SUM(e.amount), 0) AS totalAmount
+        FROM categories c
+        LEFT JOIN expenses e ON c.id = e.categoryId AND e.timestamp >= :startTime AND e.timestamp < :endTime AND e.type = :type AND e.walletId = :walletId
+        GROUP BY c.id, c.name
+        HAVING totalAmount > 0
+        ORDER BY totalAmount DESC
+    """)
+    fun getBreakdownByCategoryAndTypeAndWallet(startTime: Long, endTime: Long, type: String, walletId: Long): Flow<List<CategoryBreakdown>>
+
     @Query("SELECT DISTINCT timestamp FROM expenses ORDER BY timestamp DESC")
     fun getDistinctDatesWithExpense(): List<Long>
 }

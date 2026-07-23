@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.RoomSummaryRepository
+import com.example.expense_tracker.data.RoomWalletRepository
 
 object SummaryViewModelFactory {
     fun create(application: Application): ViewModelProvider.Factory {
@@ -14,7 +15,8 @@ object SummaryViewModelFactory {
                 if (modelClass.isAssignableFrom(SummaryViewModel::class.java)) {
                     val db = AppDatabase.getInstance(application)
                     val repository = RoomSummaryRepository(db.expenseDao())
-                    return SummaryViewModel(repository) as T
+                    val walletRepository = RoomWalletRepository(db.walletDao())
+                    return SummaryViewModel(repository, walletRepository) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
             }

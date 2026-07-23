@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -132,6 +134,48 @@ fun SummaryTypeTabs(
                 text = { Text(label, fontWeight = FontWeight.SemiBold) },
                 selectedContentColor = if (type == TransactionType.INCOME) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
                 unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// ── Wallet Filter Chips ─────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WalletFilterChips(
+    wallets: List<com.example.expense_tracker.data.Wallet>,
+    selectedWalletId: Long?,
+    onWalletSelected: (Long?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (wallets.size <= 1) return // No need to show filter if 0 or 1 wallet
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterChip(
+            selected = selectedWalletId == null,
+            onClick = { onWalletSelected(null) },
+            label = { Text("Semua") },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        )
+        wallets.forEach { wallet ->
+            FilterChip(
+                selected = selectedWalletId == wallet.id,
+                onClick = { onWalletSelected(wallet.id) },
+                label = { Text(wallet.name) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
         }
     }
@@ -284,7 +328,16 @@ fun SummaryScreen(
                 onTypeSelected = { type -> viewModel.onTransactionTypeSelected(type) }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Wallet filter chips
+            WalletFilterChips(
+                wallets = state.wallets,
+                selectedWalletId = state.selectedWalletId,
+                onWalletSelected = { walletId -> viewModel.onWalletSelected(walletId) }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Filter tabs (Period)
             SummaryFilterTabs(

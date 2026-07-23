@@ -9,6 +9,7 @@ interface SummaryRepository {
     fun getBreakdownByCategory(
         startTime: Long,
         endTime: Long,
-        type: TransactionType = TransactionType.EXPENSE
+        type: TransactionType = TransactionType.EXPENSE,
+        walletId: Long? = null
     ): Flow<List<CategoryBreakdown>>
 }
