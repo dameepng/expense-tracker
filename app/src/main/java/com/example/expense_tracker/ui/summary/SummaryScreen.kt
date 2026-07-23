@@ -17,10 +17,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -199,65 +197,79 @@ fun BreakdownCardItem(
         else -> Icons.Default.MoreHoriz
     }
 
+    val categoryColor = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt(), isIncome)
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = categoryColor.copy(alpha = 0.05f) // Subtle tint
         )
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Top row: Icon and Name
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = item.categoryName,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = item.categoryName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
+            // Color Accent Bar
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(40.dp)
+                    .background(categoryColor, RoundedCornerShape(2.dp))
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Icon and Text Column
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = item.categoryName,
+                        tint = categoryColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = item.categoryName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                LinearProgressIndicator(
+                    progress = { item.percentage },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp),
+                    color = categoryColor,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    strokeCap = StrokeCap.Round
                 )
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Bottom row: Colored Dot and Percentage
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(
-                            color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt(), isIncome),
-                            shape = CircleShape
-                        )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Amount and Percentage Column
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "${(item.percentage * 100).toInt()}%",
-                    style = MaterialTheme.typography.titleLarge,
+                    text = CurrencyFormatter.format(item.amount),
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                Text(
+                    text = "${(item.percentage * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = CurrencyFormatter.format(item.amount),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -355,23 +367,87 @@ fun SummaryScreen(
             } else if (state.items.isEmpty()) {
                 SummaryEmptyState(isIncome = isIncome)
             } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                LazyColumn(
                     modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    item(span = { GridItemSpan(2) }) {
-                        // Donut Chart placed at the top of the grid
-                        DonutChart(
-                            items = state.items,
-                            totalAmount = state.totalAmount,
-                            isIncome = isIncome,
+                    item {
+                        // Total amount at the top
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp, top = 4.dp)
-                        )
+                                .padding(top = 16.dp, bottom = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Total",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = CurrencyFormatter.format(state.totalAmount),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Donut Chart and Legend Row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 24.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            DonutChart(
+                                items = state.items,
+                                totalAmount = state.totalAmount,
+                                isIncome = isIncome,
+                                modifier = Modifier.weight(1f)
+                            )
+                            
+                            // Compact Legend
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                state.items.take(5).forEach { item ->
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(10.dp)
+                                                .background(
+                                                    color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt(), isIncome),
+                                                    shape = CircleShape
+                                                )
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = item.categoryName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Text(
+                                            text = "${(item.percentage * 100).toInt()}%",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                if (state.items.size > 5) {
+                                    Text(
+                                        text = "+ ${state.items.size - 5} lainnya",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(start = 18.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                     items(state.items, key = { it.categoryId }) { item ->
                         BreakdownCardItem(item = item, isIncome = isIncome)
@@ -460,10 +536,8 @@ fun SummaryScreenWithDataPreview() {
             Spacer(modifier = Modifier.height(16.dp))
             SummaryFilterTabs(selected = FilterPeriod.TODAY, onSelected = { _, _, _ -> })
             Spacer(modifier = Modifier.height(16.dp))
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+            LazyColumn(
                 modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {

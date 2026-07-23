@@ -6,8 +6,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,13 +51,12 @@ fun DonutChart(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(1f) // Keep it perfectly square
-            .padding(32.dp),
+            .size(160.dp) // Compact size
+            .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         // The Chart
-        Canvas(modifier = Modifier.fillMaxWidth().aspectRatio(1f)) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWidth = size.width * 0.15f // 15% of width for the donut ring thickness
             val radius = size.width / 2 - strokeWidth / 2
 
@@ -79,10 +80,14 @@ fun DonutChart(
             items.forEach { item ->
                 val sweepAngle = item.percentage * totalSweep
                 if (sweepAngle > 0f) {
+                    // Add gap if sweep angle is large enough and not 100%
+                    val gapAngle = if (sweepAngle < 360f && items.size > 1) 2f else 0f
+                    val actualSweep = maxOf(0.1f, sweepAngle - gapAngle) // ensure it doesn't go negative
+
                     drawArc(
                         color = categoryColor(item.categoryId.toInt(), isIncome),
                         startAngle = startAngle,
-                        sweepAngle = sweepAngle,
+                        sweepAngle = actualSweep,
                         useCenter = false,
                         topLeft = Offset(strokeWidth / 2, strokeWidth / 2),
                         size = Size(radius * 2, radius * 2),
@@ -91,21 +96,6 @@ fun DonutChart(
                     startAngle += sweepAngle
                 }
             }
-        }
-
-        // Center Text
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Total",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = CurrencyFormatter.format(totalAmount),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
         }
     }
 }
