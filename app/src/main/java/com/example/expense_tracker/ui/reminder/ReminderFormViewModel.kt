@@ -26,6 +26,7 @@ data class ReminderFormUiState(
     val name: String = "",
     val amountText: String = "",
     val dueDay: String = "",
+    val isRepeat: Boolean = true,
     val selectedCategoryId: Long? = null,
     val selectedWalletId: Long? = null,
     val categories: List<Category> = emptyList(),
@@ -62,6 +63,7 @@ class ReminderFormViewModel(
             var loadedName = ""
             var loadedAmount = ""
             var loadedDueDay = ""
+            var loadedIsRepeat = true
             var loadedCategoryId: Long? = null
             var loadedWalletId: Long? = if (wallets.size == 1) wallets.first().id else null
             
@@ -73,6 +75,7 @@ class ReminderFormViewModel(
                     loadedName = reminder.name
                     loadedAmount = reminder.amount.toString()
                     loadedDueDay = reminder.dueDay.toString()
+                    loadedIsRepeat = reminder.isRepeat
                     loadedCategoryId = reminder.categoryId
                     loadedWalletId = reminder.walletId
                 }
@@ -82,6 +85,7 @@ class ReminderFormViewModel(
                 name = loadedName,
                 amountText = loadedAmount,
                 dueDay = loadedDueDay,
+                isRepeat = loadedIsRepeat,
                 selectedCategoryId = loadedCategoryId,
                 selectedWalletId = loadedWalletId,
                 categories = categories,
@@ -109,6 +113,11 @@ class ReminderFormViewModel(
             _uiState.value = _uiState.value.copy(dueDay = day)
             validateForm()
         }
+    }
+
+    fun onRepeatChange(isRepeat: Boolean) {
+        _uiState.value = _uiState.value.copy(isRepeat = isRepeat)
+        validateForm()
     }
 
     fun onCategorySelected(categoryId: Long) {
@@ -144,6 +153,7 @@ class ReminderFormViewModel(
                 name = state.name.trim(),
                 amount = state.amountText.toLong(),
                 dueDay = state.dueDay.toInt(),
+                isRepeat = state.isRepeat,
                 categoryId = state.selectedCategoryId!!,
                 walletId = state.selectedWalletId!!,
                 isActive = true

@@ -102,9 +102,13 @@ class ReminderListViewModel(
                     walletRepository.insertWallet(wallet.copy(balance = wallet.balance - reminder.amount))
                 }
 
-                // 3. Mark reminder as paid for this month
-                val currentMonth = java.time.YearMonth.now().toString() // e.g., "2026-07"
-                repository.updateReminder(reminder.copy(lastPaidMonth = currentMonth))
+                // 3. Mark reminder as paid for this month, or deactivate if it's one-time
+                if (reminder.isRepeat) {
+                    val currentMonth = java.time.YearMonth.now().toString() // e.g., "2026-07"
+                    repository.updateReminder(reminder.copy(lastPaidMonth = currentMonth))
+                } else {
+                    repository.updateReminder(reminder.copy(isActive = false))
+                }
             }
         }
     }

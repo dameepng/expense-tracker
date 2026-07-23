@@ -23,8 +23,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -121,6 +124,30 @@ fun ReminderFormScreen(
                     selectedId = uiState.selectedWalletId,
                     onSelected = viewModel::onWalletSelected
                 )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "Repeat Every Month",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "Tagihan otomatis muncul bulan depan",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = uiState.isRepeat,
+                        onCheckedChange = viewModel::onRepeatChange
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(32.dp))
                 
