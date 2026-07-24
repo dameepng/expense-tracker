@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -188,12 +190,30 @@ fun BalanceCard(
     onWalletSelected: (Long?) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val gradient = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFF2D2D3A),
-            Color(0xFF1A1A2E)
+    val selectedWallet = wallets.find { it.id == selectedWalletId }
+    val gradient = if (selectedWallet != null) {
+        com.example.expense_tracker.ui.wallet.CardGradients.getGradient(selectedWallet.color).brush
+    } else {
+        androidx.compose.ui.graphics.Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF2D2D3A),
+                Color(0xFF1A1A2E)
+            )
         )
-    )
+    }
+
+    val maskedCardNumber = if (selectedWallet != null && selectedWallet.cardNumber.isNotBlank()) {
+        val digits = selectedWallet.cardNumber.filter { it.isDigit() }
+        val masked = if (digits.length >= 4) {
+            "•".repeat((digits.length - 4).coerceAtLeast(0)) + digits.takeLast(4)
+        } else {
+            digits
+        }
+        val padded = masked.padEnd(16, '•')
+        padded.chunked(4).joinToString(" ")
+    } else {
+        "•••• •••• •••• 4020"
+    }
 
     Surface(
         shape = RoundedCornerShape(24.dp),
@@ -201,41 +221,39 @@ fun BalanceCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
+            .aspectRatio(1.8f)
     ) {
         Box(
             modifier = Modifier
+                .fillMaxSize()
                 .background(gradient)
                 .padding(24.dp)
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // Top Row: Amount & More icon
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Top Row: Wallet Name & More Icon
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top
                 ) {
-                    Column {
-                        Text(
-                            text = selectedWalletName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                        Text(
-                            text = CurrencyFormatter.format(totalBalance),
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = stringResource(R.string.total_balance),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-                    }
+                    Text(
+                        text = selectedWalletName.uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    
                     Box {
                         var expanded by remember { mutableStateOf(false) }
-                        IconButton(onClick = { expanded = true }) {
+                        IconButton(
+                            onClick = { expanded = true },
+                            modifier = Modifier
+                                .size(24.dp)
+                                .offset(x = 8.dp, y = (-8).dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "Options",
@@ -280,45 +298,50 @@ fun BalanceCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Progress Indicator
-                androidx.compose.material3.LinearProgressIndicator(
-                    progress = { 0.45f },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(4.dp),
-                    color = Color(0xFFFF512F),
-                    trackColor = Color.White.copy(alpha = 0.1f)
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Bottom Row: Card number dots & Mastercard style logo
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "****  ****  402",
-                        style = MaterialTheme.typography.bodyMedium,
-                        letterSpacing = 2.sp,
-                        color = Color.White.copy(alpha = 0.7f)
+                // Middle & Bottom Row Combined
+                Column {
+                    AutoResizeText(
+                        text = CurrencyFormatter.format(totalBalance),
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1
                     )
-                    
-                    // Decorative mastercard-style circles
-                    Box(modifier = Modifier.width(40.dp).height(24.dp)) {
-                        Surface(
-                            modifier = Modifier.size(24.dp).align(Alignment.CenterStart),
-                            shape = CircleShape,
-                            color = Color(0xFFEA001B).copy(alpha = 0.8f)
-                        ) {}
-                        Surface(
-                            modifier = Modifier.size(24.dp).align(Alignment.CenterEnd),
-                            shape = CircleShape,
-                            color = Color(0xFFF79E1B).copy(alpha = 0.8f)
-                        ) {}
+                    Text(
+                        text = stringResource(R.string.total_balance),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    // Bottom Row: Card number & Logo
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = maskedCardNumber,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                            ),
+                            letterSpacing = 2.sp,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        
+                        // Decorative mastercard-style circles
+                        Box(modifier = Modifier.width(40.dp).height(24.dp)) {
+                            Surface(
+                                modifier = Modifier.size(24.dp).align(Alignment.CenterStart),
+                                shape = CircleShape,
+                                color = Color(0xFFEA001B).copy(alpha = 0.8f)
+                            ) {}
+                            Surface(
+                                modifier = Modifier.size(24.dp).align(Alignment.CenterEnd),
+                                shape = CircleShape,
+                                color = Color(0xFFF79E1B).copy(alpha = 0.8f)
+                            ) {}
+                        }
                     }
                 }
             }
