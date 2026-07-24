@@ -123,7 +123,9 @@ fun SummaryPeriodDropdown(
                     text = { Text(filter.label) },
                     onClick = {
                         expanded = false
-                        onSelected(filter, null, null)
+                        if (selected != filter) {
+                            onSelected(filter, null, null)
+                        }
                     },
                     trailingIcon = if (selected == filter) {
                         { Icon(Icons.Default.Check, contentDescription = "Selected") }
@@ -134,7 +136,9 @@ fun SummaryPeriodDropdown(
                 text = { Text(FilterPeriod.CUSTOM.label) },
                 onClick = {
                     expanded = false
-                    onCustomClick()
+                    if (selected != FilterPeriod.CUSTOM) {
+                        onCustomClick()
+                    }
                 },
                 trailingIcon = if (selected == FilterPeriod.CUSTOM) {
                     { Icon(Icons.Default.Check, contentDescription = "Selected") }
@@ -377,7 +381,9 @@ fun SummaryScreen(
                                     text = { Text("Semua Wallet") },
                                     onClick = {
                                         walletMenuExpanded = false
-                                        viewModel.onWalletSelected(null)
+                                        if (state.selectedWalletId != null) {
+                                            viewModel.onWalletSelected(null)
+                                        }
                                     },
                                     trailingIcon = if (state.selectedWalletId == null) {
                                         { Icon(Icons.Default.Check, contentDescription = "Selected") }
@@ -388,7 +394,9 @@ fun SummaryScreen(
                                         text = { Text(wallet.name) },
                                         onClick = {
                                             walletMenuExpanded = false
-                                            viewModel.onWalletSelected(wallet.id)
+                                            if (state.selectedWalletId != wallet.id) {
+                                                viewModel.onWalletSelected(wallet.id)
+                                            }
                                         },
                                         trailingIcon = if (state.selectedWalletId == wallet.id) {
                                             { Icon(Icons.Default.Check, contentDescription = "Selected") }
@@ -558,7 +566,9 @@ fun SummaryScreen(
                                             text = { Text(if (type == TransactionType.INCOME) "Pemasukan" else "Pengeluaran") },
                                             onClick = {
                                                 typeMenuExpanded = false
-                                                viewModel.onTransactionTypeSelected(type)
+                                                if (state.transactionType != type) {
+                                                    viewModel.onTransactionTypeSelected(type)
+                                                }
                                             },
                                             trailingIcon = if (state.transactionType == type) {
                                                 { Icon(Icons.Default.Check, contentDescription = "Selected") }

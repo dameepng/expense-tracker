@@ -245,8 +245,10 @@ fun BalanceCard(
                             DropdownMenuItem(
                                 text = { Text("All Wallets") },
                                 onClick = {
-                                    onWalletSelected(null)
                                     expanded = false
+                                    if (selectedWalletId != null) {
+                                        onWalletSelected(null)
+                                    }
                                 },
                                 leadingIcon = {
                                     if (selectedWalletId == null) {
@@ -258,8 +260,10 @@ fun BalanceCard(
                                 DropdownMenuItem(
                                     text = { Text(wallet.name) },
                                     onClick = {
-                                        onWalletSelected(wallet.id)
                                         expanded = false
+                                        if (selectedWalletId != wallet.id) {
+                                            onWalletSelected(wallet.id)
+                                        }
                                     },
                                     leadingIcon = {
                                         if (selectedWalletId == wallet.id) {
