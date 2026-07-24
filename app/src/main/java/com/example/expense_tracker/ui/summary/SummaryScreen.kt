@@ -408,7 +408,7 @@ fun SummaryScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            item {
+            item(key = "hero_balance") {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Hero Balance Card
@@ -418,7 +418,9 @@ fun SummaryScreen(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-
+            }
+            
+            item(key = "cash_flow") {
                 // Cash Flow Insight Section
                 Card(
                     modifier = Modifier
@@ -485,6 +487,9 @@ fun SummaryScreen(
                     }
                 }
 
+            }
+            
+            item(key = "spending_category") {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Spending By Category Card
