@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -344,6 +345,7 @@ fun SummaryScreen(
     val state by viewModel.uiState.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
     val isIncome = state.transactionType == TransactionType.INCOME
+    val listState = rememberLazyListState()
 
     Scaffold(
         topBar = {
@@ -403,6 +405,7 @@ fun SummaryScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
@@ -660,7 +663,7 @@ fun SummaryScreen(
 
             if (!state.isLoading && state.items.isNotEmpty()) {
 
-                    items(state.items, key = { it.categoryId }) { item ->
+                    items(state.items, key = { "${state.transactionType}_${it.categoryId}" }) { item ->
                         BreakdownCardItem(item = item, isIncome = isIncome, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
                     }
                 } // Closes else
