@@ -6,6 +6,9 @@ import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -77,7 +80,7 @@ import com.example.expense_tracker.ui.CurrencyFormatter
 import java.util.Locale
 import android.content.res.Configuration
 
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -95,11 +98,8 @@ class MainActivity : FragmentActivity() {
             }
             
             LaunchedEffect(language) {
-                val locale = if (language == "English") Locale("en", "US") else Locale("id", "ID")
-                Locale.setDefault(locale)
-                val config = Configuration(context.resources.configuration)
-                config.setLocale(locale)
-                context.resources.updateConfiguration(config, context.resources.displayMetrics)
+                val localeStr = if (language == "English") "en-US" else "id-ID"
+                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(localeStr))
             }
             
             val isBiometricsEnabledState = userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = null)
