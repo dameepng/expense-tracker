@@ -241,7 +241,7 @@ fun BalanceCard(
                 ) {
                     Text(
                         text = selectedWalletName.uppercase(),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -311,7 +311,7 @@ fun BalanceCard(
                         text = stringResource(R.string.total_balance),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
                     )
 
                     // Bottom Row: Card number & Logo
