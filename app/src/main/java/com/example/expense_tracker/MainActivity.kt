@@ -73,6 +73,9 @@ import com.example.expense_tracker.ui.summary.SummaryScreen
 import com.example.expense_tracker.ui.summary.SummaryViewModel
 import com.example.expense_tracker.ui.summary.SummaryViewModelFactory
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
+import com.example.expense_tracker.ui.CurrencyFormatter
+import java.util.Locale
+import android.content.res.Configuration
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,6 +87,20 @@ class MainActivity : FragmentActivity() {
                 com.example.expense_tracker.data.UserPreferencesRepositoryImpl(context.dataStore)
             }
             val themeMode by userPrefsRepo.themeModeFlow.collectAsState(initial = "System Default")
+            val currency by userPrefsRepo.currencyFlow.collectAsState(initial = "IDR")
+            val language by userPrefsRepo.languageFlow.collectAsState(initial = "Indonesia")
+            
+            LaunchedEffect(currency) {
+                CurrencyFormatter.setCurrency(currency)
+            }
+            
+            LaunchedEffect(language) {
+                val locale = if (language == "English") Locale("en", "US") else Locale("id", "ID")
+                Locale.setDefault(locale)
+                val config = Configuration(context.resources.configuration)
+                config.setLocale(locale)
+                context.resources.updateConfiguration(config, context.resources.displayMetrics)
+            }
             
             val isBiometricsEnabledState = userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = null)
             val isBiometricsEnabled = isBiometricsEnabledState.value

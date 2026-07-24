@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Kasflow</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_wallet">Wallet</string>
+    <string name="nav_summary">Summary</string>
+    <string name="nav_profile">Profile</string>
+    <string name="profile_preferences">Preferences</string>
+    <string name="profile_theme">App Theme</string>
+    <string name="profile_currency">Main Currency</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_security_data">Security &amp; Data</string>
+    <string name="profile_export_data">Export Transaction Data</string>
+    <string name="profile_screen_lock">Screen Lock</string>
+    <string name="profile_select_theme">Select Theme</string>
+    <string name="profile_select_currency">Select Currency</string>
+    <string name="profile_select_language">Select Language</string>
+    <string name="nav_add">Add</string>
+</resources>

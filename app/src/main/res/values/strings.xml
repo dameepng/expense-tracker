@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">Kasflow</string>
+    <string name="nav_home">Beranda</string>
+    <string name="nav_wallet">Dompet</string>
+    <string name="nav_summary">Ringkasan</string>
+    <string name="nav_profile">Profil</string>
+    <string name="profile_preferences">Preferensi</string>
+    <string name="profile_theme">Tema Aplikasi</string>
+    <string name="profile_currency">Mata Uang Utama</string>
+    <string name="profile_language">Bahasa</string>
+    <string name="profile_security_data">Keamanan &amp; Data</string>
+    <string name="profile_export_data">Export Data Transaksi</string>
+    <string name="profile_screen_lock">Kunci Layar</string>
+    <string name="profile_select_theme">Pilih Tema</string>
+    <string name="profile_select_currency">Pilih Mata Uang</string>
+    <string name="profile_select_language">Pilih Bahasa</string>
+    <string name="nav_add">Tambah</string>
 </resources>

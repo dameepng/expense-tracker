@@ -63,6 +63,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.example.expense_tracker.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +96,7 @@ fun ProfileScreen(
     if (showThemeDialog) {
         val options = listOf("System Default", "Light Mode", "Dark Mode")
         SingleChoiceDialog(
-            title = "Pilih Tema",
+            title = stringResource(R.string.profile_select_theme),
             options = options,
             selectedOption = uiState.themeMode,
             onOptionSelected = { viewModel.setThemeMode(it) },
@@ -105,7 +107,7 @@ fun ProfileScreen(
     if (showCurrencyDialog) {
         val options = listOf("IDR", "USD", "EUR")
         SingleChoiceDialog(
-            title = "Pilih Mata Uang",
+            title = stringResource(R.string.profile_select_currency),
             options = options,
             selectedOption = uiState.currency,
             onOptionSelected = { viewModel.setCurrency(it) },
@@ -116,7 +118,7 @@ fun ProfileScreen(
     if (showLanguageDialog) {
         val options = listOf("Indonesia", "English")
         SingleChoiceDialog(
-            title = "Pilih Bahasa",
+            title = stringResource(R.string.profile_select_language),
             options = options,
             selectedOption = uiState.language,
             onOptionSelected = { viewModel.setLanguage(it) },
@@ -127,7 +129,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profil", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.nav_profile), fontWeight = FontWeight.Bold) },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
@@ -148,22 +150,22 @@ fun ProfileScreen(
             }
             
             item {
-                SettingsGroup(title = "Preferensi") {
+                SettingsGroup(title = stringResource(R.string.profile_preferences)) {
                     SettingsItem(
                         icon = Icons.Default.Palette,
-                        title = "Tema Aplikasi",
+                        title = stringResource(R.string.profile_theme),
                         subtitle = uiState.themeMode,
                         onClick = { showThemeDialog = true }
                     )
                     SettingsItem(
                         icon = Icons.Default.AttachMoney,
-                        title = "Mata Uang Utama",
+                        title = stringResource(R.string.profile_currency),
                         subtitle = uiState.currency,
                         onClick = { showCurrencyDialog = true }
                     )
                     SettingsItem(
                         icon = Icons.Default.Language,
-                        title = "Bahasa",
+                        title = stringResource(R.string.profile_language),
                         subtitle = uiState.language,
                         onClick = { showLanguageDialog = true }
                     )
@@ -172,16 +174,16 @@ fun ProfileScreen(
             }
             
             item {
-                SettingsGroup(title = "Keamanan & Data") {
+                SettingsGroup(title = stringResource(R.string.profile_security_data)) {
                     SettingsItem(
                         icon = Icons.Default.Download,
-                        title = "Export Data Transaksi",
+                        title = stringResource(R.string.profile_export_data),
                         subtitle = "CSV",
                         onClick = { viewModel.exportData(context) }
                     )
                     SettingsItem(
                         icon = Icons.Default.Lock,
-                        title = "Kunci Layar",
+                        title = stringResource(R.string.profile_screen_lock),
                         subtitle = "Biometric / PIN",
                         onClick = { 
                             val fragmentActivity = context as? androidx.fragment.app.FragmentActivity
