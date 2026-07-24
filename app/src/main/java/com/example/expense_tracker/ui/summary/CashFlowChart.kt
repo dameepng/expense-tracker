@@ -147,12 +147,80 @@ fun CashFlowChart(
             }
 
             // ── Draw Chart Lines ──
+            val chartBottom = topPadding + chartHeight
+
+            if (dailyCashFlow.size == 1) {
+                // Single data point: draw dots and horizontal bars
+                val data = dailyCashFlow[0]
+                val centerX = leftMargin + chartWidth / 2
+                val incomeY = topPadding + chartHeight - (data.income.toFloat() / maxAmount) * chartHeight
+                val expenseY = topPadding + chartHeight - (data.expense.toFloat() / maxAmount) * chartHeight
+                val barHalf = chartWidth * 0.3f
+
+                // Income bar + dot
+                drawLine(
+                    color = incomeColor,
+                    start = Offset(centerX - barHalf, incomeY),
+                    end = Offset(centerX + barHalf, incomeY),
+                    strokeWidth = 2.5.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+                drawCircle(
+                    color = incomeColor,
+                    radius = 5.dp.toPx(),
+                    center = Offset(centerX, incomeY)
+                )
+
+                // Expense bar + dot
+                drawLine(
+                    color = expenseColor,
+                    start = Offset(centerX - barHalf, expenseY),
+                    end = Offset(centerX + barHalf, expenseY),
+                    strokeWidth = 2.5.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+                drawCircle(
+                    color = expenseColor,
+                    radius = 5.dp.toPx(),
+                    center = Offset(centerX, expenseY)
+                )
+
+                // Area gradients for single point
+                val incomeAreaPath = Path().apply {
+                    moveTo(centerX - barHalf, chartBottom)
+                    lineTo(centerX - barHalf, incomeY)
+                    lineTo(centerX + barHalf, incomeY)
+                    lineTo(centerX + barHalf, chartBottom)
+                    close()
+                }
+                val expenseAreaPath = Path().apply {
+                    moveTo(centerX - barHalf, chartBottom)
+                    lineTo(centerX - barHalf, expenseY)
+                    lineTo(centerX + barHalf, expenseY)
+                    lineTo(centerX + barHalf, chartBottom)
+                    close()
+                }
+                drawPath(
+                    path = incomeAreaPath,
+                    brush = Brush.verticalGradient(
+                        colors = listOf(incomeColor.copy(alpha = 0.25f), Color.Transparent),
+                        startY = topPadding,
+                        endY = chartBottom
+                    )
+                )
+                drawPath(
+                    path = expenseAreaPath,
+                    brush = Brush.verticalGradient(
+                        colors = listOf(expenseColor.copy(alpha = 0.15f), Color.Transparent),
+                        startY = topPadding,
+                        endY = chartBottom
+                    )
+                )
+            } else {
             val incomePath = Path()
             val expensePath = Path()
             val incomeAreaPath = Path()
             val expenseAreaPath = Path()
-
-            val chartBottom = topPadding + chartHeight
 
             incomeAreaPath.moveTo(leftMargin, chartBottom)
             expenseAreaPath.moveTo(leftMargin, chartBottom)
@@ -220,6 +288,7 @@ fun CashFlowChart(
                 color = expenseColor,
                 style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
             )
+            } // end else (multi-point)
         }
     }
 }
