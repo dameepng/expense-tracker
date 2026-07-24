@@ -552,17 +552,41 @@ fun EditProfileDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val context = LocalContext.current
-                val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                    if (uri != null) {
-                        try {
-                            context.contentResolver.takePersistableUriPermission(
-                                uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            )
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+                val cropImage = rememberLauncherForActivityResult(com.canhub.cropper.CropImageContract()) { result ->
+                    if (result.isSuccessful) {
+                        val uriContent = result.uriContent
+                        if (uriContent != null) {
+                            try {
+                                context.contentResolver.takePersistableUriPermission(
+                                    uriContent,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                )
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            photoUri = uriContent.toString()
                         }
-                        photoUri = uri.toString()
+                    } else {
+                        result.error?.printStackTrace()
+                    }
+                }
+
+                val pickMedia = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()) { uri ->
+                    if (uri != null) {
+                        val cropOptions = com.canhub.cropper.CropImageContractOptions(
+                            uri,
+                            com.canhub.cropper.CropImageOptions().apply {
+                                guidelines = com.canhub.cropper.CropImageView.Guidelines.ON
+                                aspectRatioX = 1
+                                aspectRatioY = 1
+                                fixAspectRatio = true
+                                cropShape = com.canhub.cropper.CropImageView.CropShape.RECTANGLE
+                                activityTitle = "Potong Foto"
+                                allowFlipping = true
+                                allowRotation = true
+                            }
+                        )
+                        cropImage.launch(cropOptions)
                     }
                 }
 
