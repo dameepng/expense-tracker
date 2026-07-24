@@ -91,15 +91,21 @@ class MainActivity : AppCompatActivity() {
             }
             val themeMode by userPrefsRepo.themeModeFlow.collectAsState(initial = "System Default")
             val currency by userPrefsRepo.currencyFlow.collectAsState(initial = "IDR")
-            val language by userPrefsRepo.languageFlow.collectAsState(initial = "Indonesia")
+            val language by userPrefsRepo.languageFlow.collectAsState(initial = null)
             
             LaunchedEffect(currency) {
                 CurrencyFormatter.setCurrency(currency)
             }
             
             LaunchedEffect(language) {
+                if (language == null) return@LaunchedEffect
+                
                 val localeStr = if (language == "English") "en-US" else "id-ID"
-                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(localeStr))
+                val currentLocales = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+                
+                if (currentLocales != localeStr) {
+                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(localeStr))
+                }
             }
             
             val isBiometricsEnabledState = userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = null)
