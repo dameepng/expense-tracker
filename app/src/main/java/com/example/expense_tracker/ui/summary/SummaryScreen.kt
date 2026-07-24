@@ -417,49 +417,65 @@ fun SummaryScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Cash Flow Insight Section
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Cash flow insight",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    SummaryPeriodDropdown(
-                        selected = state.filter,
-                        onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) },
-                        onCustomClick = { showDatePicker = true }
-                    )
-                }
-
-                Row(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Column {
-                        Text("Income", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(CurrencyFormatter.format(state.totalIncome), style = MaterialTheme.typography.titleMedium, color = Color(0xFF10B981), fontWeight = FontWeight.Bold)
-                    }
-                    Column {
-                        Text("Expenses", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(CurrencyFormatter.format(state.totalExpense), style = MaterialTheme.typography.titleMedium, color = Color(0xFF1E293B), fontWeight = FontWeight.Bold)
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text("Net cash flow", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(CurrencyFormatter.format(state.netCashFlow), style = MaterialTheme.typography.titleMedium, color = Color(0xFF2DD4BF), fontWeight = FontWeight.Bold)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        // Title row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Cash flow insight",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            SummaryPeriodDropdown(
+                                selected = state.filter,
+                                onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) },
+                                onCustomClick = { showDatePicker = true }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Income / Expenses / Net cash flow
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text("Income", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(CurrencyFormatter.format(state.totalIncome), style = MaterialTheme.typography.titleMedium, color = Color(0xFF10B981), fontWeight = FontWeight.Bold)
+                            }
+                            Column {
+                                Text("Expenses", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(CurrencyFormatter.format(state.totalExpense), style = MaterialTheme.typography.titleMedium, color = Color(0xFFEF4444), fontWeight = FontWeight.Bold)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("Net cash flow", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(CurrencyFormatter.format(state.netCashFlow), style = MaterialTheme.typography.titleMedium, color = Color(0xFF2DD4BF), fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        CashFlowChart(
+                            dailyCashFlow = state.dailyCashFlow
+                        )
                     }
                 }
-
-                CashFlowChart(
-                    dailyCashFlow = state.dailyCashFlow,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
