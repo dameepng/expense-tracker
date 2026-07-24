@@ -54,7 +54,9 @@ fun CashFlowChart(
     val dateFormat = remember { SimpleDateFormat("d MMM", Locale("id", "ID")) }
     val dateLabels = remember(dailyCashFlow) {
         if (dailyCashFlow.size <= 1) {
-            dailyCashFlow.map { dateFormat.format(Date(it.dateMillis)) }
+            dailyCashFlow.mapIndexed { index, data ->
+                Pair(index, dateFormat.format(Date(data.dateMillis)))
+            }
         } else {
             // Pick 3-4 evenly spaced labels
             val count = minOf(4, dailyCashFlow.size)
