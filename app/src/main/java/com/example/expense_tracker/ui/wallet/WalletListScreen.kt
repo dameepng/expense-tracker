@@ -41,6 +41,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -59,6 +60,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.expense_tracker.R
 import com.example.expense_tracker.data.Wallet
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,14 +76,14 @@ fun WalletListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Wallet Saya", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.my_wallet), fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = { showAddDialog = true }) {
+                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_wallet))
+                    }
+                },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Wallet")
-            }
         }
     ) { paddingValues ->
         Box(
@@ -90,7 +93,7 @@ fun WalletListScreen(
         ) {
             if (uiState.wallets.isEmpty() && !uiState.isLoading) {
                 Text(
-                    text = "Belum ada wallet",
+                    text = stringResource(R.string.no_wallet),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.Center)
@@ -138,7 +141,7 @@ fun WalletListScreen(
                     .padding(bottom = 32.dp)
             ) {
                 Text(
-                    text = "Tambah Wallet Baru",
+                    text = stringResource(R.string.add_new_wallet),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -147,39 +150,39 @@ fun WalletListScreen(
                 OutlinedTextField(
                     value = newWalletName,
                     onValueChange = { newWalletName = it },
-                    label = { Text("Nama Wallet (misal: BCA, Mandiri)") },
+                    label = { Text(stringResource(R.string.wallet_name_placeholder)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = formatCardNumberInput(newCardNumber),
-                    onValueChange = { input ->
-                        val digitsOnly = input.filter { it.isDigit() }.take(16)
-                        newCardNumber = digitsOnly
-                    },
-                    label = { Text("Nomor Kartu (16 Digit)") },
+                    value = newCardNumber,
+                    onValueChange = { if (it.length <= 16 && it.all { char -> char.isDigit() }) newCardNumber = it },
+                    label = { Text(stringResource(R.string.card_number)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = newCardHolderName,
-                    onValueChange = { newCardHolderName = it },
-                    label = { Text("Nama Pemegang Kartu") },
+                    onValueChange = { newCardHolderName = it.uppercase() },
+                    label = { Text(stringResource(R.string.card_holder_name)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Kadaluarsa (MM/YY)",
+                    text = stringResource(R.string.expiry_date),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -231,7 +234,7 @@ fun WalletListScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Pilih Warna Kartu",
+                    text = stringResource(R.string.choose_card_color),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -280,7 +283,7 @@ fun WalletListScreen(
                         onClick = { showAddDialog = false },
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
-                        Text("Batal")
+                        Text(stringResource(R.string.cancel))
                     }
                     Button(
                         onClick = {
@@ -299,7 +302,7 @@ fun WalletListScreen(
                         },
                         enabled = newWalletName.isNotBlank()
                     ) {
-                        Text("Simpan")
+                        Text(stringResource(R.string.save))
                     }
                 }
             }
@@ -379,7 +382,7 @@ fun CreditCardItem(
                 ) {
                     Column {
                         Text(
-                            text = "CARD HOLDER",
+                            text = stringResource(R.string.card_holder),
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 9.sp,
                             color = Color.White.copy(alpha = 0.7f)
@@ -394,7 +397,7 @@ fun CreditCardItem(
 
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "EXPIRES",
+                            text = stringResource(R.string.expires),
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 9.sp,
                             color = Color.White.copy(alpha = 0.7f)

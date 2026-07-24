@@ -78,6 +78,18 @@
     <string name="bill_name_placeholder">Misal: Netflix, Listrik</string>
     <string name="due_date">Tanggal Jatuh Tempo (1-31)</string>
     <string name="due_date_placeholder">Misal: 25</string>
+    <!-- Wallet -->
+    <string name="my_wallet">Wallet Saya</string>
+    <string name="add_wallet">Tambah Wallet</string>
+    <string name="no_wallet">Belum ada wallet</string>
+    <string name="add_new_wallet">Tambah Wallet Baru</string>
+    <string name="wallet_name_placeholder">Nama Wallet (misal: BCA, Mandiri)</string>
+    <string name="card_number">Nomor Kartu (16 Digit)</string>
+    <string name="card_holder_name">Nama Pemegang Kartu</string>
+    <string name="expiry_date">Kadaluarsa (MM/YY)</string>
+    <string name="choose_card_color">Pilih Warna Kartu</string>
+    <string name="card_holder">CARD HOLDER</string>
+    <string name="expires">EXPIRES</string>
     <string name="repeat_every_month">Repeat Every Month</string>
     <string name="bill_auto_repeat_desc">Tagihan otomatis muncul bulan depan</string>
 </resources>

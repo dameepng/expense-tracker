@@ -78,6 +78,18 @@
     <string name="bill_name_placeholder">e.g. Netflix, Electricity</string>
     <string name="due_date">Due Date (1-31)</string>
     <string name="due_date_placeholder">e.g. 25</string>
+    <!-- Wallet -->
+    <string name="my_wallet">My Wallet</string>
+    <string name="add_wallet">Add Wallet</string>
+    <string name="no_wallet">No wallet yet</string>
+    <string name="add_new_wallet">Add New Wallet</string>
+    <string name="wallet_name_placeholder">Wallet Name (e.g. BCA, Mandiri)</string>
+    <string name="card_number">Card Number (16 Digits)</string>
+    <string name="card_holder_name">Card Holder Name</string>
+    <string name="expiry_date">Expiry Date (MM/YY)</string>
+    <string name="choose_card_color">Choose Card Color</string>
+    <string name="card_holder">CARD HOLDER</string>
+    <string name="expires">EXPIRES</string>
     <string name="repeat_every_month">Repeat Every Month</string>
     <string name="bill_auto_repeat_desc">Bill will automatically appear next month</string>
 </resources>
