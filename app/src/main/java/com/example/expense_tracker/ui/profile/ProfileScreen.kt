@@ -146,7 +146,7 @@ fun ProfileScreen(
                     photoUri = uiState.userPhotoUri,
                     onEditClick = { showEditProfileDialog = true }
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
             
             item {
@@ -321,7 +321,7 @@ fun ProfileHeader(
     ) {
         // Avatar Box
         Box(
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(120.dp)
         ) {
             Surface(
                 modifier = Modifier
@@ -351,7 +351,7 @@ fun ProfileHeader(
             // Edit Badge
             Surface(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(36.dp)
                     .align(Alignment.BottomEnd)
                     .clip(CircleShape),
                 color = MaterialTheme.colorScheme.primary,
@@ -362,13 +362,13 @@ fun ProfileHeader(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit Profile",
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         
         Text(
             text = name,
