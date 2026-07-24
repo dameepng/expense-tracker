@@ -60,6 +60,7 @@ import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -423,9 +424,9 @@ fun SummaryScreen(
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (androidx.compose.foundation.isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface
+                        containerColor = if (androidx.compose.foundation.isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (androidx.compose.foundation.isSystemInDarkTheme()) 2.dp else 8.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -479,112 +480,175 @@ fun SummaryScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Spending By Category Title
-                Text(
-                    text = "Spending by category",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
+                // Spending By Category Card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (androidx.compose.foundation.isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (androidx.compose.foundation.isSystemInDarkTheme()) 2.dp else 8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        // Title row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Spending by category",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            
+                            // Type switcher (Expense vs Income Dropdown)
+                            var typeMenuExpanded by remember { mutableStateOf(false) }
+                            Box {
+                                Row(
+                                    modifier = Modifier.clickable { typeMenuExpanded = true },
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (state.transactionType == TransactionType.INCOME) "Pemasukan" else "Pengeluaran",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = "Pilih Tipe",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                
+                                DropdownMenu(
+                                    expanded = typeMenuExpanded,
+                                    onDismissRequest = { typeMenuExpanded = false }
+                                ) {
+                                    TransactionType.entries.forEach { type ->
+                                        DropdownMenuItem(
+                                            text = { Text(if (type == TransactionType.INCOME) "Pemasukan" else "Pengeluaran") },
+                                            onClick = {
+                                                typeMenuExpanded = false
+                                                viewModel.onTransactionTypeSelected(type)
+                                            },
+                                            trailingIcon = if (state.transactionType == type) {
+                                                { Icon(Icons.Default.Check, contentDescription = "Selected") }
+                                            } else null
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
-                // Type switcher (Expense vs Income Tabs)
-                SummaryTypeTabs(
-                    selectedType = state.transactionType,
-                    onTypeSelected = { type -> viewModel.onTransactionTypeSelected(type) }
-                )
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        if (state.isLoading) {
+                            Box(modifier = Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        } else if (state.items.isEmpty()) {
+                            SummaryEmptyState(isIncome = isIncome, modifier = Modifier.height(150.dp))
+                        } else {
+                            // Donut Chart and Legend Row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                DonutChart(
+                                    items = state.items,
+                                    totalAmount = state.totalAmount,
+                                    isIncome = isIncome,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                
+                                // Compact Legend
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    state.items.take(5).forEach { item ->
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(10.dp)
+                                                    .background(
+                                                        color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt(), isIncome),
+                                                        shape = CircleShape
+                                                    )
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = item.categoryName,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            Text(
+                                                text = "${(item.percentage * 100).toInt()}%",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                    if (state.items.size > 5) {
+                                        Text(
+                                            text = "+ ${state.items.size - 5} lainnya",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(start = 18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            // Total spending footer
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Total spending",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = CurrencyFormatter.format(state.totalAmount),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = "Details",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Breakdown list or empty state
-            if (state.isLoading) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-            } else if (state.items.isEmpty()) {
-                item {
-                    SummaryEmptyState(isIncome = isIncome, modifier = Modifier.height(200.dp))
-                }
-            } else {
-                item {
-                        // Total amount at the top
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp, bottom = 8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "Total",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = CurrencyFormatter.format(state.totalAmount),
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        // Donut Chart and Legend Row
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 24.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            DonutChart(
-                                items = state.items,
-                                totalAmount = state.totalAmount,
-                                isIncome = isIncome,
-                                modifier = Modifier.weight(1f)
-                            )
-                            
-                            // Compact Legend
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                state.items.take(5).forEach { item ->
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(10.dp)
-                                                .background(
-                                                    color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt(), isIncome),
-                                                    shape = CircleShape
-                                                )
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = item.categoryName,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 1,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        Text(
-                                            text = "${(item.percentage * 100).toInt()}%",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                                if (state.items.size > 5) {
-                                    Text(
-                                        text = "+ ${state.items.size - 5} lainnya",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(start = 18.dp)
-                                    )
-                                }
-                            }
-                        } // Closes Row
-                    } // Closes item
+            if (!state.isLoading && state.items.isNotEmpty()) {
 
                     items(state.items, key = { it.categoryId }) { item ->
                         BreakdownCardItem(item = item, isIncome = isIncome, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
