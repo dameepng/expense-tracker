@@ -119,7 +119,7 @@ fun AmountInput(
     val textColor = if (amountText.isEmpty()) {
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     } else {
-        Color.White
+        MaterialTheme.colorScheme.onBackground
     }
 
     val dynamicFontSize = when {
