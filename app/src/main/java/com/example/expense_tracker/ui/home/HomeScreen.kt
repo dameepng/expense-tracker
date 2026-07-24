@@ -85,6 +85,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+
+import androidx.compose.ui.res.stringResource
+import com.example.expense_tracker.R
 
 // ── Custom Header ───────────────────────────────────────────────────
 
@@ -128,7 +132,7 @@ fun HeaderSection(
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text = "Welcome,",
+                    text = stringResource(R.string.welcome_back),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -224,7 +228,7 @@ fun BalanceCard(
                             color = Color.White
                         )
                         Text(
-                            text = "Balance",
+                            text = stringResource(R.string.total_balance),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.7f)
                         )
@@ -243,7 +247,7 @@ fun BalanceCard(
                             onDismissRequest = { expanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("All Wallets") },
+                                text = { Text(stringResource(R.string.all_wallets)) },
                                 onClick = {
                                     expanded = false
                                     if (selectedWalletId != null) {
@@ -362,7 +366,7 @@ fun IncomeExpenseSummary(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Income",
+                        text = stringResource(R.string.transaction_income),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -403,7 +407,7 @@ fun IncomeExpenseSummary(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Expense",
+                        text = stringResource(R.string.transaction_expense),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -432,7 +436,7 @@ fun WalletOverview(
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "Wallets",
+            text = stringResource(R.string.wallets),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
@@ -526,7 +530,7 @@ fun TransactionListItem(
                     Icon(
                         imageVector = Icons.Filled.TrendingUp,
                         contentDescription = "Income",
-                        tint = Color(0xFF2E8B57),
+                        tint = Color(0xFF2E7D32),
                         modifier = Modifier.padding(12.dp)
                     )
                 }
@@ -588,11 +592,11 @@ fun EmptyState(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "📭",
-                fontSize = 48.sp
+                fontSize = 48.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Belum ada pengeluaran",
+                text = stringResource(R.string.no_recent_transactions),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -622,6 +626,7 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     LaunchedEffect(state.transactions.firstOrNull()?.id) {
         if (state.transactions.isNotEmpty()) {
@@ -637,8 +642,8 @@ fun HomeScreen(
                     viewModel.deleteExpense(expense)
                     coroutineScope.launch {
                         val result = snackbarHostState.showSnackbar(
-                            message = "Transaksi dihapus",
-                            actionLabel = "Batal",
+                            message = context.getString(R.string.transaction_deleted),
+                            actionLabel = context.getString(R.string.cancel),
                             duration = SnackbarDuration.Short
                         )
                         if (result == SnackbarResult.ActionPerformed) {
@@ -706,7 +711,7 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Transactions",
+                text = stringResource(R.string.recent_transactions),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -719,7 +724,7 @@ fun HomeScreen(
                 )
             ) {
                 Text(
-                    text = "View all",
+                    text = stringResource(R.string.view_all),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -933,7 +938,7 @@ fun HomeScreenPreview_withData() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Transactions",
+                    text = stringResource(R.string.recent_transactions),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground

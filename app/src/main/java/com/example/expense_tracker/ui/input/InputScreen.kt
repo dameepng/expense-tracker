@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -38,6 +39,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.example.expense_tracker.R
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -64,9 +67,9 @@ fun InputHeader(
     modifier: Modifier = Modifier
 ) {
     val title = when (inputTypeOption) {
-        InputTypeOption.INCOME -> "Tambah Pemasukan"
-        InputTypeOption.EXPENSE -> "Tambah Pengeluaran"
-        InputTypeOption.BILL_REMINDER -> "Tambah Tagihan"
+        InputTypeOption.INCOME -> stringResource(R.string.input_add_income)
+        InputTypeOption.EXPENSE -> stringResource(R.string.input_add_expense)
+        InputTypeOption.BILL_REMINDER -> stringResource(R.string.input_add_bill)
     }
     Row(
         modifier = modifier
@@ -77,7 +80,7 @@ fun InputHeader(
         IconButton(onClick = onNavigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Kembali",
+                contentDescription = stringResource(R.string.back),
                 tint = MaterialTheme.colorScheme.onBackground
             )
         }
@@ -186,7 +189,7 @@ fun CategoryGrid(
 ) {
     Column(modifier = modifier.padding(horizontal = 24.dp)) {
         Text(
-            text = "Pilih Kategori",
+            text = stringResource(R.string.input_choose_category),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground,
@@ -238,7 +241,7 @@ fun SaveButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        shape = CircleShape,
+        shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -246,15 +249,15 @@ fun SaveButton(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 24.dp)
-            .height(64.dp)
+            .height(56.dp)
     ) {
         Icon(
             imageVector = Icons.Filled.Check,
-            contentDescription = "Simpan",
-            modifier = Modifier.padding(end = 8.dp)
+            contentDescription = stringResource(R.string.save)
         )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "Simpan",
+            text = stringResource(R.string.save),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -278,9 +281,9 @@ fun InputTypeSegmentedButton(
         val options = InputTypeOption.entries
         options.forEachIndexed { index, option ->
             val label = when (option) {
-                InputTypeOption.INCOME -> "Pemasukan"
-                InputTypeOption.EXPENSE -> "Pengeluaran"
-                InputTypeOption.BILL_REMINDER -> "Bill Reminder"
+                InputTypeOption.INCOME -> stringResource(R.string.transaction_income)
+                InputTypeOption.EXPENSE -> stringResource(R.string.transaction_expense)
+                InputTypeOption.BILL_REMINDER -> stringResource(R.string.bill_reminder)
             }
             
             val colors = when (option) {
@@ -358,8 +361,8 @@ fun InputScreen(
             OutlinedTextField(
                 value = state.billReminderName,
                 onValueChange = { viewModel.onBillReminderNameChange(it) },
-                label = { Text("Nama Tagihan") },
-                placeholder = { Text("Misal: Netflix, Listrik") },
+                label = { Text(stringResource(R.string.bill_name)) },
+                placeholder = { Text(stringResource(R.string.bill_name_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
@@ -377,8 +380,8 @@ fun InputScreen(
             OutlinedTextField(
                 value = state.billReminderDueDay,
                 onValueChange = { viewModel.onBillReminderDueDayChange(it) },
-                label = { Text("Tanggal Jatuh Tempo (1-31)") },
-                placeholder = { Text("Misal: 25") },
+                label = { Text(stringResource(R.string.due_date)) },
+                placeholder = { Text(stringResource(R.string.due_date_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
@@ -402,11 +405,12 @@ fun InputScreen(
             ) {
                 Column {
                     Text(
-                        text = "Repeat Every Month",
-                        style = MaterialTheme.typography.titleMedium
+                        text = stringResource(R.string.repeat_every_month),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "Tagihan otomatis muncul bulan depan",
+                        text = stringResource(R.string.bill_auto_repeat_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -421,8 +425,8 @@ fun InputScreen(
             OutlinedTextField(
                 value = state.description,
                 onValueChange = { viewModel.onDescriptionChange(it) },
-                label = { Text("Deskripsi Singkat (opsional)") },
-                placeholder = { Text("Misal: Nasi Goreng, Bensin, Netflix") },
+                label = { Text(stringResource(R.string.input_note)) },
+                placeholder = { Text(stringResource(R.string.input_note_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
@@ -539,7 +543,7 @@ fun WalletPicker(
 
     Column(modifier = modifier.padding(horizontal = 24.dp)) {
         Text(
-            text = "Pilih Wallet",
+            text = stringResource(R.string.input_choose_wallet),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground,

@@ -15,4 +15,69 @@
     <string name="profile_select_currency">Pilih Mata Uang</string>
     <string name="profile_select_language">Pilih Bahasa</string>
     <string name="nav_add">Tambah</string>
+
+    <!-- Filter -->
+    <string name="filter_today">Hari Ini</string>
+    <string name="filter_week">Minggu Ini</string>
+    <string name="filter_month">Bulan Ini</string>
+    <string name="filter_custom">Custom</string>
+
+    <!-- Summary -->
+    <string name="transaction_income">Pemasukan</string>
+    <string name="transaction_expense">Pengeluaran</string>
+    <string name="all_wallets">Semua Wallet</string>
+    <string name="choose_period">Pilih Periode</string>
+    <string name="cash_flow_insight">Cash Flow Insight</string>
+    <string name="spending_by_category">Spending by category</string>
+    <string name="total_spending">Total spending</string>
+    <string name="no_data">Belum ada data transaksi.</string>
+    <string name="no_income_data">Belum ada data pemasukan</string>
+    <string name="no_expense_data">Belum ada data pengeluaran</string>
+    <string name="start_date">Tanggal Mulai</string>
+    <string name="end_date">Tanggal Selesai</string>
+    <string name="save">Simpan</string>
+    <string name="total_expense">Total Pengeluaran</string>
+    <string name="total_income">Total Pemasukan</string>
+    <string name="net_cash_flow">Net cash flow</string>
+    <string name="others">lainnya</string>
+    <string name="choose_date">Pilih Tanggal</string>
+    <string name="choose_date_desc">Tentukan rentang tanggal filter</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Batal</string>
+
+    <!-- Home -->
+    <string name="welcome_back">Selamat Datang,</string>
+    <string name="total_balance">Total Saldo</string>
+    <string name="recent_transactions">Transaksi Terakhir</string>
+    <string name="view_all">Lihat Semua</string>
+    <string name="transaction_today">Hari ini</string>
+    <string name="transaction_yesterday">Kemarin</string>
+    <string name="no_recent_transactions">Belum ada transaksi terbaru</string>
+    <string name="wallets">Wallets</string>
+    <string name="transaction_deleted">Transaksi dihapus</string>
+
+    <!-- Input -->
+    <string name="input_add_income">Tambah Pemasukan</string>
+    <string name="input_add_expense">Tambah Pengeluaran</string>
+    <string name="input_add_transfer">Tambah Transfer</string>
+    <string name="input_add_bill">Tambah Tagihan</string>
+    <string name="input_amount_placeholder">0</string>
+    <string name="input_title">Judul Transaksi</string>
+    <string name="input_category">Kategori</string>
+    <string name="input_wallet">Dompet</string>
+    <string name="input_date">Tanggal</string>
+    <string name="input_time">Waktu</string>
+    <string name="input_note">Deskripsi Singkat (opsional)</string>
+    <string name="input_note_placeholder">Misal: Nasi Goreng, Bensin, Netflix</string>
+    <string name="input_save_button">Simpan Transaksi</string>
+    <string name="input_choose_category">Pilih Kategori</string>
+    <string name="input_choose_wallet">Pilih Wallet</string>
+    <string name="back">Kembali</string>
+    <string name="bill_reminder">Bill Reminder</string>
+    <string name="bill_name">Nama Tagihan</string>
+    <string name="bill_name_placeholder">Misal: Netflix, Listrik</string>
+    <string name="due_date">Tanggal Jatuh Tempo (1-31)</string>
+    <string name="due_date_placeholder">Misal: 25</string>
+    <string name="repeat_every_month">Repeat Every Month</string>
+    <string name="bill_auto_repeat_desc">Tagihan otomatis muncul bulan depan</string>
 </resources>

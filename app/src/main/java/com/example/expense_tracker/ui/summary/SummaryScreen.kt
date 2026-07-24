@@ -82,6 +82,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.res.stringResource
+import com.example.expense_tracker.R
 
 // ── Summary Filter Tabs ────────────────────────────────────────────
 
@@ -100,7 +102,7 @@ fun SummaryPeriodDropdown(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = selected.label,
+                text = stringResource(selected.labelResId),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -108,7 +110,7 @@ fun SummaryPeriodDropdown(
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = "Pilih Periode",
+                contentDescription = stringResource(R.string.choose_period),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -120,7 +122,7 @@ fun SummaryPeriodDropdown(
             val standardFilters = FilterPeriod.entries.filter { it != FilterPeriod.CUSTOM }
             standardFilters.forEach { filter ->
                 DropdownMenuItem(
-                    text = { Text(filter.label) },
+                    text = { Text(stringResource(filter.labelResId)) },
                     onClick = {
                         expanded = false
                         if (selected != filter) {
@@ -133,7 +135,7 @@ fun SummaryPeriodDropdown(
                 )
             }
             DropdownMenuItem(
-                text = { Text(FilterPeriod.CUSTOM.label) },
+                text = { Text(stringResource(FilterPeriod.CUSTOM.labelResId)) },
                 onClick = {
                     expanded = false
                     if (selected != FilterPeriod.CUSTOM) {
@@ -164,7 +166,7 @@ fun SummaryTypeTabs(
         modifier = modifier.fillMaxWidth()
     ) {
         tabs.forEachIndexed { index, type ->
-            val label = if (type == TransactionType.EXPENSE) "Pengeluaran" else "Pemasukan"
+            val label = if (type == TransactionType.EXPENSE) stringResource(R.string.transaction_expense) else stringResource(R.string.transaction_income)
             Tab(
                 selected = selectedTabIndex == index,
                 onClick = { onTypeSelected(type) },
@@ -198,7 +200,7 @@ fun WalletFilterChips(
         FilterChip(
             selected = selectedWalletId == null,
             onClick = { onWalletSelected(null) },
-            label = { Text("Semua") },
+            label = { Text(stringResource(R.string.all_wallets)) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -327,11 +329,11 @@ fun SummaryEmptyState(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = if (isIncome) "💰" else "📊",
-                fontSize = 48.sp
+                fontSize = 48.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = if (isIncome) "Belum ada data pemasukan" else "Belum ada data pengeluaran",
+                text = if (isIncome) stringResource(R.string.no_income_data) else stringResource(R.string.no_expense_data),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -347,19 +349,19 @@ fun SummaryScreen(
     viewModel: SummaryViewModel
 ) {
     val state by viewModel.uiState.collectAsState()
-    var showDatePicker by remember { mutableStateOf(false) }
+    var showDateRangePicker by remember { mutableStateOf(false) }
     val isIncome = state.transactionType == TransactionType.INCOME
     val listState = rememberLazyListState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ringkasan") },
+                title = { Text(stringResource(R.string.nav_summary)) },
                 actions = {
-                    IconButton(onClick = { showDatePicker = true }) {
+                    IconButton(onClick = { showDateRangePicker = true }) {
                         Icon(
                             imageVector = Icons.Default.DateRange,
-                            contentDescription = "Custom Date",
+                            contentDescription = stringResource(R.string.filter_custom),
                             tint = if (state.filter == FilterPeriod.CUSTOM) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -378,7 +380,7 @@ fun SummaryScreen(
                                 onDismissRequest = { walletMenuExpanded = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Semua Wallet") },
+                                    text = { Text(stringResource(R.string.all_wallets)) },
                                     onClick = {
                                         walletMenuExpanded = false
                                         if (state.selectedWalletId != null) {
@@ -460,14 +462,14 @@ fun SummaryScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Cash flow insight",
+                                text = stringResource(R.string.cash_flow_insight),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             SummaryPeriodDropdown(
                                 selected = state.filter,
                                 onSelected = { filter, start, end -> viewModel.onFilterSelected(filter, start, end) },
-                                onCustomClick = { showDatePicker = true }
+                                onCustomClick = { showDateRangePicker = true }
                             )
                         }
 
@@ -479,16 +481,16 @@ fun SummaryScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column {
-                                Text("Income", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(CurrencyFormatter.format(state.totalIncome), style = MaterialTheme.typography.titleMedium, color = Color(0xFF10B981), fontWeight = FontWeight.Bold)
-                            }
-                            Column {
-                                Text("Expenses", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(CurrencyFormatter.format(state.totalExpense), style = MaterialTheme.typography.titleMedium, color = Color(0xFFEF4444), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.transaction_income), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("Net cash flow", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(CurrencyFormatter.format(state.netCashFlow), style = MaterialTheme.typography.titleMedium, color = Color(0xFF2DD4BF), fontWeight = FontWeight.Bold)
+                                Text(CurrencyFormatter.format(state.totalExpense), style = MaterialTheme.typography.titleMedium, color = Color(0xFFEF4444), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.transaction_expense), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(CurrencyFormatter.format(state.netCashFlow), style = MaterialTheme.typography.titleMedium, color = if (state.netCashFlow >= 0) Color(0xFF10B981) else Color(0xFFEF4444), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.net_cash_flow), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
 
@@ -544,8 +546,8 @@ fun SummaryScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = if (state.transactionType == TransactionType.INCOME) "Pemasukan" else "Pengeluaran",
-                                        style = MaterialTheme.typography.bodyMedium,
+                                        text = if (state.transactionType == TransactionType.INCOME) stringResource(R.string.transaction_income) else stringResource(R.string.transaction_expense),
+                                        style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -563,7 +565,7 @@ fun SummaryScreen(
                                 ) {
                                     TransactionType.entries.forEach { type ->
                                         DropdownMenuItem(
-                                            text = { Text(if (type == TransactionType.INCOME) "Pemasukan" else "Pengeluaran") },
+                                            text = { Text(if (type == TransactionType.INCOME) stringResource(R.string.transaction_income) else stringResource(R.string.transaction_expense)) },
                                             onClick = {
                                                 typeMenuExpanded = false
                                                 if (state.transactionType != type) {
@@ -633,8 +635,8 @@ fun SummaryScreen(
                                     }
                                     if (state.items.size > 5) {
                                         Text(
-                                            text = "+ ${state.items.size - 5} lainnya",
-                                            style = MaterialTheme.typography.labelSmall,
+                                            text = "+ ${state.items.size - 5} ${stringResource(R.string.others)}",
+                                            style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.padding(start = 18.dp)
                                         )
@@ -651,7 +653,7 @@ fun SummaryScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Total spending",
+                                    text = stringResource(R.string.total_spending),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -672,39 +674,34 @@ fun SummaryScreen(
             }
 
             if (!state.isLoading && state.items.isNotEmpty()) {
+                items(state.items, key = { "${state.transactionType}_${it.categoryId}" }) { item ->
+                    BreakdownCardItem(item = item, isIncome = isIncome, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+                }
+            }
+        }
+    }
 
-                    items(state.items, key = { "${state.transactionType}_${it.categoryId}" }) { item ->
-                        BreakdownCardItem(item = item, isIncome = isIncome, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
-                    }
-                } // Closes else
-            } // Closes LazyColumn
-        } // Closes Scaffold content lambda
-
-    if (showDatePicker) {
+    if (showDateRangePicker) {
         val dateRangePickerState = rememberDateRangePickerState()
         DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
+            onDismissRequest = { showDateRangePicker = false },
             properties = DialogProperties(usePlatformDefaultWidth = false),
             modifier = Modifier.padding(16.dp),
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDatePicker = false
-                        val start = dateRangePickerState.selectedStartDateMillis
-                        val end = dateRangePickerState.selectedEndDateMillis
-                        if (start != null && end != null) {
+                TextButton(onClick = {
+                    dateRangePickerState.selectedStartDateMillis?.let { start ->
+                        dateRangePickerState.selectedEndDateMillis?.let { end ->
                             viewModel.onFilterSelected(FilterPeriod.CUSTOM, start, end)
-                        } else if (start != null) {
-                            viewModel.onFilterSelected(FilterPeriod.CUSTOM, start, start) // Same day if only one selected
+                            showDateRangePicker = false
                         }
                     }
-                ) {
-                    Text("OK")
+                }) {
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
+                TextButton(onClick = { showDateRangePicker = false }) {
+                    Text(stringResource(R.string.cancel))
                 }
             }
         ) {
@@ -713,15 +710,14 @@ fun SummaryScreen(
                 modifier = Modifier.weight(1f),
                 title = {
                     Text(
-                        text = "Pilih Tanggal",
+                        text = stringResource(R.string.choose_date),
                         modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)
                     )
                 },
                 headline = {
                     Text(
-                        text = "Tentukan rentang tanggal filter",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
+                        text = stringResource(R.string.choose_date_desc),
+                        modifier = Modifier.padding(16.dp)
                     )
                 },
                 showModeToggle = false
