@@ -62,6 +62,7 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.shadow
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
@@ -421,12 +422,17 @@ fun SummaryScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp)
+                        .then(
+                            if (!androidx.compose.foundation.isSystemInDarkTheme())
+                                Modifier.shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color(0x33000000))
+                            else Modifier
+                        ),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = if (androidx.compose.foundation.isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (androidx.compose.foundation.isSystemInDarkTheme()) 2.dp else 8.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (androidx.compose.foundation.isSystemInDarkTheme()) 2.dp else 0.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -484,12 +490,17 @@ fun SummaryScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp)
+                        .then(
+                            if (!androidx.compose.foundation.isSystemInDarkTheme())
+                                Modifier.shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color(0x33000000))
+                            else Modifier
+                        ),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = if (androidx.compose.foundation.isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (androidx.compose.foundation.isSystemInDarkTheme()) 2.dp else 8.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (androidx.compose.foundation.isSystemInDarkTheme()) 2.dp else 0.dp)
                 ) {
                     Column(
                         modifier = Modifier
