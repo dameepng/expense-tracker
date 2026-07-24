@@ -7,8 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -97,15 +95,18 @@ class MainActivity : AppCompatActivity() {
                 CurrencyFormatter.setCurrency(currency)
             }
             
-            LaunchedEffect(language) {
-                if (language == null) return@LaunchedEffect
-                
-                val localeStr = if (language == "English") "en-US" else "id-ID"
-                val currentLocales = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-                
-                if (currentLocales != localeStr) {
-                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(localeStr))
+            val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+            val updatedConfig = remember(language, configuration) {
+                val config = Configuration(configuration)
+                if (language != null) {
+                    val localeStr = if (language == "English") "en" else "id"
+                    val locale = Locale(localeStr)
+                    Locale.setDefault(locale)
+                    config.setLocale(locale)
+                    @Suppress("DEPRECATION")
+                    context.resources.updateConfiguration(config, context.resources.displayMetrics)
                 }
+                config
             }
             
             val isBiometricsEnabledState = userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = null)
@@ -162,7 +163,10 @@ class MainActivity : AppCompatActivity() {
                 return@setContent
             }
 
-            Expense_trackerTheme(darkTheme = darkTheme) {
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalConfiguration provides updatedConfig
+            ) {
+                Expense_trackerTheme(darkTheme = darkTheme) {
                 if (isBiometricsEnabled == true && !isAuthenticated) {
                     androidx.compose.material3.Surface(
                         modifier = Modifier.fillMaxSize(),
@@ -200,6 +204,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
