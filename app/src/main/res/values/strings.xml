@@ -25,7 +25,7 @@
     <!-- Summary -->
     <string name="transaction_income">Pemasukan</string>
     <string name="transaction_expense">Pengeluaran</string>
-    <string name="all_wallets">Semua Wallet</string>
+    <string name="all_wallets">Semua Dompet</string>
     <string name="choose_period">Pilih Periode</string>
     <string name="cash_flow_insight">Cash Flow Insight</string>
     <string name="spending_by_category">Spending by category</string>
@@ -53,7 +53,7 @@
     <string name="transaction_today">Hari ini</string>
     <string name="transaction_yesterday">Kemarin</string>
     <string name="no_recent_transactions">Belum ada transaksi terbaru</string>
-    <string name="wallets">Wallets</string>
+    <string name="wallets">Dompet</string>
     <string name="transaction_deleted">Transaksi dihapus</string>
 
     <!-- Input -->
@@ -71,7 +71,7 @@
     <string name="input_note_placeholder">Misal: Nasi Goreng, Bensin, Netflix</string>
     <string name="input_save_button">Simpan Transaksi</string>
     <string name="input_choose_category">Pilih Kategori</string>
-    <string name="input_choose_wallet">Pilih Wallet</string>
+    <string name="input_choose_wallet">Pilih Dompet</string>
     <string name="back">Kembali</string>
     <string name="bill_reminder">Bill Reminder</string>
     <string name="bill_name">Nama Tagihan</string>
@@ -79,17 +79,17 @@
     <string name="due_date">Tanggal Jatuh Tempo (1-31)</string>
     <string name="due_date_placeholder">Misal: 25</string>
     <!-- Wallet -->
-    <string name="my_wallet">Wallet Saya</string>
-    <string name="add_wallet">Tambah Wallet</string>
-    <string name="no_wallet">Belum ada wallet</string>
-    <string name="add_new_wallet">Tambah Wallet Baru</string>
-    <string name="wallet_name_placeholder">Nama Wallet (misal: BCA, Mandiri)</string>
+    <string name="my_wallet">Dompet Saya</string>
+    <string name="add_wallet">Tambah Dompet</string>
+    <string name="no_wallet">Belum ada dompet</string>
+    <string name="add_new_wallet">Tambah Dompet Baru</string>
+    <string name="wallet_name_placeholder">Nama Dompet (misal: BCA, Mandiri)</string>
     <string name="card_number">Nomor Kartu (16 Digit)</string>
     <string name="card_holder_name">Nama Pemegang Kartu</string>
     <string name="expiry_date">Kadaluarsa (MM/YY)</string>
     <string name="choose_card_color">Pilih Warna Kartu</string>
     <string name="card_holder">CARD HOLDER</string>
     <string name="expires">EXPIRES</string>
-    <string name="repeat_every_month">Repeat Every Month</string>
+    <string name="repeat_every_month">Ulangi Setiap Bulan</string>
     <string name="bill_auto_repeat_desc">Tagihan otomatis muncul bulan depan</string>
 </resources>
