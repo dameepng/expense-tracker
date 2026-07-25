@@ -60,6 +60,7 @@ dependencies {
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Room
     implementation(libs.androidx.room.runtime)
