@@ -36,7 +36,7 @@ class ExpenseDaoTest {
     }
 
     @Test
-    fun insertAndGetIncomeAndExpenseTotals() {
+    fun insertAndGetIncomeAndExpenseTotals() = runTest {
         // 1. Setup category using raw query since categoryDao is not exposed directly
         val db = database.openHelper.writableDatabase
         db.execSQL("INSERT INTO categories (id, name, type) VALUES (1, 'Makanan', 'EXPENSE')")
@@ -78,15 +78,15 @@ class ExpenseDaoTest {
         expenseDao.insertExpense(income2)
 
         // 3. Test Total Expense
-        val totalExpense = expenseDao.getTotalExpense(0L, 3000L)
+        val totalExpense = expenseDao.getTotalExpense(0L, 3000L).first()
         assertEquals("Total expense harus 75000", 75000L, totalExpense)
 
         // 4. Test Total Income
-        val totalIncome = expenseDao.getTotalIncome(0L, 3000L)
+        val totalIncome = expenseDao.getTotalIncome(0L, 3000L).first()
         assertEquals("Total income harus 5200000", 5200000L, totalIncome)
 
         // 5. Test empty period
-        val emptyExpense = expenseDao.getTotalExpense(4000L, 5000L)
+        val emptyExpense = expenseDao.getTotalExpense(4000L, 5000L).first()
         assertEquals("Total expense di luar range harus 0", 0L, emptyExpense)
     }
 }

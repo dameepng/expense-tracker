@@ -14,6 +14,8 @@ import org.junit.Before
 import org.junit.Test
 
 import com.example.expense_tracker.data.TransactionType
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SummaryViewModelTest {
@@ -23,10 +25,14 @@ class SummaryViewModelTest {
     private class FakeSummaryRepository : SummaryRepository {
         var breakdown = listOf<CategoryBreakdown>()
         var lastType: TransactionType? = null
-        override fun getBreakdownByCategory(startTime: Long, endTime: Long, type: TransactionType): List<CategoryBreakdown> {
+        override fun getBreakdownByCategory(startTime: Long, endTime: Long, type: TransactionType, walletId: Long?): Flow<List<CategoryBreakdown>> {
             lastType = type
-            return breakdown.toList()
+            return flowOf(breakdown.toList())
         }
+        override fun getTotalBalance(walletId: Long?): Flow<Long> = flowOf(0L)
+        override fun getTotalIncome(startTime: Long, endTime: Long, walletId: Long?): Flow<Long> = flowOf(0L)
+        override fun getTotalExpense(startTime: Long, endTime: Long, walletId: Long?): Flow<Long> = flowOf(0L)
+        override fun getTransactionsBetween(startTime: Long, endTime: Long, walletId: Long?): Flow<List<com.example.expense_tracker.data.Expense>> = flowOf(emptyList())
     }
 
     @Before
@@ -40,16 +46,16 @@ class SummaryViewModelTest {
     }
 
     private fun initViewModel(repo: FakeSummaryRepository): SummaryViewModel {
-        val vm = SummaryViewModel(repo, testDispatcher)
+        val vm = SummaryViewModel(repo, com.example.expense_tracker.data.FakeWalletRepository(), testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
         return vm
     }
 
     @Test
-    fun `initial filter is TODAY`() {
+    fun `initial filter is MONTH`() {
         val repo = FakeSummaryRepository()
         val vm = initViewModel(repo)
-        assertEquals(FilterPeriod.TODAY, vm.uiState.value.filter)
+        assertEquals(FilterPeriod.MONTH, vm.uiState.value.filter)
     }
 
     @Test

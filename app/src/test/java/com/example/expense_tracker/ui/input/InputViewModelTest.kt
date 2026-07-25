@@ -35,9 +35,9 @@ class InputViewModelTest {
             Category(11, "Transfer Masuk", "INCOME")
         )
 
-        override fun getCategories(): List<Category> = presetCategories
-        override fun getCategoriesByType(type: String): List<Category> =
-            presetCategories.filter { it.type == type || it.type == "BOTH" }
+        override fun getCategories(): kotlinx.coroutines.flow.Flow<List<Category>> = kotlinx.coroutines.flow.flowOf(presetCategories)
+        override fun getCategoriesByType(type: String): kotlinx.coroutines.flow.Flow<List<Category>> =
+            kotlinx.coroutines.flow.flowOf(presetCategories.filter { it.type == type || it.type == "BOTH" })
         override fun getExpenseById(id: Long): com.example.expense_tracker.data.Expense? = null
         override fun insertExpense(amount: Long, categoryId: Long, description: String, timestamp: Long, type: String, walletId: Long, id: Long) {
             savedExpenses.add(SavedExpense(amount, categoryId, description, timestamp, type, walletId))

@@ -156,22 +156,44 @@ fun ReminderItemCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                androidx.compose.material3.Surface(
-                    color = if (item.reminder.isRepeat) 
-                        MaterialTheme.colorScheme.primaryContainer 
-                    else 
-                        MaterialTheme.colorScheme.secondaryContainer,
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(
-                        text = if (item.reminder.isRepeat) "Berulang Bulanan" else "Sekali Bayar",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Surface(
                         color = if (item.reminder.isRepeat) 
-                            MaterialTheme.colorScheme.onPrimaryContainer 
+                            MaterialTheme.colorScheme.primaryContainer 
                         else 
-                            MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+                            MaterialTheme.colorScheme.secondaryContainer,
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Text(
+                            text = if (item.reminder.isRepeat) "Berulang Bulanan" else "Sekali Bayar",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            color = if (item.reminder.isRepeat) 
+                                MaterialTheme.colorScheme.onPrimaryContainer 
+                            else 
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                    if (item.isPaid) {
+                        Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+                        androidx.compose.material3.Surface(
+                            color = if (item.reminder.isRepeat) 
+                                Color(0xFFE8F5E9) 
+                            else 
+                                MaterialTheme.colorScheme.surfaceVariant,
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                text = if (item.reminder.isRepeat) "✓ Sudah Dibayar" else "✓ Lunas",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                color = if (item.reminder.isRepeat) 
+                                    Color(0xFF2E7D32) 
+                                else 
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -183,6 +205,7 @@ fun ReminderItemCard(
                 Spacer(modifier = Modifier.padding(4.dp))
                 Button(
                     onClick = { onClickMarkAsPaid() },
+                    enabled = !item.isPaid,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                     modifier = Modifier.height(32.dp)
                 ) {
@@ -192,7 +215,7 @@ fun ReminderItemCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.padding(2.dp))
-                    Text("Bayar", style = MaterialTheme.typography.labelSmall)
+                    Text(if (item.isPaid) (if (item.reminder.isRepeat) "Dibayar" else "Lunas") else "Bayar", style = MaterialTheme.typography.labelSmall)
                 }
             }
         }

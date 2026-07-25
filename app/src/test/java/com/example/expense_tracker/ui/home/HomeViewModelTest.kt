@@ -33,12 +33,26 @@ class HomeViewModelTest {
     private class FakeWalletRepository(
         private var wallets: List<com.example.expense_tracker.data.Wallet> = emptyList()
     ) : com.example.expense_tracker.data.WalletRepository {
-        override fun getAllWallets(): List<com.example.expense_tracker.data.Wallet> = wallets
-        override fun getWalletById(id: Long): com.example.expense_tracker.data.Wallet? = wallets.find { it.id == id }
-        override fun insertWallet(wallet: com.example.expense_tracker.data.Wallet) { wallets = wallets + wallet }
-        override fun deleteWallet(wallet: com.example.expense_tracker.data.Wallet) { wallets = wallets.filterNot { it.id == wallet.id } }
+        private val _flow = kotlinx.coroutines.flow.MutableStateFlow(wallets)
+        override fun getAllWallets(): kotlinx.coroutines.flow.Flow<List<com.example.expense_tracker.data.Wallet>> = _flow
+        override fun getWalletById(id: Long): com.example.expense_tracker.data.Wallet? = _flow.value.find { it.id == id }
+        override fun insertWallet(wallet: com.example.expense_tracker.data.Wallet) { 
+            wallets = wallets + wallet
+            _flow.value = wallets 
+        }
+        override fun updateWallet(wallet: com.example.expense_tracker.data.Wallet) {
+            wallets = wallets.map { if (it.id == wallet.id) wallet else it }
+            _flow.value = wallets
+        }
+        override fun deleteWallet(wallet: com.example.expense_tracker.data.Wallet) { 
+            wallets = wallets.filterNot { it.id == wallet.id }
+            _flow.value = wallets 
+        }
         override fun getComputedBalance(walletId: Long): Long = 0L
-        fun setData(newWallets: List<com.example.expense_tracker.data.Wallet>) { wallets = newWallets }
+        fun setData(newWallets: List<com.example.expense_tracker.data.Wallet>) { 
+            wallets = newWallets
+            _flow.value = newWallets
+        }
     }
 
     private class FakeUserPreferencesRepository : com.example.expense_tracker.data.UserPreferencesRepository {
@@ -100,55 +114,56 @@ class HomeViewModelTest {
         private var categories: List<Category> = listOf()
     ) : ExpenseRepository {
 
-        override fun getTotalExpense(startTime: Long, endTime: Long): Long {
-            return expenses
+        override fun getTotalExpense(startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<Long> = kotlinx.coroutines.flow.flow {
+            emit(expenses
                 .filter { it.timestamp in startTime until endTime && it.type == TransactionType.EXPENSE.name }
-                .sumOf { it.amount }
+                .sumOf { it.amount })
         }
         
-        override fun getTotalIncome(startTime: Long, endTime: Long): Long {
-            return expenses
+        override fun getTotalIncome(startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<Long> = kotlinx.coroutines.flow.flow {
+            emit(expenses
                 .filter { it.timestamp in startTime until endTime && it.type == TransactionType.INCOME.name }
-                .sumOf { it.amount }
+                .sumOf { it.amount })
         }
 
-        override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> {
-            return expenses
+        override fun getExpensesBetween(startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<Expense>> = kotlinx.coroutines.flow.flow {
+            emit(expenses
                 .filter { it.timestamp in startTime until endTime && it.type == TransactionType.EXPENSE.name }
-                .sortedByDescending { it.timestamp }
+                .sortedByDescending { it.timestamp })
         }
         
-        override fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense> {
-            return expenses
+        override fun getAllTransactionsBetween(startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<Expense>> = kotlinx.coroutines.flow.flow {
+            emit(expenses
                 .filter { it.timestamp in startTime until endTime }
-                .sortedByDescending { it.timestamp }
+                .sortedByDescending { it.timestamp })
         }
 
         override fun getAllTransactions(): List<Expense> {
             return expenses.sortedByDescending { it.timestamp }
         }
 
-        override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense> {
-            return expenses
+        override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<Expense>> = kotlinx.coroutines.flow.flow {
+            emit(expenses
                 .filter { it.walletId == walletId && it.timestamp in startTime until endTime }
-                .sortedByDescending { it.timestamp }
+                .sortedByDescending { it.timestamp })
         }
 
-        override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long {
-            return expenses
+        override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<Long> = kotlinx.coroutines.flow.flow {
+            emit(expenses
                 .filter { it.walletId == walletId && it.timestamp in startTime until endTime && it.type == TransactionType.EXPENSE.name }
-                .sumOf { it.amount }
+                .sumOf { it.amount })
         }
 
-        override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Long {
-            return expenses
+        override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<Long> = kotlinx.coroutines.flow.flow {
+            emit(expenses
                 .filter { it.walletId == walletId && it.timestamp in startTime until endTime && it.type == TransactionType.INCOME.name }
-                .sumOf { it.amount }
+                .sumOf { it.amount })
         }
 
-        override fun getCategories(): List<Category> = categories.toList()
-        override fun getCategoriesByType(type: String): List<Category> =
-            categories.filter { it.type == type || it.type == "BOTH" }
+        override fun getCategories(): kotlinx.coroutines.flow.Flow<List<Category>> = kotlinx.coroutines.flow.flow { emit(categories.toList()) }
+        override fun getCategoriesByType(type: String): kotlinx.coroutines.flow.Flow<List<Category>> = kotlinx.coroutines.flow.flow {
+            emit(categories.filter { it.type == type || it.type == "BOTH" })
+        }
 
         fun setData(expenses: List<Expense>, categories: List<Category>) {
             this.expenses = expenses.toList()
@@ -166,7 +181,6 @@ class HomeViewModelTest {
         override fun getExpenseById(id: Long): Expense? {
             return expenses.find { it.id == id }
         }
-        
     }
 
     // ── Helpers ────────────────────────────────────────────────────

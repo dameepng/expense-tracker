@@ -3,6 +3,8 @@ package com.example.expense_tracker.data
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -35,26 +37,25 @@ class WalletDaoTest {
     }
 
     @Test
-    fun insertAndGetAllWallets() {
+    fun insertAndGetAllWallets() = runBlocking {
         val wallet1 = Wallet(name = "BCA", balance = 5000000L)
         val wallet2 = Wallet(name = "Mandiri", balance = 1000000L)
 
         walletDao.insertWallet(wallet1)
         walletDao.insertWallet(wallet2)
 
-        val wallets = walletDao.getAllWallets()
+        val wallets = walletDao.getAllWallets().first()
         assertEquals(2, wallets.size)
         assertEquals("BCA", wallets[0].name)
         assertEquals("Mandiri", wallets[1].name)
     }
 
     @Test
-    fun getWalletById() {
+    fun getWalletById() = runBlocking {
         val wallet = Wallet(name = "Cash", balance = 50000L)
         walletDao.insertWallet(wallet)
         
-        // Since we didn't specify ID, we get it from the list
-        val insertedWallet = walletDao.getAllWallets().first()
+        val insertedWallet = walletDao.getAllWallets().first().first()
         
         val fetchedWallet = walletDao.getWalletById(insertedWallet.id)
         assertNotNull(fetchedWallet)
@@ -63,16 +64,16 @@ class WalletDaoTest {
     }
 
     @Test
-    fun deleteWallet() {
+    fun deleteWallet() = runBlocking {
         val wallet = Wallet(name = "Gopay", balance = 100000L)
         walletDao.insertWallet(wallet)
         
-        val insertedWallet = walletDao.getAllWallets().first()
-        assertEquals(1, walletDao.getAllWallets().size)
+        val insertedWallet = walletDao.getAllWallets().first().first()
+        assertEquals(1, walletDao.getAllWallets().first().size)
 
         walletDao.deleteWallet(insertedWallet)
         
-        val wallets = walletDao.getAllWallets()
+        val wallets = walletDao.getAllWallets().first()
         assertEquals(0, wallets.size)
         
         val fetchedWallet = walletDao.getWalletById(insertedWallet.id)

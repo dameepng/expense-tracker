@@ -2,6 +2,8 @@ package com.example.expense_tracker.data
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -60,8 +62,8 @@ class ExpenseDaoAggregationTest {
     // ── getTotalExpense Tests ──────────────────────────────────────
 
     @Test
-    fun `getTotalExpense returns sum of amounts in range`() {
-        val categories = dao.getAllCategories()
+    fun `getTotalExpense returns sum of amounts in range`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val start = todayStart()
         val end = start + 86_400_000L // full day
 
@@ -69,13 +71,13 @@ class ExpenseDaoAggregationTest {
         insertExpense(20_000L, categories[1].id, start + 2000)
         insertExpense(30_000L, categories[0].id, start + 3000)
 
-        val total = dao.getTotalExpense(start, end)
+        val total = dao.getTotalExpense(start, end).first()
         assertEquals(60_000L, total)
     }
 
     @Test
-    fun `getTotalExpense excludes expenses outside range`() {
-        val categories = dao.getAllCategories()
+    fun `getTotalExpense excludes expenses outside range`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val start = todayStart()
         val end = start + 86_400_000L
 
@@ -83,22 +85,22 @@ class ExpenseDaoAggregationTest {
         insertExpense(99_000L, categories[0].id, start - 1000)   // before range
         insertExpense(99_000L, categories[0].id, end + 1000)      // after range
 
-        val total = dao.getTotalExpense(start, end)
+        val total = dao.getTotalExpense(start, end).first()
         assertEquals(10_000L, total)
     }
 
     @Test
-    fun `getTotalExpense returns 0 when no expenses in range`() {
+    fun `getTotalExpense returns 0 when no expenses in range`() = runBlocking {
         val start = todayStart()
         val end = start + 86_400_000L
 
-        val total = dao.getTotalExpense(start, end)
+        val total = dao.getTotalExpense(start, end).first()
         assertEquals(0L, total)
     }
 
     @Test
-    fun `getTotalExpense handles boundary — inclusive start, exclusive end`() {
-        val categories = dao.getAllCategories()
+    fun `getTotalExpense handles boundary — inclusive start, exclusive end`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val start = todayStart()
         val end = start + 86_400_000L
 
@@ -107,15 +109,15 @@ class ExpenseDaoAggregationTest {
         // Exactly at end boundary → NOT counted (timestamp < end)
         insertExpense(30_000L, categories[0].id, end)
 
-        val total = dao.getTotalExpense(start, end)
+        val total = dao.getTotalExpense(start, end).first()
         assertEquals(10_000L, total)
     }
 
     // ── getExpensesBetween Tests ───────────────────────────────────
 
     @Test
-    fun `getExpensesBetween returns expenses in timestamp DESC order`() {
-        val categories = dao.getAllCategories()
+    fun `getExpensesBetween returns expenses in timestamp DESC order`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val start = todayStart()
         val end = start + 86_400_000L
 
@@ -123,7 +125,7 @@ class ExpenseDaoAggregationTest {
         insertExpense(30_000L, categories[1].id, start + 3000)
         insertExpense(20_000L, categories[0].id, start + 2000)
 
-        val results = dao.getExpensesBetween(start, end)
+        val results = dao.getExpensesBetween(start, end).first()
         assertEquals(3, results.size)
         // newest first (DESC)
         assertEquals(30_000L, results[0].amount)
@@ -132,24 +134,24 @@ class ExpenseDaoAggregationTest {
     }
 
     @Test
-    fun `getExpensesBetween returns empty list when no data in range`() {
+    fun `getExpensesBetween returns empty list when no data in range`() = runBlocking {
         val start = todayStart()
         val end = start + 86_400_000L
 
-        val results = dao.getExpensesBetween(start, end)
+        val results = dao.getExpensesBetween(start, end).first()
         assertTrue(results.isEmpty())
     }
 
     @Test
-    fun `getExpensesBetween excludes outside-range expenses`() {
-        val categories = dao.getAllCategories()
+    fun `getExpensesBetween excludes outside-range expenses`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val start = todayStart()
         val end = start + 86_400_000L
 
         insertExpense(10_000L, categories[0].id, start + 1000)
         insertExpense(99_000L, categories[0].id, start - 1000)
 
-        val results = dao.getExpensesBetween(start, end)
+        val results = dao.getExpensesBetween(start, end).first()
         assertEquals(1, results.size)
         assertEquals(10_000L, results[0].amount)
     }
@@ -157,8 +159,8 @@ class ExpenseDaoAggregationTest {
     // ── getBreakdownByCategory Tests ───────────────────────────────
 
     @Test
-    fun `getBreakdownByCategory returns sum per category in range`() {
-        val categories = dao.getAllCategories()
+    fun `getBreakdownByCategory returns sum per category in range`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val makanan = categories.first { it.name == "Makanan" }
         val transport = categories.first { it.name == "Transport" }
         val start = todayStart()
@@ -188,8 +190,8 @@ class ExpenseDaoAggregationTest {
     }
 
     @Test
-    fun `getBreakdownByCategory excludes outside-range expenses`() {
-        val categories = dao.getAllCategories()
+    fun `getBreakdownByCategory excludes outside-range expenses`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val makanan = categories.first { it.name == "Makanan" }
         val start = todayStart()
         val end = start + 86_400_000L
@@ -203,8 +205,8 @@ class ExpenseDaoAggregationTest {
     }
 
     @Test
-    fun `getBreakdownByCategory returns correct categoryId and categoryName`() {
-        val categories = dao.getAllCategories()
+    fun `getBreakdownByCategory returns correct categoryId and categoryName`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val hiburan = categories.first { it.name == "Hiburan" }
         val start = todayStart()
         val end = start + 86_400_000L
@@ -220,8 +222,8 @@ class ExpenseDaoAggregationTest {
     // ── getDistinctDatesWithExpense Tests ──────────────────────────
 
     @Test
-    fun `getDistinctDatesWithExpense returns distinct timestamps only`() {
-        val categories = dao.getAllCategories()
+    fun `getDistinctDatesWithExpense returns distinct timestamps only`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val start = todayStart()
 
         insertExpense(10_000L, categories[0].id, start + 3600_000)  // 01:00
@@ -234,8 +236,8 @@ class ExpenseDaoAggregationTest {
     }
 
     @Test
-    fun `getDistinctDatesWithExpense returns same timestamp only once`() {
-        val categories = dao.getAllCategories()
+    fun `getDistinctDatesWithExpense returns same timestamp only once`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val start = todayStart()
 
         // Same exact timestamp → should be deduplicated by DISTINCT
@@ -247,8 +249,8 @@ class ExpenseDaoAggregationTest {
     }
 
     @Test
-    fun `getDistinctDatesWithExpense returns dates in DESC order`() {
-        val categories = dao.getAllCategories()
+    fun `getDistinctDatesWithExpense returns dates in DESC order`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val today = todayStart()
         val oneDay = 86_400_000L
 

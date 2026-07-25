@@ -3,6 +3,8 @@ package com.example.expense_tracker.data
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -109,15 +111,32 @@ class BillReminderDaoTest {
     }
 
     @Test
-    fun getActiveReminders() {
+    fun getActiveReminders() = runBlocking {
         reminderDao.insertReminder(BillReminder(name = "A", amount = 100, dueDay = 10, categoryId = 1, walletId = 1, isActive = true))
         reminderDao.insertReminder(BillReminder(name = "B", amount = 200, dueDay = 5, categoryId = 1, walletId = 1, isActive = false))
         reminderDao.insertReminder(BillReminder(name = "C", amount = 300, dueDay = 20, categoryId = 1, walletId = 1, isActive = true))
         
-        val active = reminderDao.getActiveReminders()
+        val active = reminderDao.getActiveReminders().first()
         assertEquals(2, active.size)
         // verify order by dueDay ASC
         assertEquals("A", active[0].name)
         assertEquals("C", active[1].name)
+    }
+
+    @Test
+    fun updateWallet_doesNotCascadeDeleteReminder() = runBlocking {
+        val walletDao = database.walletDao()
+        reminderDao.insertReminder(BillReminder(name = "Test Bill", amount = 100, dueDay = 10, categoryId = 1, walletId = 1, isActive = true))
+        
+        val remindersBefore = reminderDao.getActiveReminders().first()
+        assertEquals(1, remindersBefore.size)
+        
+        // Update wallet balance using updateWallet
+        val wallet = walletDao.getWalletById(1L)!!
+        walletDao.updateWallet(wallet.copy(balance = 5000L))
+        
+        // Verify reminder is NOT deleted
+        val remindersAfter = reminderDao.getActiveReminders().first()
+        assertEquals(1, remindersAfter.size)
     }
 }

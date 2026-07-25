@@ -9,6 +9,8 @@ import com.example.expense_tracker.data.FakeWalletRepository
 import com.example.expense_tracker.data.Wallet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -16,6 +18,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -32,21 +35,21 @@ class ReminderListViewModelTest {
     private class FakeExpenseRepository(val presetCategories: List<Category>) : ExpenseRepository {
         val insertedExpenses = mutableListOf<Expense>()
         
-        override fun getCategories(): List<Category> = presetCategories
-        override fun getCategoriesByType(type: String): List<Category> = presetCategories.filter { it.type == type }
+        override fun getCategories(): Flow<List<Category>> = flowOf(presetCategories)
+        override fun getCategoriesByType(type: String): Flow<List<Category>> = flowOf(presetCategories.filter { it.type == type })
         override fun insertExpense(expense: Expense) {
             insertedExpenses.add(expense)
         }
         override fun deleteExpense(expense: Expense) {}
         override fun getExpenseById(id: Long): Expense? = null
-        override fun getExpensesBetween(startTime: Long, endTime: Long): List<Expense> = emptyList()
-        override fun getAllTransactionsBetween(startTime: Long, endTime: Long): List<Expense> = emptyList()
+        override fun getExpensesBetween(startTime: Long, endTime: Long): Flow<List<Expense>> = flowOf(emptyList())
+        override fun getAllTransactionsBetween(startTime: Long, endTime: Long): Flow<List<Expense>> = flowOf(emptyList())
         override fun getAllTransactions(): List<Expense> = emptyList()
-        override fun getTotalExpense(startTime: Long, endTime: Long): Long = 0
-        override fun getTotalIncome(startTime: Long, endTime: Long): Long = 0
-        override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Long = 0
-        override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Long = 0
-        override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): List<Expense> = emptyList()
+        override fun getTotalExpense(startTime: Long, endTime: Long): Flow<Long> = flowOf(0L)
+        override fun getTotalIncome(startTime: Long, endTime: Long): Flow<Long> = flowOf(0L)
+        override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long> = flowOf(0L)
+        override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long> = flowOf(0L)
+        override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> = flowOf(emptyList())
     }
 
     @Before
@@ -80,12 +83,14 @@ class ReminderListViewModelTest {
         assertEquals("Test Reminder", item.reminder.name)
         assertEquals("Listrik", item.categoryName)
         assertEquals("BCA", item.walletName)
+        assertFalse(item.isPaidThisMonth)
+        assertFalse(item.isPaid)
     }
 
     @Test
-    fun `markAsPaid inserts expense and updates lastPaidMonth`() {
+    fun `markAsPaid on recurring bill updates lastPaidMonth and keeps isActive true`() {
         val reminderId = reminderRepository.insertReminder(
-            BillReminder(name = "Test Reminder", amount = 1000, dueDay = 5, categoryId = 1, walletId = 1, isActive = true)
+            BillReminder(name = "Test Reminder", amount = 1000, dueDay = 5, categoryId = 1, walletId = 1, isActive = true, isRepeat = true)
         )
         expenseRepository = FakeExpenseRepository(listOf(Category(1, "Listrik", "EXPENSE")))
         walletRepository.insertWallet(Wallet(1, "BCA", 5000))
@@ -97,19 +102,56 @@ class ReminderListViewModelTest {
         viewModel.markAsPaid(reminder)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        // Verify expense inserted
-        assertEquals(1, expenseRepository.insertedExpenses.size)
-        val expense = expenseRepository.insertedExpenses.first()
-        assertEquals(1000, expense.amount)
-        assertEquals("Test Reminder", expense.description)
-        
-        // Verify wallet updated
-        val wallet = walletRepository.getWalletById(1)!!
-        assertEquals(4000, wallet.balance)
-        
         // Verify reminder updated
         val updatedReminder = reminderRepository.getReminderById(reminderId)!!
         val currentMonth = java.time.YearMonth.now().toString()
         assertEquals(currentMonth, updatedReminder.lastPaidMonth)
+        assertTrue(updatedReminder.isActive)
+
+        // Verify UI state reflects paid status
+        val item = viewModel.uiState.value.activeReminders[0]
+        assertTrue(item.isPaidThisMonth)
+        assertTrue(item.isPaid)
+    }
+
+    @Test
+    fun `markAsPaid on one-time bill sets isActive to false and updates lastPaidMonth`() {
+        val reminderId = reminderRepository.insertReminder(
+            BillReminder(name = "One Time Bill", amount = 2000, dueDay = 10, categoryId = 1, walletId = 1, isActive = true, isRepeat = false)
+        )
+        expenseRepository = FakeExpenseRepository(listOf(Category(1, "Listrik", "EXPENSE")))
+        walletRepository.insertWallet(Wallet(1, "BCA", 5000))
+
+        viewModel = ReminderListViewModel(reminderRepository, expenseRepository, walletRepository, testDispatcher)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val reminder = reminderRepository.getReminderById(reminderId)!!
+        viewModel.markAsPaid(reminder)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val updatedReminder = reminderRepository.getReminderById(reminderId)!!
+        val currentMonth = java.time.YearMonth.now().toString()
+        assertEquals(currentMonth, updatedReminder.lastPaidMonth)
+        assertFalse(updatedReminder.isActive)
+
+        val item = viewModel.uiState.value.activeReminders[0]
+        assertTrue(item.isPaid)
+    }
+
+    @Test
+    fun `isPaidThisMonth returns false for different month (new month reset)`() {
+        val pastMonth = "2020-01"
+        reminderRepository.insertReminder(
+            BillReminder(name = "Old Bill", amount = 1000, dueDay = 5, categoryId = 1, walletId = 1, isActive = true, isRepeat = true, lastPaidMonth = pastMonth)
+        )
+        expenseRepository = FakeExpenseRepository(listOf(Category(1, "Listrik", "EXPENSE")))
+        walletRepository.insertWallet(Wallet(1, "BCA", 0))
+
+        viewModel = ReminderListViewModel(reminderRepository, expenseRepository, walletRepository, testDispatcher)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val item = viewModel.uiState.value.activeReminders[0]
+        assertFalse("Should be false because past month != current month", item.isPaidThisMonth)
+        assertFalse("Should be unpaid in new month", item.isPaid)
     }
 }

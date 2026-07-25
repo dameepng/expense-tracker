@@ -21,6 +21,10 @@ class RoomWalletRepository(
         dao.insertWallet(wallet)
     }
 
+    override fun updateWallet(wallet: Wallet) {
+        dao.updateWallet(wallet)
+    }
+
     override fun deleteWallet(wallet: Wallet) {
         dao.deleteWallet(wallet)
     }

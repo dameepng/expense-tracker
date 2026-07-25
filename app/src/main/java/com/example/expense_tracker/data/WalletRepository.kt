@@ -10,6 +10,7 @@ interface WalletRepository {
     fun getAllWallets(): Flow<List<Wallet>>
     fun getWalletById(id: Long): Wallet?
     fun insertWallet(wallet: Wallet)
+    fun updateWallet(wallet: Wallet)
     fun deleteWallet(wallet: Wallet)
     fun getComputedBalance(walletId: Long): Long
 }

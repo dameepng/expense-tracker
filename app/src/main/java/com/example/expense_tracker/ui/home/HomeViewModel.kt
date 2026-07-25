@@ -64,7 +64,7 @@ class HomeViewModel(
             
             val activeRemindersCountFlow = billReminderRepository.getActiveReminders().map { reminders ->
                 val currentMonth = java.time.YearMonth.now().toString()
-                reminders.count { it.lastPaidMonth != currentMonth }
+                reminders.count { it.isActive && it.lastPaidMonth != currentMonth }
             }
 
             combine(

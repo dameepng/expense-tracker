@@ -2,6 +2,8 @@ package com.example.expense_tracker.data
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -43,8 +45,8 @@ class ExpenseDatabaseTest {
     // ── Category Tests ────────────────────────────────────────────
 
     @Test
-    fun `getAllCategories returns 11 preset categories after first install`() {
-        val categories = dao.getAllCategories()
+    fun `getAllCategories returns 11 preset categories after first install`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         assertEquals(11, categories.size)
 
         val expectedNames = setOf(
@@ -57,8 +59,8 @@ class ExpenseDatabaseTest {
     }
 
     @Test
-    fun `getCategoryById returns correct category`() {
-        val categories = dao.getAllCategories()
+    fun `getCategoryById returns correct category`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val target = categories.first()
 
         val result = dao.getCategoryById(target.id)
@@ -75,8 +77,8 @@ class ExpenseDatabaseTest {
     // ── Expense Insert Tests ───────────────────────────────────────
 
     @Test
-    fun `insertExpense persists expense successfully`() {
-        val categories = dao.getAllCategories()
+    fun `insertExpense persists expense successfully`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val category = categories.first()
 
         val expense = Expense(
@@ -93,8 +95,8 @@ class ExpenseDatabaseTest {
     }
 
     @Test
-    fun `getAllExpenses returns in timestamp descending order`() {
-        val categories = dao.getAllCategories()
+    fun `getAllExpenses returns in timestamp descending order`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val category = categories.first()
         val baseTime = System.currentTimeMillis()
 
@@ -114,8 +116,8 @@ class ExpenseDatabaseTest {
     // ── Validation Tests ──────────────────────────────────────────
 
     @Test(expected = IllegalArgumentException::class)
-    fun `insertExpense with amount 0 throws IllegalArgumentException`() {
-        val categories = dao.getAllCategories()
+    fun `insertExpense with amount 0 throws IllegalArgumentException`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val expense = Expense(
             amount = 0L,
             categoryId = categories.first().id,
@@ -125,8 +127,8 @@ class ExpenseDatabaseTest {
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `insertExpense with negative amount throws IllegalArgumentException`() {
-        val categories = dao.getAllCategories()
+    fun `insertExpense with negative amount throws IllegalArgumentException`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val expense = Expense(
             amount = -5000L,
             categoryId = categories.first().id,
@@ -138,8 +140,8 @@ class ExpenseDatabaseTest {
     // ── Explicit ID Tests ─────────────────────────────────────────
 
     @Test
-    fun `expense id is auto-generated and unique`() {
-        val categories = dao.getAllCategories()
+    fun `expense id is auto-generated and unique`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         val cat = categories.first()
         val now = System.currentTimeMillis()
 
@@ -154,8 +156,8 @@ class ExpenseDatabaseTest {
     }
 
     @Test
-    fun `category id is auto-generated`() {
-        val categories = dao.getAllCategories()
+    fun `category id is auto-generated`() = runBlocking {
+        val categories = dao.getAllCategories().first()
         for (cat in categories) {
             assertTrue(cat.id > 0)
         }

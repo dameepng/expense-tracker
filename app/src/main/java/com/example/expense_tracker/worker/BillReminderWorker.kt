@@ -24,7 +24,10 @@ class BillReminderWorker(
             val database = AppDatabase.getInstance(applicationContext)
             val repository = RoomBillReminderRepository(database.billReminderDao())
 
-            val activeReminders = repository.getActiveReminders().first()
+            val currentMonth = YearMonth.now().toString()
+            val activeReminders = repository.getActiveReminders().first().filter {
+                it.isActive && it.lastPaidMonth != currentMonth
+            }
             if (activeReminders.isEmpty()) {
                 return@withContext Result.success()
             }

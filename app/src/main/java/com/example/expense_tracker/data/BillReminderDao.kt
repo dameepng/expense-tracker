@@ -22,7 +22,7 @@ interface BillReminderDao {
     @Query("SELECT * FROM bill_reminders ORDER BY createdAt DESC")
     fun getAllReminders(): List<BillReminder>
 
-    @Query("SELECT * FROM bill_reminders WHERE isActive = 1 ORDER BY dueDay ASC")
+    @Query("SELECT * FROM bill_reminders WHERE isActive = 1 OR (isRepeat = 0 AND lastPaidMonth IS NOT NULL) ORDER BY dueDay ASC")
     fun getActiveReminders(): Flow<List<BillReminder>>
 
     @Query("SELECT * FROM bill_reminders WHERE id = :id")
