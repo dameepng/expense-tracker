@@ -356,7 +356,12 @@ fun SummaryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.nav_summary)) },
+                title = { 
+                    Text(
+                        text = stringResource(R.string.nav_summary),
+                        fontWeight = FontWeight.Bold
+                    ) 
+                },
                 actions = {
                     IconButton(onClick = { showDateRangePicker = true }) {
                         Icon(
