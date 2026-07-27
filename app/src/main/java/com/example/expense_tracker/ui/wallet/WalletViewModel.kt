@@ -14,8 +14,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.example.expense_tracker.data.ExpenseRepository
+
 class WalletViewModel(
     private val repository: WalletRepository,
+    private val expenseRepository: ExpenseRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
@@ -72,7 +75,17 @@ class WalletViewModel(
     }
 
     fun deleteWallet(wallet: Wallet) {
+        if (_uiState.value.wallets.size <= 1) return // Prevent deleting last wallet
+        
         viewModelScope.launch(ioDispatcher) {
+            // Check if active wallet is the one being deleted
+            val activeWalletId = userPreferencesRepository.selectedWalletIdFlow.first()
+            if (activeWalletId == wallet.id) {
+                userPreferencesRepository.saveSelectedWalletId(null) // Reset to All Wallets
+            }
+            
+            // Delete associated expenses first, then delete the wallet
+            expenseRepository.deleteExpensesByWalletId(wallet.id)
             repository.deleteWallet(wallet)
             refresh()
         }

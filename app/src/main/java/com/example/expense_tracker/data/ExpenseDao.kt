@@ -15,6 +15,9 @@ interface ExpenseDao {
     @androidx.room.Delete
     fun deleteExpense(expense: Expense)
 
+    @Query("DELETE FROM expenses WHERE walletId = :walletId")
+    fun deleteExpensesByWalletId(walletId: Long)
+
     @Query("SELECT * FROM expenses WHERE id = :id")
     fun getExpenseById(id: Long): Expense?
 

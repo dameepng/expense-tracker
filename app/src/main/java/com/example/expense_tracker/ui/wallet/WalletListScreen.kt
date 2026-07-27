@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -42,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -58,6 +60,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
@@ -72,6 +76,8 @@ fun WalletListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var walletToDelete by remember { mutableStateOf<Wallet?>(null) }
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -99,6 +105,7 @@ fun WalletListScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
+                val errorMessage = stringResource(R.string.delete_wallet_error_last)
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -110,7 +117,14 @@ fun WalletListScreen(
                     ) { wallet ->
                         CreditCardItem(
                             wallet = wallet,
-                            onClick = { onSelectWallet(wallet.id) }
+                            onClick = { onSelectWallet(wallet.id) },
+                            onDeleteClick = {
+                                if (uiState.wallets.size <= 1) {
+                                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    walletToDelete = wallet
+                                }
+                            }
                         )
                     }
                 }
@@ -308,12 +322,66 @@ fun WalletListScreen(
             }
         }
     }
+
+    walletToDelete?.let { wallet ->
+        var confirmText by remember { mutableStateOf("") }
+        val isConfirmed = confirmText.equals("hapus dompet", ignoreCase = true)
+        
+        AlertDialog(
+            onDismissRequest = { walletToDelete = null },
+            title = {
+                Text(
+                    text = stringResource(R.string.delete_wallet_title),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.delete_wallet_warning),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = confirmText,
+                        onValueChange = { confirmText = it },
+                        label = { Text(stringResource(R.string.delete_wallet_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteWallet(wallet)
+                        walletToDelete = null
+                    },
+                    enabled = isConfirmed,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Text(stringResource(R.string.delete_wallet_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { walletToDelete = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 }
 
 @Composable
 fun CreditCardItem(
     wallet: Wallet,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDeleteClick: () -> Unit = {}
 ) {
     val gradient = CardGradients.getGradient(wallet.color)
 
@@ -354,12 +422,25 @@ fun CreditCardItem(
                         )
                     }
 
-                    Text(
-                        text = wallet.name.uppercase(),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = wallet.name.uppercase(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        IconButton(
+                            onClick = onDeleteClick,
+                            modifier = Modifier.size(32.dp).padding(start = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = Color.White.copy(alpha = 0.85f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
 
                 // Middle: Card Number (Masked)

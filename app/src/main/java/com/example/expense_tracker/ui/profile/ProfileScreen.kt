@@ -42,9 +42,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -71,7 +69,8 @@ import com.example.expense_tracker.R
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     modifier: Modifier = Modifier,
-    onLogoutSuccess: () -> Unit = {}
+    onNavigateToHelpFaq: () -> Unit = {},
+    onNavigateToPrivacyPolicy: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -170,7 +169,7 @@ fun ProfileScreen(
                         onClick = { showLanguageDialog = true }
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
             
             item {
@@ -224,71 +223,26 @@ fun ProfileScreen(
                         }
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
             
             item {
                 SettingsGroup(title = "Bantuan & Informasi") {
                     SettingsItem(
                         icon = Icons.Default.Info,
-                        title = "Pusat Bantuan / FAQ",
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=kasflow+help"))
-                            try {
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                android.widget.Toast.makeText(context, "Browser tidak ditemukan", android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
-                    SettingsItem(
-                        icon = Icons.Default.Star,
-                        title = "Beri Rating Aplikasi",
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=${context.packageName}"))
-                            try {
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                val webIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}"))
-                                try {
-                                    context.startActivity(webIntent)
-                                } catch (e2: Exception) {
-                                    android.widget.Toast.makeText(context, "Aplikasi Play Store tidak ditemukan", android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
+                        title = stringResource(R.string.faq_title),
+                        onClick = onNavigateToHelpFaq
                     )
                     SettingsItem(
                         icon = Icons.Default.Lock,
-                        title = "Kebijakan Privasi",
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=kasflow+privacy+policy"))
-                            try {
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                android.widget.Toast.makeText(context, "Browser tidak ditemukan", android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        title = stringResource(R.string.privacy_title),
+                        onClick = onNavigateToPrivacyPolicy
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
             
             item {
-                SettingsGroup(title = "Danger Zone") {
-                    SettingsItem(
-                        icon = Icons.AutoMirrored.Filled.Logout,
-                        title = "Keluar Akun",
-                        subtitle = "Anda harus login kembali nanti",
-                        titleColor = MaterialTheme.colorScheme.error,
-                        iconColor = MaterialTheme.colorScheme.error,
-                        onClick = {
-                            viewModel.logout(context, onLogoutSuccess)
-                        }
-                    )
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-                
                 // Footer
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -299,7 +253,7 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }

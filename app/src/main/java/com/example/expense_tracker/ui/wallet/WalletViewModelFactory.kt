@@ -13,9 +13,10 @@ class WalletViewModelFactory(private val context: Context) : ViewModelProvider.F
         if (modelClass.isAssignableFrom(WalletViewModel::class.java)) {
             val database = AppDatabase.getInstance(context)
             val repository = RoomWalletRepository(database.walletDao())
+            val expenseRepository = com.example.expense_tracker.data.RoomExpenseRepository(database.expenseDao())
             val userPrefs = UserPreferencesRepositoryImpl(context.dataStore)
             @Suppress("UNCHECKED_CAST")
-            return WalletViewModel(repository, userPrefs) as T
+            return WalletViewModel(repository, expenseRepository, userPrefs) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

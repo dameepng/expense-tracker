@@ -37,6 +37,9 @@ class RoomExpenseRepository(
     override fun deleteExpense(expense: Expense) =
         dao.deleteExpense(expense)
 
+    override fun deleteExpensesByWalletId(walletId: Long) =
+        dao.deleteExpensesByWalletId(walletId)
+
     override fun insertExpense(expense: Expense) =
         dao.insertExpense(expense)
 

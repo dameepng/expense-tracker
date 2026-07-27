@@ -15,6 +15,7 @@ interface ExpenseRepository {
     fun getCategories(): Flow<List<Category>>
     fun getCategoriesByType(type: String): Flow<List<Category>>
     fun deleteExpense(expense: Expense)
+    fun deleteExpensesByWalletId(walletId: Long)
     fun insertExpense(expense: Expense)
     fun getExpenseById(id: Long): Expense?
     fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long>

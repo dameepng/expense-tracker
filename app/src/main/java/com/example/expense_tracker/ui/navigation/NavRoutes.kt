@@ -7,6 +7,8 @@ object NavRoutes {
     const val WALLET = "wallet"
     const val PROFILE = "profile"
     const val ONBOARDING = "onboarding"
+    const val HELP_FAQ = "help_faq"
+    const val PRIVACY_POLICY = "privacy_policy"
 
     fun inputRoute(expenseId: Long? = null): String {
         return if (expenseId != null) "input?expenseId=$expenseId" else "input"

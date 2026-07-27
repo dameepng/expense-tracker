@@ -16,6 +16,39 @@
     <string name="profile_select_language">Pilih Bahasa</string>
     <string name="nav_add">Tambah</string>
 
+    <!-- FAQ -->
+    <string name="faq_title">Pusat Bantuan / FAQ</string>
+    <string name="faq_q1">Cara menambah transaksi?</string>
+    <string name="faq_a1">Di halaman utama, klik tombol tambah (+) di tengah bawah layar, lalu pilih jenis transaksi (Pemasukan, Pengeluaran, atau Tagihan). Isi form lalu simpan.</string>
+    <string name="faq_q2">Cara mengelola dompet?</string>
+    <string name="faq_a2">Masuk ke tab Dompet (Wallet), lalu klik tombol "Tambah Dompet Baru" untuk menambah dompet. Anda dapat memilih warna dan memasukkan detail dompet tersebut.</string>
+    <string name="faq_q3">Cara melihat ringkasan pengeluaran?</string>
+    <string name="faq_a3">Buka tab Ringkasan. Di sana Anda dapat memfilter berdasarkan periode waktu atau dompet, melihat grafik donat, Cash Flow Insight, dan pengeluaran berdasarkan kategori.</string>
+    <string name="faq_q4">Cara mengubah mata uang?</string>
+    <string name="faq_a4">Buka tab Profil, lalu pada bagian Preferensi pilih "Mata Uang Utama" dan pilih mata uang yang diinginkan.</string>
+    <string name="faq_q5">Cara mengekspor data?</string>
+    <string name="faq_a5">Buka tab Profil, lalu pilih "Export Data Transaksi" pada bagian Keamanan &amp; Data untuk mengunduh data dalam format CSV.</string>
+    <string name="faq_q6">Cara mengaktifkan kunci layar?</string>
+    <string name="faq_a6">Di tab Profil, aktifkan toggle "Kunci Layar" untuk menggunakan sistem keamanan biometrik perangkat Anda.</string>
+    <string name="faq_q7">Apa itu Bill Reminder?</string>
+    <string name="faq_a7">Bill Reminder adalah fitur untuk mencatat tagihan berulang (seperti langganan atau listrik) beserta tanggal jatuh temponya. Anda bisa mengatur agar tagihan muncul setiap bulan otomatis.</string>
+
+    <!-- Privacy Policy -->
+    <string name="privacy_title">Kebijakan Privasi</string>
+    <string name="privacy_h1">Pendahuluan</string>
+    <string name="privacy_p1">Kasflow menghargai privasi Anda. Kami berkomitmen untuk melindungi informasi pribadi Anda dan hak privasi Anda.</string>
+    <string name="privacy_h2">Data yang Dikumpulkan</string>
+    <string name="privacy_p2">Kasflow adalah aplikasi pengelola keuangan yang mengutamakan privasi ("Privacy-First"). Semua data transaksi, dompet, pengaturan, dan informasi lainnya hanya disimpan secara lokal di perangkat Anda (menggunakan SQLite Database / Room). Kami tidak mengumpulkan, mengirim, atau menyimpan data keuangan Anda di server manapun.</string>
+    <string name="privacy_h3">Penggunaan Data</string>
+    <string name="privacy_p3">Data yang disimpan digunakan secara eksklusif untuk memberikan fungsi utama aplikasi, seperti menampilkan grafik pengeluaran, daftar transaksi, dan pengaturan akun. Karena data hanya berada di perangkat Anda, Andalah yang memiliki kontrol penuh.</string>
+    <string name="privacy_h4">Keamanan Data</string>
+    <string name="privacy_p4">Kami menyediakan opsi Kunci Layar (Screen Lock) menggunakan biometrik perangkat Anda untuk mencegah akses tidak sah ke aplikasi saat perangkat Anda terbuka.</string>
+    <string name="privacy_h5">Hak Pengguna</string>
+    <string name="privacy_p5">Karena data disimpan secara lokal, Anda dapat dengan mudah mengekspor data transaksi Anda sendiri, atau menghapus seluruh data secara permanen kapan saja dengan melakukan *Clear Data* melalui pengaturan perangkat Android Anda.</string>
+    <string name="privacy_h6">Hubungi Kami</string>
+    <string name="privacy_p6">Jika Anda memiliki pertanyaan mengenai kebijakan privasi ini, silakan hubungi kami melalui fitur Pusat Bantuan.</string>
+
+
     <!-- Filter -->
     <string name="filter_today">Hari Ini</string>
     <string name="filter_week">Minggu Ini</string>
@@ -90,6 +123,12 @@
     <string name="card_holder_name">Nama Pemegang Kartu</string>
     <string name="expiry_date">Kadaluarsa (MM/YY)</string>
     <string name="choose_card_color">Pilih Warna Kartu</string>
+    <string name="wallet_color_placeholder">Warna (Hex mis. #FF0000)</string>
+    <string name="delete_wallet_title">Hapus Dompet?</string>
+    <string name="delete_wallet_warning">Semua transaksi di dompet ini akan ikut terhapus secara permanen. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="delete_wallet_hint">Ketik "hapus dompet" untuk konfirmasi</string>
+    <string name="delete_wallet_action">Hapus</string>
+    <string name="delete_wallet_error_last">Tidak bisa menghapus dompet terakhir</string>
     <string name="card_holder">CARD HOLDER</string>
     <string name="expires">EXPIRES</string>
     <string name="repeat_every_month">Ulangi Setiap Bulan</string>

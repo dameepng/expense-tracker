@@ -1,67 +1,57 @@
 package com.example.expense_tracker
 
 import android.Manifest
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import com.example.expense_tracker.data.dataStore
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import com.example.expense_tracker.utils.AuthManager
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.navigation.NavType
-import androidx.compose.runtime.getValue
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import com.example.expense_tracker.data.dataStore
+import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.home.HomeScreen
 import com.example.expense_tracker.ui.home.HomeViewModel
 import com.example.expense_tracker.ui.home.HomeViewModelFactory
@@ -75,9 +65,8 @@ import com.example.expense_tracker.ui.summary.SummaryScreen
 import com.example.expense_tracker.ui.summary.SummaryViewModel
 import com.example.expense_tracker.ui.summary.SummaryViewModelFactory
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
-import com.example.expense_tracker.ui.CurrencyFormatter
+import com.example.expense_tracker.utils.AuthManager
 import java.util.Locale
-import android.content.res.Configuration
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -409,11 +398,20 @@ fun ExpenseTrackerApp() {
             ) {
                 com.example.expense_tracker.ui.profile.ProfileScreen(
                     viewModel = profileViewModel,
-                    onLogoutSuccess = {
-                        navController.navigate(NavRoutes.ONBOARDING) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
+                    onNavigateToHelpFaq = { navController.navigate(NavRoutes.HELP_FAQ) },
+                    onNavigateToPrivacyPolicy = { navController.navigate(NavRoutes.PRIVACY_POLICY) }
+                )
+            }
+            
+            composable(NavRoutes.HELP_FAQ) {
+                com.example.expense_tracker.ui.profile.HelpFaqScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(NavRoutes.PRIVACY_POLICY) {
+                com.example.expense_tracker.ui.profile.PrivacyPolicyScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             

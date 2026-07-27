@@ -16,6 +16,39 @@
     <string name="profile_select_language">Select Language</string>
     <string name="nav_add">Add</string>
 
+    <!-- FAQ -->
+    <string name="faq_title">Help Center / FAQ</string>
+    <string name="faq_q1">How to add a transaction?</string>
+    <string name="faq_a1">On the home screen, click the plus (+) button at the bottom center, then select the transaction type (Income, Expense, or Bill). Fill out the form and save it.</string>
+    <string name="faq_q2">How to manage wallets?</string>
+    <string name="faq_a2">Go to the Wallet tab, then click the "Add New Wallet" button to add a wallet. You can choose a color and enter the wallet details.</string>
+    <string name="faq_q3">How to view expense summary?</string>
+    <string name="faq_a3">Open the Summary tab. There you can filter by time period or wallet, view the donut chart, Cash Flow Insight, and spending by category.</string>
+    <string name="faq_q4">How to change the currency?</string>
+    <string name="faq_a4">Open the Profile tab, then under Preferences select "Main Currency" and choose the desired currency.</string>
+    <string name="faq_q5">How to export data?</string>
+    <string name="faq_a5">Open the Profile tab, then select "Export Transaction Data" under Security &amp; Data to download your data in CSV format.</string>
+    <string name="faq_q6">How to enable screen lock?</string>
+    <string name="faq_a6">In the Profile tab, enable the "Screen Lock" toggle to use your device\'s biometric security system.</string>
+    <string name="faq_q7">What is Bill Reminder?</string>
+    <string name="faq_a7">Bill Reminder is a feature to record recurring bills (like subscriptions or electricity) along with their due dates. You can set it so the bill appears automatically every month.</string>
+
+    <!-- Privacy Policy -->
+    <string name="privacy_title">Privacy Policy</string>
+    <string name="privacy_h1">Introduction</string>
+    <string name="privacy_p1">Kasflow respects your privacy. We are committed to protecting your personal information and your right to privacy.</string>
+    <string name="privacy_h2">Data Collection</string>
+    <string name="privacy_p2">Kasflow is a privacy-first financial management application. All your transactions, wallets, settings, and other information are stored locally on your device (using SQLite Database / Room). We do not collect, transmit, or store your financial data on any servers.</string>
+    <string name="privacy_h3">Data Usage</string>
+    <string name="privacy_p3">The stored data is used exclusively to provide the core functions of the application, such as displaying expense charts, transaction lists, and account settings. Since the data never leaves your device, you are in full control.</string>
+    <string name="privacy_h4">Data Security</string>
+    <string name="privacy_p4">We provide a Screen Lock option using your device\'s biometrics to prevent unauthorized access to the app when your device is unlocked.</string>
+    <string name="privacy_h5">User Rights</string>
+    <string name="privacy_p5">Because data is stored locally, you can easily export your transaction data yourself, or permanently delete all data at any time by performing a *Clear Data* via your Android device settings.</string>
+    <string name="privacy_h6">Contact Us</string>
+    <string name="privacy_p6">If you have any questions about this privacy policy, please contact us through the Help Center feature.</string>
+
+
     <!-- Filter -->
     <string name="filter_today">Today</string>
     <string name="filter_week">This Week</string>
@@ -90,6 +123,12 @@
     <string name="card_holder_name">Card Holder Name</string>
     <string name="expiry_date">Expiry Date (MM/YY)</string>
     <string name="choose_card_color">Choose Card Color</string>
+    <string name="wallet_color_placeholder">Color (Hex e.g. #FF0000)</string>
+    <string name="delete_wallet_title">Delete Wallet?</string>
+    <string name="delete_wallet_warning">All transactions in this wallet will be permanently deleted. This action cannot be undone.</string>
+    <string name="delete_wallet_hint">Type "hapus dompet" to confirm</string>
+    <string name="delete_wallet_action">Delete</string>
+    <string name="delete_wallet_error_last">Cannot delete the last wallet</string>
     <string name="card_holder">CARD HOLDER</string>
     <string name="expires">EXPIRES</string>
     <string name="repeat_every_month">Repeat Every Month</string>
