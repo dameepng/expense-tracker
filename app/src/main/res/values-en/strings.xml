@@ -73,6 +73,8 @@
     <string name="input_choose_category">Choose Category</string>
     <string name="input_choose_wallet">Choose Wallet</string>
     <string name="back">Back</string>
+    <string name="category">Category</string>
+    <string name="no_transactions">No transactions in this period.</string>
     <string name="bill_reminder">Bill Reminder</string>
     <string name="bill_name">Bill Name</string>
     <string name="bill_name_placeholder">e.g. Netflix, Electricity</string>
