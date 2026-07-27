@@ -13,4 +13,10 @@ object NavRoutes {
     }
 
     const val REMINDER_LIST = "reminder_list"
+    
+    const val CATEGORY_DETAIL = "category_detail/{categoryId}?walletId={walletId}&startTime={startTime}&endTime={endTime}"
+    fun categoryDetailRoute(categoryId: Long, walletId: Long?, startTime: Long, endTime: Long): String {
+        val walletParam = if (walletId != null) "&walletId=$walletId" else ""
+        return "category_detail/$categoryId?startTime=$startTime&endTime=$endTime$walletParam"
+    }
 }

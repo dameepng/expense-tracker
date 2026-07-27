@@ -300,11 +300,14 @@ fun ExpenseTrackerApp() {
                     viewModel = homeViewModel,
                     streakViewModel = streakViewModel,
                     onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) },
-                    onNavigateToSummary = {
+                    onNavigateToSummary = { walletId ->
                         navController.navigate(NavRoutes.SUMMARY) {
                             popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
                         }
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("summary_wallet_id", walletId)
                     },
                     onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) }
                 )
@@ -336,9 +339,43 @@ fun ExpenseTrackerApp() {
                 exitTransition = { fadeOut(animationSpec = tween(150)) },
                 popEnterTransition = { fadeIn(animationSpec = tween(150)) },
                 popExitTransition = { fadeOut(animationSpec = tween(150)) }
-            ) {
+            ) { backStackEntry ->
+                val walletId = backStackEntry.savedStateHandle.get<Long?>("summary_wallet_id")
+                if (walletId != null) {
+                    summaryViewModel.onWalletSelected(walletId)
+                    backStackEntry.savedStateHandle.remove<Long?>("summary_wallet_id")
+                }
+                
                 SummaryScreen(
-                    viewModel = summaryViewModel
+                    viewModel = summaryViewModel,
+                    onCategoryClick = { categoryId, walletId, startTime, endTime ->
+                        navController.navigate(
+                            NavRoutes.categoryDetailRoute(categoryId, walletId, startTime, endTime)
+                        )
+                    }
+                )
+            }
+            
+            composable(
+                route = NavRoutes.CATEGORY_DETAIL,
+                arguments = listOf(
+                    androidx.navigation.navArgument("categoryId") { type = androidx.navigation.NavType.StringType },
+                    androidx.navigation.navArgument("walletId") { type = androidx.navigation.NavType.StringType; nullable = true },
+                    androidx.navigation.navArgument("startTime") { type = androidx.navigation.NavType.StringType },
+                    androidx.navigation.navArgument("endTime") { type = androidx.navigation.NavType.StringType }
+                ),
+                enterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(150)) },
+                exitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(150)) },
+                popEnterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(150)) },
+                popExitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(150)) }
+            ) { backStackEntry ->
+                val viewModel: com.example.expense_tracker.ui.summary.categorydetail.CategoryDetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    factory = com.example.expense_tracker.ui.summary.categorydetail.CategoryDetailViewModelFactory(app)
+                )
+                com.example.expense_tracker.ui.summary.categorydetail.CategoryDetailScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) }
                 )
             }
             

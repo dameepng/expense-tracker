@@ -73,6 +73,8 @@
     <string name="input_choose_category">Pilih Kategori</string>
     <string name="input_choose_wallet">Pilih Dompet</string>
     <string name="back">Kembali</string>
+    <string name="category">Kategori</string>
+    <string name="no_transactions">Tidak ada transaksi di rentang waktu ini.</string>
     <string name="bill_reminder">Bill Reminder</string>
     <string name="bill_name">Nama Tagihan</string>
     <string name="bill_name_placeholder">Misal: Netflix, Listrik</string>

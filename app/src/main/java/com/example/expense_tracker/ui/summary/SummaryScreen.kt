@@ -226,7 +226,8 @@ fun WalletFilterChips(
 fun BreakdownCardItem(
     item: BreakdownItem,
     isIncome: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     val icon = when (item.categoryId) {
         1L -> Icons.Default.Restaurant
@@ -245,7 +246,8 @@ fun BreakdownCardItem(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = categoryColor.copy(alpha = 0.05f) // Subtle tint
-        )
+        ),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -346,7 +348,8 @@ fun SummaryEmptyState(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryScreen(
-    viewModel: SummaryViewModel
+    viewModel: SummaryViewModel,
+    onCategoryClick: (categoryId: Long, walletId: Long?, startTime: Long, endTime: Long) -> Unit = { _, _, _, _ -> }
 ) {
     val state by viewModel.uiState.collectAsState()
     var showDateRangePicker by remember { mutableStateOf(false) }
@@ -480,22 +483,89 @@ fun SummaryScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Income / Expenses / Net cash flow
+                        // Hero: Net Cash Flow
+                        val isDarkMode = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                        val isPositive = state.netCashFlow >= 0
+                        val heroBackground = if (isDarkMode) {
+                            if (isPositive) Color(0xFF10B981).copy(alpha = 0.12f) else Color(0xFFEF4444).copy(alpha = 0.12f)
+                        } else {
+                            if (isPositive) Color(0xFFECFDF5) else Color(0xFFFEF2F2)
+                        }
+                        val heroTextColor = if (isPositive) Color(0xFF10B981) else Color(0xFFEF4444)
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(heroBackground, RoundedCornerShape(12.dp))
+                                .padding(vertical = 16.dp, horizontal = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = stringResource(R.string.net_cash_flow),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = CurrencyFormatter.format(state.netCashFlow),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = heroTextColor
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Breakdown: Income & Expense (2 columns)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column {
-                                Text(CurrencyFormatter.format(state.totalIncome), style = MaterialTheme.typography.titleMedium, color = Color(0xFF10B981), fontWeight = FontWeight.Bold)
-                                Text(stringResource(R.string.transaction_income), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            // Income
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(Color(0xFF10B981), CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.transaction_income),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = CurrencyFormatter.format(state.totalIncome),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF10B981)
+                                    )
+                                }
                             }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(CurrencyFormatter.format(state.totalExpense), style = MaterialTheme.typography.titleMedium, color = Color(0xFFEF4444), fontWeight = FontWeight.Bold)
-                                Text(stringResource(R.string.transaction_expense), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(CurrencyFormatter.format(state.netCashFlow), style = MaterialTheme.typography.titleMedium, color = if (state.netCashFlow >= 0) Color(0xFF10B981) else Color(0xFFEF4444), fontWeight = FontWeight.Bold)
-                                Text(stringResource(R.string.net_cash_flow), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            // Expense
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(Color(0xFFEF4444), CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.transaction_expense),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = CurrencyFormatter.format(state.totalExpense),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFEF4444)
+                                    )
+                                }
                             }
                         }
 
@@ -680,7 +750,21 @@ fun SummaryScreen(
 
             if (!state.isLoading && state.items.isNotEmpty()) {
                 items(state.items, key = { "${state.transactionType}_${it.categoryId}" }) { item ->
-                    BreakdownCardItem(item = item, isIncome = isIncome, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+                    BreakdownCardItem(
+                        item = item, 
+                        isIncome = isIncome, 
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        onClick = {
+                            val startDate = state.customStartDate
+                            val endDate = state.customEndDate
+                            val (start, end) = if (state.filter == com.example.expense_tracker.data.FilterPeriod.CUSTOM && startDate != null && endDate != null) {
+                                Pair(startDate, endDate + 86400000L)
+                            } else {
+                                com.example.expense_tracker.data.TimeRangeCalculator.calculateRange(state.filter)
+                            }
+                            onCategoryClick(item.categoryId, state.selectedWalletId, start, end)
+                        }
+                    )
                 }
             }
         }

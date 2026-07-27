@@ -1,5 +1,6 @@
 package com.example.expense_tracker.ui.home
 
+import com.example.expense_tracker.ui.components.TransactionListItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -518,89 +519,6 @@ fun WalletOverview(
 
 // ── Transaction List Item ────────────────────────────────────────────
 
-@Composable
-fun TransactionListItem(
-    transaction: ExpenseWithCategory,
-    modifier: Modifier = Modifier
-) {
-    val isIncome = transaction.type == com.example.expense_tracker.data.TransactionType.INCOME.name
-    val amountPrefix = if (isIncome) "+" else "-"
-    val amountColor = if (isIncome) Color(0xFF2E8B57) else MaterialTheme.colorScheme.error
-
-    ListItem(
-        modifier = modifier.padding(vertical = 4.dp),
-        headlineContent = {
-            Text(
-                text = transaction.categoryName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-        },
-        supportingContent = {
-            Text(
-                text = TimeFormatter.formatTime(transaction.timestamp),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
-        },
-        leadingContent = {
-            if (isIncome) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFFE8F5E9),
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.TrendingUp,
-                        contentDescription = "Income",
-                        tint = Color(0xFF2E7D32),
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-            } else {
-                Surface(
-                    shape = CircleShape,
-                    color = com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt()).copy(alpha = 0.15f),
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt()),
-                            modifier = Modifier.size(16.dp)
-                        ) {}
-                    }
-                }
-            }
-        },
-        trailingContent = {
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = amountPrefix + CurrencyFormatter.format(transaction.amount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = amountColor
-                )
-                if (transaction.description.isNotBlank()) {
-                    Text(
-                        text = transaction.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
-                }
-            }
-        },
-        colors = ListItemDefaults.colors(
-            containerColor = Color.Transparent
-        )
-    )
-}
-
 // ── Empty State ────────────────────────────────────────────────────
 
 @Composable
@@ -640,7 +558,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     streakViewModel: StreakCounterViewModel? = null,
     onNavigateToInput: (Long?) -> Unit = {},
-    onNavigateToSummary: () -> Unit = {},
+    onNavigateToSummary: (Long?) -> Unit = {},
     onNavigateToReminder: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -658,15 +576,17 @@ fun HomeScreen(
     }
 
     val currentOnNavigateToInput by rememberUpdatedState(onNavigateToInput)
-    val onDismissTransaction = remember(viewModel, coroutineScope, snackbarHostState) {
+    val deletedMessage = stringResource(R.string.transaction_deleted)
+    val cancelLabel = stringResource(R.string.cancel)
+    val onDismissTransaction = remember(viewModel, coroutineScope, snackbarHostState, deletedMessage, cancelLabel) {
         { expense: ExpenseWithCategory, dismissValue: SwipeToDismissBoxValue ->
             when (dismissValue) {
                 SwipeToDismissBoxValue.EndToStart -> {
                     viewModel.deleteExpense(expense)
                     coroutineScope.launch {
                         val result = snackbarHostState.showSnackbar(
-                            message = context.getString(R.string.transaction_deleted),
-                            actionLabel = context.getString(R.string.cancel),
+                            message = deletedMessage,
+                            actionLabel = cancelLabel,
                             duration = SnackbarDuration.Short
                         )
                         if (result == SnackbarResult.ActionPerformed) {
@@ -740,7 +660,7 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onBackground
             )
             Button(
-                onClick = onNavigateToSummary,
+                onClick = { onNavigateToSummary(state.selectedWalletId) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.onBackground,
                     contentColor = MaterialTheme.colorScheme.background
@@ -772,7 +692,7 @@ fun HomeScreen(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
+                    contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     items(
                         items = state.transactions,

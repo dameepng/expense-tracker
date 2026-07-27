@@ -54,4 +54,12 @@ class RoomExpenseRepository(
     override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> {
         return dao.getTransactionsByWallet(walletId, startTime, endTime)
     }
+
+    override fun getTransactionsByCategory(categoryId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> {
+        return dao.getTransactionsByCategory(categoryId, startTime, endTime)
+    }
+
+    override fun getTransactionsByCategoryAndWallet(categoryId: Long, walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> {
+        return dao.getTransactionsByCategoryAndWallet(categoryId, walletId, startTime, endTime)
+    }
 }

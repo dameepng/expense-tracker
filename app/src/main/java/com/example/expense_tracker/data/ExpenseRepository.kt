@@ -20,4 +20,6 @@ interface ExpenseRepository {
     fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long>
     fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long>
     fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>>
+    fun getTransactionsByCategory(categoryId: Long, startTime: Long, endTime: Long): Flow<List<Expense>>
+    fun getTransactionsByCategoryAndWallet(categoryId: Long, walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>>
 }

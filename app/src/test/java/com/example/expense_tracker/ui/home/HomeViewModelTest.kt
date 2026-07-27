@@ -284,4 +284,47 @@ class HomeViewModelTest {
         assertEquals(0L, state.totalExpense)
         assertTrue(state.transactions.isEmpty())
     }
+
+    // ── Transaction Limit Tests ─────────────────────────────────────
+
+    @Test
+    fun `transactions are limited to 5 most recent`() {
+        val today = todayMidnight()
+        val categories = listOf(Category(1, "Makanan"))
+        val expenses = (1..10).map { i ->
+            Expense(
+                id = i.toLong(),
+                amount = 1000L * i,
+                categoryId = 1,
+                timestamp = today + (i * 1000L),
+                type = TransactionType.EXPENSE.name
+            )
+        }
+        fakeRepository.setData(expenses = expenses, categories = categories)
+        initAndAdvance()
+
+        val state = viewModel.uiState.value
+        assertEquals(5, state.transactions.size)
+        // Verify they are the 5 most recent (DESC order: 10, 9, 8, 7, 6)
+        assertEquals(10_000L, state.transactions[0].amount)
+        assertEquals(6_000L, state.transactions[4].amount)
+    }
+
+    @Test
+    fun `fewer than 5 transactions are all shown`() {
+        val today = todayMidnight()
+        val categories = listOf(Category(1, "Makanan"))
+        fakeRepository.setData(
+            expenses = listOf(
+                Expense(id = 1, amount = 5000L, categoryId = 1, timestamp = today + 1000, type = TransactionType.EXPENSE.name),
+                Expense(id = 2, amount = 8000L, categoryId = 1, timestamp = today + 2000, type = TransactionType.EXPENSE.name),
+                Expense(id = 3, amount = 3000L, categoryId = 1, timestamp = today + 3000, type = TransactionType.EXPENSE.name)
+            ),
+            categories = categories
+        )
+        initAndAdvance()
+
+        val state = viewModel.uiState.value
+        assertEquals(3, state.transactions.size)
+    }
 }
