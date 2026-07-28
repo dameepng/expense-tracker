@@ -65,7 +65,7 @@ class InputViewModel(
                 selectedCategoryId = loadedCategoryId,
                 selectedWalletId = loadedWalletId,
                 transactionType = loadedTransactionType,
-                isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null && loadedWalletId != null
+                isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null
             )
         }
     }

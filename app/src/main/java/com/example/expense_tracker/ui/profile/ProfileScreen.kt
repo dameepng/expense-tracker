@@ -98,7 +98,10 @@ fun ProfileScreen(
             title = stringResource(R.string.profile_select_theme),
             options = options,
             selectedOption = uiState.themeMode,
-            onOptionSelected = { viewModel.setThemeMode(it) },
+            onOptionSelected = { 
+                viewModel.setThemeMode(it)
+                showThemeDialog = false 
+            },
             onDismissRequest = { showThemeDialog = false }
         )
     }
@@ -109,7 +112,10 @@ fun ProfileScreen(
             title = stringResource(R.string.profile_select_currency),
             options = options,
             selectedOption = uiState.currency,
-            onOptionSelected = { viewModel.setCurrency(it) },
+            onOptionSelected = { 
+                viewModel.setCurrency(it)
+                showCurrencyDialog = false 
+            },
             onDismissRequest = { showCurrencyDialog = false }
         )
     }
@@ -120,7 +126,10 @@ fun ProfileScreen(
             title = stringResource(R.string.profile_select_language),
             options = options,
             selectedOption = uiState.language,
-            onOptionSelected = { viewModel.setLanguage(it) },
+            onOptionSelected = { 
+                viewModel.setLanguage(it)
+                showLanguageDialog = false 
+            },
             onDismissRequest = { showLanguageDialog = false }
         )
     }
@@ -283,7 +292,7 @@ fun ProfileHeader(
                     .clip(CircleShape),
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
-                if (photoUri != null && photoUri.isNotEmpty()) {
+                if (!photoUri.isNullOrEmpty()) {
                     AsyncImage(
                         model = photoUri,
                         contentDescription = "Profile Picture",
@@ -492,7 +501,7 @@ fun EditProfileDialog(
     var name by remember { mutableStateOf(currentName) }
     var photoUri by remember { mutableStateOf(currentPhotoUri) }
 
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(text = "Edit Profil")
@@ -525,7 +534,7 @@ fun EditProfileDialog(
                     }
                 }
 
-                val pickMedia = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()) { uri ->
+                val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                     if (uri != null) {
                         val cropOptions = com.canhub.cropper.CropImageContractOptions(
                             uri,
@@ -554,7 +563,7 @@ fun EditProfileDialog(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    if (photoUri != null && photoUri!!.isNotEmpty()) {
+                    if (!photoUri.isNullOrEmpty()) {
                         AsyncImage(
                             model = photoUri,
                             contentDescription = "Profile Picture",

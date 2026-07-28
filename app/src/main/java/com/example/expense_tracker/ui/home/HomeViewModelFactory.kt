@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.RoomExpenseRepository
-import com.example.expense_tracker.data.UserPreferencesRepository
 import com.example.expense_tracker.data.dataStore
 
 class HomeViewModelFactory : ViewModelProvider.Factory {

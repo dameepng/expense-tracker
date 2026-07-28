@@ -86,22 +86,17 @@ class MainActivity : AppCompatActivity() {
                 CurrencyFormatter.setCurrency(currency)
             }
             
-            val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-            val updatedConfig = remember(language, configuration) {
-                val config = Configuration(configuration)
+            LaunchedEffect(language) {
                 if (language != null) {
                     val localeStr = if (language == "English") "en" else "id"
-                    val locale = Locale(localeStr)
-                    Locale.setDefault(locale)
-                    config.setLocale(locale)
-                    @Suppress("DEPRECATION")
-                    context.resources.updateConfiguration(config, context.resources.displayMetrics)
+                    androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                        androidx.core.os.LocaleListCompat.forLanguageTags(localeStr)
+                    )
                 }
-                config
             }
             
             val isBiometricsEnabledState = userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = null)
-            val isBiometricsEnabled = isBiometricsEnabledState.value
+            val isBiometricsEnabled = isBiometricsEnabledState.value ?: return@setContent
             
             val isSystemDark = isSystemInDarkTheme()
             val darkTheme = when (themeMode) {
@@ -116,11 +111,11 @@ class MainActivity : AppCompatActivity() {
             DisposableEffect(lifecycleOwner, isBiometricsEnabled) {
                 val observer = LifecycleEventObserver { _, event ->
                     if (event == Lifecycle.Event.ON_STOP) {
-                        if (isBiometricsEnabled == true) {
+                        if (isBiometricsEnabled) {
                             AuthManager.lastBackgroundTime = System.currentTimeMillis()
                         }
                     } else if (event == Lifecycle.Event.ON_START) {
-                        if (isBiometricsEnabled == true) {
+                        if (isBiometricsEnabled) {
                             val timeElapsed = System.currentTimeMillis() - AuthManager.lastBackgroundTime
                             if (AuthManager.lastBackgroundTime > 0 && timeElapsed > 5 * 60 * 1000) {
                                 AuthManager.lock()
@@ -138,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                                     )
                                 }
                             }
-                        } else if (isBiometricsEnabled == false) {
+                        } else {
                             AuthManager.unlock()
                         }
                     }
@@ -148,17 +143,9 @@ class MainActivity : AppCompatActivity() {
                     lifecycleOwner.lifecycle.removeObserver(observer)
                 }
             }
-            
-            if (isBiometricsEnabled == null) {
-                // Return empty screen while reading DataStore to prevent bypass
-                return@setContent
-            }
 
-            androidx.compose.runtime.CompositionLocalProvider(
-                androidx.compose.ui.platform.LocalConfiguration provides updatedConfig
-            ) {
-                Expense_trackerTheme(darkTheme = darkTheme) {
-                if (isBiometricsEnabled == true && !isAuthenticated) {
+            Expense_trackerTheme(darkTheme = darkTheme) {
+                if (isBiometricsEnabled && !isAuthenticated) {
                     androidx.compose.material3.Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = androidx.compose.material3.MaterialTheme.colorScheme.background
@@ -196,7 +183,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -205,7 +191,7 @@ fun ExpenseTrackerApp() {
     val app = context.applicationContext as android.app.Application
     
     val homeViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = HomeViewModelFactory.create(app))
-    val streakViewModel: StreakCounterViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = StreakViewModelFactory.create(app))
+    androidx.lifecycle.viewmodel.compose.viewModel<StreakCounterViewModel>(factory = StreakViewModelFactory.create(app))
     val summaryViewModel: SummaryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = SummaryViewModelFactory.create(app))
     val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(app))
     val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(app))
@@ -232,7 +218,7 @@ fun ExpenseTrackerApp() {
             com.example.expense_tracker.ui.navigation.BottomNavBar(
                 currentRoute = currentRoute,
                 onNavigate = { route ->
-                    if (route == currentRoute || (route.startsWith("input") && currentRoute?.startsWith("input") == true)) {
+                    if (route == currentRoute || (route.startsWith("input") && currentRoute != null && currentRoute.startsWith("input"))) {
                         return@BottomNavBar
                     }
                     navController.navigate(route) {
@@ -281,13 +267,12 @@ fun ExpenseTrackerApp() {
                 LaunchedEffect(shouldRefresh) {
                     if (shouldRefresh) {
                         // homeViewModel.refresh()
-                        backStackEntry.savedStateHandle.set("refresh_home", false)
+                        backStackEntry.savedStateHandle["refresh_home"] = false
                     }
                 }
                 
                 HomeScreen(
                     viewModel = homeViewModel,
-                    streakViewModel = streakViewModel,
                     onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) },
                     onNavigateToSummary = { walletId ->
                         navController.navigate(NavRoutes.SUMMARY) {
@@ -296,7 +281,7 @@ fun ExpenseTrackerApp() {
                         }
                         navController.currentBackStackEntry
                             ?.savedStateHandle
-                            ?.set("summary_wallet_id", walletId)
+                            ?.let { it["summary_wallet_id"] = walletId }
                     },
                     onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) }
                 )
@@ -315,10 +300,15 @@ fun ExpenseTrackerApp() {
                 InputScreen(
                     viewModel = inputViewModel,
                     onSaved = { 
-                        navController.previousBackStackEntry?.savedStateHandle?.set("refresh_home", true)
+                        navController.previousBackStackEntry?.savedStateHandle?.let { it["refresh_home"] = true }
                         navController.popBackStack() 
                     },
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToWallet = {
+                        navController.navigate(NavRoutes.WALLET) {
+                            popUpTo(NavRoutes.INPUT) { inclusive = true }
+                        }
+                    }
                 )
             }
 
@@ -348,15 +338,15 @@ fun ExpenseTrackerApp() {
             composable(
                 route = NavRoutes.CATEGORY_DETAIL,
                 arguments = listOf(
-                    androidx.navigation.navArgument("categoryId") { type = androidx.navigation.NavType.StringType },
-                    androidx.navigation.navArgument("walletId") { type = androidx.navigation.NavType.StringType; nullable = true },
-                    androidx.navigation.navArgument("startTime") { type = androidx.navigation.NavType.StringType },
-                    androidx.navigation.navArgument("endTime") { type = androidx.navigation.NavType.StringType }
+                    navArgument("categoryId") { type = NavType.StringType },
+                    navArgument("walletId") { type = NavType.StringType; nullable = true },
+                    navArgument("startTime") { type = NavType.StringType },
+                    navArgument("endTime") { type = NavType.StringType }
                 ),
-                enterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(150)) },
-                exitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(150)) },
-                popEnterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(150)) },
-                popExitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(150)) }
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
+                popExitTransition = { fadeOut(animationSpec = tween(150)) }
             ) { backStackEntry ->
                 val viewModel: com.example.expense_tracker.ui.summary.categorydetail.CategoryDetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                     factory = com.example.expense_tracker.ui.summary.categorydetail.CategoryDetailViewModelFactory(app)
@@ -427,4 +417,4 @@ fun ExpenseTrackerApp() {
 
 @Composable
 private fun applicationContext() =
-    androidx.compose.ui.platform.LocalContext.current.applicationContext as android.app.Application
+    LocalContext.current.applicationContext as android.app.Application

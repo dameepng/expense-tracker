@@ -33,8 +33,7 @@ class BillReminderWorker(
             }
 
             val today = LocalDate.now()
-            val dayOfMonth = today.dayOfMonth
-            val isFirstDayOfMonth = dayOfMonth == 1
+            today.dayOfMonth
             
             val currencyFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
 

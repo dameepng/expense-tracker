@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.graphics.toColorInt
 
 private fun formatAxisValue(value: Long): String {
     return when {
@@ -44,7 +45,7 @@ fun CashFlowChart(
     val incomeColor = Color(0xFF10B981)
     val expenseColor = Color(0xFF94A3B8) // Lighter slate for better visibility
     val gridColor = Color(0xFFE2E8F0)
-    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    MaterialTheme.colorScheme.onSurfaceVariant
 
     val density = LocalDensity.current
     val labelSizeSp = 10.sp
@@ -95,7 +96,7 @@ fun CashFlowChart(
             val stepValue = maxAmount.toFloat() / (ySteps - 1)
 
             val textPaint = android.graphics.Paint().apply {
-                color = android.graphics.Color.parseColor("#94A3B8")
+                color = "#94A3B8".toColorInt()
                 textSize = labelSizePx
                 isAntiAlias = true
             }
@@ -130,7 +131,7 @@ fun CashFlowChart(
             val labelPairs = dateLabels as? List<Pair<Int, String>>
             if (labelPairs != null) {
                 val xTextPaint = android.graphics.Paint().apply {
-                    color = android.graphics.Color.parseColor("#94A3B8")
+                    color = "#94A3B8".toColorInt()
                     textSize = labelSizePx
                     isAntiAlias = true
                     textAlign = android.graphics.Paint.Align.CENTER

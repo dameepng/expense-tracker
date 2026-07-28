@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,7 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import com.example.expense_tracker.data.TransactionType
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -108,7 +106,6 @@ private fun formatWithDots(value: String): String {
 @Composable
 fun AmountInput(
     amountText: String,
-    transactionType: TransactionType,
     onAmountChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -319,7 +316,8 @@ fun InputTypeSegmentedButton(
 fun InputScreen(
     viewModel: InputViewModel,
     onSaved: () -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onNavigateToWallet: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -340,20 +338,53 @@ fun InputScreen(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        InputTypeSegmentedButton(
-            selectedOption = state.inputTypeOption,
-            onOptionSelected = { viewModel.onInputTypeSelected(it) }
-        )
-        
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-        ) {
+        if (state.wallets.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Text(
+                        text = "Tidak Ada Dompet",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Tambahkan wallet terlebih dahulu untuk mencatat transaksi",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = onNavigateToWallet,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Tambah Wallet")
+                    }
+                }
+            }
+        } else {
+            InputTypeSegmentedButton(
+                selectedOption = state.inputTypeOption,
+                onOptionSelected = { viewModel.onInputTypeSelected(it) }
+            )
+            
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
             // Amount input
         AmountInput(
             amountText = state.amountText,
-            transactionType = state.transactionType,
             onAmountChange = { viewModel.onAmountChange(it) }
         )
 
@@ -466,6 +497,7 @@ fun InputScreen(
             enabled = state.isSaveEnabled,
             onClick = { viewModel.onSave() }
         )
+        }
     }
 }
 
@@ -492,7 +524,7 @@ fun InputScreenEmptyPreview() {
             InputHeader(inputTypeOption = InputTypeOption.EXPENSE, onNavigateBack = {})
             Spacer(modifier = Modifier.height(16.dp))
             InputTypeSegmentedButton(selectedOption = InputTypeOption.EXPENSE, onOptionSelected = {})
-            AmountInput(amountText = "", transactionType = TransactionType.EXPENSE, onAmountChange = {})
+            AmountInput(amountText = "", onAmountChange = {})
             Spacer(modifier = Modifier.height(16.dp))
             CategoryGrid(categories = categories, selectedId = null, onCategorySelected = {})
             SaveButton(enabled = false, onClick = {})
@@ -521,7 +553,7 @@ fun InputScreenFilledPreview() {
             InputHeader(inputTypeOption = InputTypeOption.EXPENSE, onNavigateBack = {})
             Spacer(modifier = Modifier.height(16.dp))
             InputTypeSegmentedButton(selectedOption = InputTypeOption.EXPENSE, onOptionSelected = {})
-            AmountInput(amountText = "75000", transactionType = TransactionType.EXPENSE, onAmountChange = {})
+            AmountInput(amountText = "75000", onAmountChange = {})
             Spacer(modifier = Modifier.height(16.dp))
             CategoryGrid(categories = categories, selectedId = 1L, onCategorySelected = {})
             SaveButton(enabled = true, onClick = {})

@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package com.example.expense_tracker.data
 
 import org.junit.Assert.*
@@ -38,7 +40,6 @@ class StreakCalculatorTest {
     }
 
     private fun todayMidnight(): Long = midnightNDaysAgo(0)
-    private fun yesterdayMidnight(): Long = midnightNDaysAgo(1)
 
     // ── Streak Tests ───────────────────────────────────────────────
 

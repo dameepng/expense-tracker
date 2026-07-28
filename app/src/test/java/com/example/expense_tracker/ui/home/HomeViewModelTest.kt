@@ -4,12 +4,10 @@ import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.Expense
 import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.FakeBillReminderRepository
-import com.example.expense_tracker.data.CategoryBreakdown
 import com.example.expense_tracker.data.TransactionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -181,6 +179,22 @@ class HomeViewModelTest {
         override fun getExpenseById(id: Long): Expense? {
             return expenses.find { it.id == id }
         }
+
+        override fun deleteExpensesByWalletId(walletId: Long) {
+            expenses = expenses.filterNot { it.walletId == walletId }
+        }
+
+        override fun getTransactionsByCategory(categoryId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<Expense>> = kotlinx.coroutines.flow.flow {
+            emit(expenses
+                .filter { it.categoryId == categoryId && it.timestamp in startTime until endTime }
+                .sortedByDescending { it.timestamp })
+        }
+
+        override fun getTransactionsByCategoryAndWallet(categoryId: Long, walletId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<Expense>> = kotlinx.coroutines.flow.flow {
+            emit(expenses
+                .filter { it.categoryId == categoryId && it.walletId == walletId && it.timestamp in startTime until endTime }
+                .sortedByDescending { it.timestamp })
+        }
     }
 
     // ── Helpers ────────────────────────────────────────────────────
@@ -194,8 +208,6 @@ class HomeViewModelTest {
         }
         return cal.timeInMillis
     }
-
-    private val oneDay = 86_400_000L
 
     @Before
     fun setup() {

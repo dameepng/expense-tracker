@@ -106,26 +106,6 @@ class ProfileViewModel(
         }
     }
 
-    fun logout(context: Context, onLogoutSuccess: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                // Clear all DataStore preferences
-                preferencesRepository.clearAllPreferences()
-                
-                // Clear the database file
-                val db = AppDatabase.getInstance(context)
-                AppDatabase.resetInstance()
-                context.deleteDatabase("expense_tracker.db")
-
-                withContext(Dispatchers.Main) {
-                    onLogoutSuccess()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
     fun exportData(context: Context) {
         viewModelScope.launch {
             try {

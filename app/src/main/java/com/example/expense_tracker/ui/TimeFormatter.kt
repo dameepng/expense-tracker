@@ -5,7 +5,8 @@ import java.util.Date
 import java.util.Locale
 
 object TimeFormatter {
-    private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-
-    fun formatTime(epochMillis: Long): String = timeFormat.format(Date(epochMillis))
+    fun formatTime(epochMillis: Long): String {
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        return timeFormat.format(Date(epochMillis))
+    }
 }

@@ -14,24 +14,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,7 +31,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,7 +51,6 @@ import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.luminance
@@ -152,81 +141,15 @@ fun SummaryPeriodDropdown(
 
 // ── Summary Type Tabs ──────────────────────────────────────────────
 
-@Composable
-fun SummaryTypeTabs(
-    selectedType: TransactionType,
-    onTypeSelected: (TransactionType) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val tabs = listOf(TransactionType.EXPENSE, TransactionType.INCOME)
-    val selectedTabIndex = tabs.indexOf(selectedType)
-    
-    TabRow(
-        selectedTabIndex = selectedTabIndex,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        tabs.forEachIndexed { index, type ->
-            val label = if (type == TransactionType.EXPENSE) stringResource(R.string.transaction_expense) else stringResource(R.string.transaction_income)
-            Tab(
-                selected = selectedTabIndex == index,
-                onClick = { onTypeSelected(type) },
-                text = { Text(label, fontWeight = FontWeight.SemiBold) },
-                selectedContentColor = if (type == TransactionType.INCOME) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
-                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
 // ── Wallet Filter Chips ─────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun WalletFilterChips(
-    wallets: List<com.example.expense_tracker.data.Wallet>,
-    selectedWalletId: Long?,
-    onWalletSelected: (Long?) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    if (wallets.size <= 1) return // No need to show filter if 0 or 1 wallet
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        FilterChip(
-            selected = selectedWalletId == null,
-            onClick = { onWalletSelected(null) },
-            label = { Text(stringResource(R.string.all_wallets)) },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        )
-        wallets.forEach { wallet ->
-            FilterChip(
-                selected = selectedWalletId == wallet.id,
-                onClick = { onWalletSelected(wallet.id) },
-                label = { Text(wallet.name) },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
-    }
-}
 
 // ── Breakdown Card Item ──────────────────────────────────────────────
 
 @Composable
 fun BreakdownCardItem(
     item: BreakdownItem,
-    isIncome: Boolean = false,
     modifier: Modifier = Modifier,
+    isIncome: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     val icon = when (item.categoryId) {
@@ -321,8 +244,8 @@ fun BreakdownCardItem(
 
 @Composable
 fun SummaryEmptyState(
-    isIncome: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isIncome: Boolean = false
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
@@ -672,7 +595,6 @@ fun SummaryScreen(
                             ) {
                                 DonutChart(
                                     items = state.items,
-                                    totalAmount = state.totalAmount,
                                     isIncome = isIncome,
                                     modifier = Modifier.weight(1f)
                                 )
@@ -757,7 +679,7 @@ fun SummaryScreen(
                         onClick = {
                             val startDate = state.customStartDate
                             val endDate = state.customEndDate
-                            val (start, end) = if (state.filter == com.example.expense_tracker.data.FilterPeriod.CUSTOM && startDate != null && endDate != null) {
+                            val (start, end) = if (state.filter == FilterPeriod.CUSTOM && startDate != null && endDate != null) {
                                 Pair(startDate, endDate + 86400000L)
                             } else {
                                 com.example.expense_tracker.data.TimeRangeCalculator.calculateRange(state.filter)
@@ -781,9 +703,9 @@ fun SummaryScreen(
                     dateRangePickerState.selectedStartDateMillis?.let { start ->
                         dateRangePickerState.selectedEndDateMillis?.let { end ->
                             viewModel.onFilterSelected(FilterPeriod.CUSTOM, start, end)
-                            showDateRangePicker = false
                         }
                     }
+                    showDateRangePicker = false
                 }) {
                     Text(stringResource(R.string.ok))
                 }

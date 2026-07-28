@@ -33,7 +33,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -57,8 +56,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
@@ -105,7 +107,6 @@ fun WalletListScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
-                val errorMessage = stringResource(R.string.delete_wallet_error_last)
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -119,11 +120,7 @@ fun WalletListScreen(
                             wallet = wallet,
                             onClick = { onSelectWallet(wallet.id) },
                             onDeleteClick = {
-                                if (uiState.wallets.size <= 1) {
-                                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                                } else {
-                                    walletToDelete = wallet
-                                }
+                                walletToDelete = wallet
                             }
                         )
                     }
@@ -346,7 +343,24 @@ fun WalletListScreen(
                     OutlinedTextField(
                         value = confirmText,
                         onValueChange = { confirmText = it },
-                        label = { Text(stringResource(R.string.delete_wallet_hint)) },
+                        label = {
+                            val hintText = stringResource(R.string.delete_wallet_hint)
+                            val target = "\"hapus dompet\""
+                            val start = hintText.indexOf(target, ignoreCase = true)
+                            if (start != -1) {
+                                Text(
+                                    buildAnnotatedString {
+                                        append(hintText.substring(0, start))
+                                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)) {
+                                            append(hintText.substring(start, start + target.length))
+                                        }
+                                        append(hintText.substring(start + target.length))
+                                    }
+                                )
+                            } else {
+                                Text(hintText)
+                            }
+                        },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
@@ -527,7 +541,3 @@ private fun formatMaskedCardNumber(cardNumber: String): String {
     return padded.chunked(4).joinToString(" ")
 }
 
-private fun formatCardNumberInput(input: String): String {
-    val digits = input.filter { it.isDigit() }.take(16)
-    return digits.chunked(4).joinToString(" ")
-}

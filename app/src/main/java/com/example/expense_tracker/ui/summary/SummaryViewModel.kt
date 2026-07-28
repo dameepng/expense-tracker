@@ -5,20 +5,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.TimeRangeCalculator
 import com.example.expense_tracker.data.WalletRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 import com.example.expense_tracker.data.TransactionType
 
 class SummaryViewModel(
     private val repository: SummaryRepository,
-    private val walletRepository: WalletRepository,
-    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
+    private val walletRepository: WalletRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SummaryUiState(isLoading = true))

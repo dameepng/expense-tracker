@@ -33,79 +33,77 @@ interface UserPreferencesRepository {
 }
 
 class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences>) : UserPreferencesRepository {
-    private val SELECTED_WALLET_ID = longPreferencesKey("selected_wallet_id")
-    private val THEME_MODE = stringPreferencesKey("theme_mode")
-    private val CURRENCY = stringPreferencesKey("currency")
-    private val LANGUAGE = stringPreferencesKey("language")
-    private val IS_BIOMETRICS_ENABLED = booleanPreferencesKey("is_biometrics_enabled")
+    private val selectedWalletIdKey = longPreferencesKey("selected_wallet_id")
+    private val themeModeKey = stringPreferencesKey("theme_mode")
+    private val currencyKey = stringPreferencesKey("currency")
+    private val languageKey = stringPreferencesKey("language")
+    private val isBiometricsEnabledKey = booleanPreferencesKey("is_biometrics_enabled")
     
-    private val USER_NAME = stringPreferencesKey("user_name")
-    private val USER_PHOTO_URI = stringPreferencesKey("user_photo_uri")
+    private val userNameKey = stringPreferencesKey("user_name")
+    private val userPhotoUriKey = stringPreferencesKey("user_photo_uri")
 
     override val selectedWalletIdFlow: Flow<Long?> = dataStore.data
         .map { preferences ->
-            val id = preferences[SELECTED_WALLET_ID] ?: -1L
+            val id = preferences[selectedWalletIdKey] ?: -1L
             if (id == -1L) null else id
         }
 
     override val themeModeFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[THEME_MODE] ?: "System Default" }
+        .map { preferences -> preferences[themeModeKey] ?: "System Default" }
 
     override val currencyFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[CURRENCY] ?: "IDR" }
+        .map { preferences -> preferences[currencyKey] ?: "IDR" }
 
     override val languageFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[LANGUAGE] ?: "Indonesia" }
+        .map { preferences -> preferences[languageKey] ?: "Indonesia" }
 
     override val isBiometricsEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { preferences -> preferences[IS_BIOMETRICS_ENABLED] ?: false }
+        .map { preferences -> preferences[isBiometricsEnabledKey] ?: false }
 
     override val userNameFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[USER_NAME] ?: "Adam" }
+        .map { preferences -> preferences[userNameKey] ?: "Adam" }
 
     override val userPhotoUriFlow: Flow<String?> = dataStore.data
-        .map { preferences -> preferences[USER_PHOTO_URI] }
+        .map { preferences -> preferences[userPhotoUriKey] }
 
     override suspend fun saveSelectedWalletId(walletId: Long?) {
         dataStore.edit { preferences ->
             if (walletId == null) {
-                preferences[SELECTED_WALLET_ID] = -1L
+                preferences[selectedWalletIdKey] = -1L
             } else {
-                preferences[SELECTED_WALLET_ID] = walletId
+                preferences[selectedWalletIdKey] = walletId
             }
         }
     }
 
     override suspend fun saveThemeMode(mode: String) {
-        dataStore.edit { preferences -> preferences[THEME_MODE] = mode }
+        dataStore.edit { preferences -> preferences[themeModeKey] = mode }
     }
 
     override suspend fun saveCurrency(currency: String) {
-        dataStore.edit { preferences -> preferences[CURRENCY] = currency }
+        dataStore.edit { preferences -> preferences[currencyKey] = currency }
     }
 
     override suspend fun saveLanguage(language: String) {
-        dataStore.edit { preferences -> preferences[LANGUAGE] = language }
+        dataStore.edit { preferences -> preferences[languageKey] = language }
     }
 
     override suspend fun saveBiometricsEnabled(enabled: Boolean) {
-        dataStore.edit { preferences -> preferences[IS_BIOMETRICS_ENABLED] = enabled }
+        dataStore.edit { preferences -> preferences[isBiometricsEnabledKey] = enabled }
     }
 
     override suspend fun saveUserProfile(name: String, photoUri: String?) {
         dataStore.edit { preferences ->
-            preferences[USER_NAME] = name
-            if (photoUri == null) {
-                preferences.remove(USER_PHOTO_URI)
+            preferences[userNameKey] = name
+            if (photoUri != null) {
+                preferences[userPhotoUriKey] = photoUri
             } else {
-                preferences[USER_PHOTO_URI] = photoUri
+                preferences.remove(userPhotoUriKey)
             }
         }
     }
     
     override suspend fun clearAllPreferences() {
-        dataStore.edit { preferences ->
-            preferences.clear()
-        }
+        dataStore.edit { it.clear() }
     }
 }

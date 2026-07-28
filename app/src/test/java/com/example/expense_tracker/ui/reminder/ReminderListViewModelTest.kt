@@ -12,7 +12,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -50,6 +49,9 @@ class ReminderListViewModelTest {
         override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long> = flowOf(0L)
         override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long> = flowOf(0L)
         override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> = flowOf(emptyList())
+        override fun deleteExpensesByWalletId(walletId: Long) {}
+        override fun getTransactionsByCategory(categoryId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> = flowOf(emptyList())
+        override fun getTransactionsByCategoryAndWallet(categoryId: Long, walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> = flowOf(emptyList())
     }
 
     @Before

@@ -1,6 +1,5 @@
 package com.example.expense_tracker.data
 
-import com.example.expense_tracker.data.TransactionType
 import com.example.expense_tracker.ui.summary.SummaryRepository
 
 import kotlinx.coroutines.flow.Flow

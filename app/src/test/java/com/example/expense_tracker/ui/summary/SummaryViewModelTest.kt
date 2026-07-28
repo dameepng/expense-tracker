@@ -5,7 +5,6 @@ import com.example.expense_tracker.data.FilterPeriod
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -46,7 +45,7 @@ class SummaryViewModelTest {
     }
 
     private fun initViewModel(repo: FakeSummaryRepository): SummaryViewModel {
-        val vm = SummaryViewModel(repo, com.example.expense_tracker.data.FakeWalletRepository(), testDispatcher)
+        val vm = SummaryViewModel(repo, com.example.expense_tracker.data.FakeWalletRepository())
         testDispatcher.scheduler.advanceUntilIdle()
         return vm
     }

@@ -12,15 +12,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.RoomExpenseRepository
 import com.example.expense_tracker.data.RoomWalletRepository
-import com.example.expense_tracker.data.Wallet
 import com.example.expense_tracker.data.WalletRepository
 
 data class ReminderItemUiState(

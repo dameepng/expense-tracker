@@ -75,8 +75,6 @@ class WalletViewModel(
     }
 
     fun deleteWallet(wallet: Wallet) {
-        if (_uiState.value.wallets.size <= 1) return // Prevent deleting last wallet
-        
         viewModelScope.launch(ioDispatcher) {
             // Check if active wallet is the one being deleted
             val activeWalletId = userPreferencesRepository.selectedWalletIdFlow.first()

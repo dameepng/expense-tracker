@@ -42,11 +42,33 @@ class WalletViewModelTest {
         override suspend fun clearAllPreferences() {}
     }
 
+    private lateinit var expenseRepository: FakeExpenseRepository
+
+    class FakeExpenseRepository : com.example.expense_tracker.data.ExpenseRepository {
+        override fun getCategories(): kotlinx.coroutines.flow.Flow<List<com.example.expense_tracker.data.Category>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getCategoriesByType(type: String): kotlinx.coroutines.flow.Flow<List<com.example.expense_tracker.data.Category>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun insertExpense(expense: com.example.expense_tracker.data.Expense) {}
+        override fun deleteExpense(expense: com.example.expense_tracker.data.Expense) {}
+        override fun getExpenseById(id: Long): com.example.expense_tracker.data.Expense? = null
+        override fun getExpensesBetween(startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<com.example.expense_tracker.data.Expense>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getAllTransactionsBetween(startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<com.example.expense_tracker.data.Expense>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getAllTransactions(): List<com.example.expense_tracker.data.Expense> = emptyList()
+        override fun getTotalExpense(startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<Long> = kotlinx.coroutines.flow.flowOf(0L)
+        override fun getTotalIncome(startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<Long> = kotlinx.coroutines.flow.flowOf(0L)
+        override fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<Long> = kotlinx.coroutines.flow.flowOf(0L)
+        override fun getTotalIncomeByWallet(walletId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<Long> = kotlinx.coroutines.flow.flowOf(0L)
+        override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<com.example.expense_tracker.data.Expense>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun deleteExpensesByWalletId(walletId: Long) {}
+        override fun getTransactionsByCategory(categoryId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<com.example.expense_tracker.data.Expense>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getTransactionsByCategoryAndWallet(categoryId: Long, walletId: Long, startTime: Long, endTime: Long): kotlinx.coroutines.flow.Flow<List<com.example.expense_tracker.data.Expense>> = kotlinx.coroutines.flow.flowOf(emptyList())
+    }
+
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = FakeWalletRepository()
         userPrefs = FakeUserPreferencesRepository()
+        expenseRepository = FakeExpenseRepository()
     }
 
     @After
@@ -58,7 +80,7 @@ class WalletViewModelTest {
     fun initialState_loadsWallets() = runTest(testDispatcher) {
         repository.insertWallet(Wallet(name = "BCA", balance = 50000L))
         
-        viewModel = WalletViewModel(repository, userPrefs, testDispatcher)
+        viewModel = WalletViewModel(repository, expenseRepository, userPrefs, testDispatcher)
         
         // Wait for coroutine to finish
         testScheduler.advanceUntilIdle()
@@ -71,7 +93,7 @@ class WalletViewModelTest {
 
     @Test
     fun addWallet_insertsAndRefreshes() = runTest(testDispatcher) {
-        viewModel = WalletViewModel(repository, userPrefs, testDispatcher)
+        viewModel = WalletViewModel(repository, expenseRepository, userPrefs, testDispatcher)
         testScheduler.advanceUntilIdle()
         
         viewModel.addWallet("Mandiri")
@@ -87,7 +109,7 @@ class WalletViewModelTest {
         val wallet = Wallet(id = 1L, name = "Cash", balance = 100L)
         repository.insertWallet(wallet)
         
-        viewModel = WalletViewModel(repository, userPrefs, testDispatcher)
+        viewModel = WalletViewModel(repository, expenseRepository, userPrefs, testDispatcher)
         testScheduler.advanceUntilIdle()
         
         assertEquals(1, viewModel.uiState.first().wallets.size)

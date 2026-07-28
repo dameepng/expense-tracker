@@ -50,11 +50,6 @@ object BiometricHelper {
                     onSuccess()
                 }
 
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    // Prompt again automatically usually, but we can notify if we want
-                    // onError("Autentikasi gagal. Coba lagi.")
-                }
             })
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()

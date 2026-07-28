@@ -4,6 +4,11 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Room schema export directory for version migration checks
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 android {
     namespace = "com.example.expense_tracker"
     compileSdk = 37
@@ -16,11 +21,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        // Room schema export directory for version migration checks
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
     }
 
     buildTypes {
@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    implementation("com.vanniktech:android-image-cropper:4.5.0")
+    implementation(libs.android.image.cropper)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -53,14 +53,14 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.compose.material.icons.extended)
 
     implementation(libs.androidx.work.runtime.ktx)
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("androidx.biometric:biometric:1.1.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("io.coil-kt:coil-compose:2.6.0")
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.core.splashscreen)
 
     // Room
     implementation(libs.androidx.room.runtime)

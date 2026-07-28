@@ -112,7 +112,7 @@ class HomeViewModel(
                     totalAmount = totalIncome - totalExpense,
                     totalIncome = totalIncome,
                     totalExpense = totalExpense,
-                    transactions = withCategory.take(10),
+                    transactions = withCategory.take(5),
                     wallets = wallets,
                     activeRemindersCount = activeRemindersCount,
                     userName = userName,

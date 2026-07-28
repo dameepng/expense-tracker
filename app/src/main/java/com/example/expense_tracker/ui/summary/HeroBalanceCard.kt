@@ -114,7 +114,7 @@ fun HeroBalanceCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${String.format("%.1f", Math.abs(percentageChange))}% vs last period",
+                        text = "${String.format(java.util.Locale.ROOT, "%.1f", kotlin.math.abs(percentageChange))}% vs last period",
                         color = changeColor,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold

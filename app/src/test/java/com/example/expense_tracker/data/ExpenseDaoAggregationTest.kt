@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package com.example.expense_tracker.data
 
 import androidx.room.Room
