@@ -50,8 +50,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.expense_tracker.data.AppDatabase
+import com.example.expense_tracker.data.UserPreferencesRepository
+import com.example.expense_tracker.data.ai.AiDependencies
+import com.example.expense_tracker.data.ai.chat.ChatContextProvider
+import com.example.expense_tracker.data.analytics.RoomFinancialSummarySource
 import com.example.expense_tracker.data.dataStore
 import com.example.expense_tracker.ui.CurrencyFormatter
+import com.example.expense_tracker.ui.chat.ChatScreen
+import com.example.expense_tracker.ui.chat.ChatViewModel
+import com.example.expense_tracker.ui.chat.ChatViewModelFactory
 import com.example.expense_tracker.ui.home.HomeScreen
 import com.example.expense_tracker.ui.home.HomeViewModel
 import com.example.expense_tracker.ui.home.HomeViewModelFactory
@@ -177,7 +185,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    ExpenseTrackerApp()
+                    ExpenseTrackerApp(userPreferencesRepository = userPrefsRepo)
                 }
             }
         }
@@ -186,7 +194,7 @@ class MainActivity : AppCompatActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpenseTrackerApp() {
+fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
     val context = LocalContext.current
     val app = context.applicationContext as android.app.Application
     
@@ -215,18 +223,20 @@ fun ExpenseTrackerApp() {
 
     Scaffold(
         bottomBar = {
-            com.example.expense_tracker.ui.navigation.BottomNavBar(
-                currentRoute = currentRoute,
-                onNavigate = { route ->
-                    if (route == currentRoute || (route.startsWith("input") && currentRoute != null && currentRoute.startsWith("input"))) {
-                        return@BottomNavBar
+            if (NavRoutes.shouldShowBottomBar(currentRoute)) {
+                com.example.expense_tracker.ui.navigation.BottomNavBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { route ->
+                        if (route == currentRoute || (route.startsWith("input") && currentRoute != null && currentRoute.startsWith("input"))) {
+                            return@BottomNavBar
+                        }
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
                     }
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                    }
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -283,7 +293,50 @@ fun ExpenseTrackerApp() {
                             ?.savedStateHandle
                             ?.let { it["summary_wallet_id"] = walletId }
                     },
-                    onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) }
+                    onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) },
+                    onNavigateToAiInput = { navController.navigate(NavRoutes.AI_INPUT) },
+                    onNavigateToChat = {
+                        if (navController.currentDestination?.route != NavRoutes.CHAT) {
+                            navController.navigate(NavRoutes.CHAT) {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(NavRoutes.AI_INPUT) {
+                val aiViewModel: com.example.expense_tracker.ui.ai.NaturalLanguageViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(
+                        factory = com.example.expense_tracker.ui.ai.NaturalLanguageViewModelFactory.create(applicationContext())
+                    )
+                com.example.expense_tracker.ui.ai.NaturalLanguageScreen(
+                    viewModel = aiViewModel,
+                    onBack = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() }
+                )
+            }
+
+            composable(NavRoutes.CHAT) { backStackEntry ->
+                val viewModelFactory = remember(backStackEntry, userPreferencesRepository) {
+                    val database = AppDatabase.getInstance(app)
+                    val contextSource = ChatContextProvider(
+                        financialSummarySource = RoomFinancialSummarySource(database.expenseDao()),
+                        userPreferencesRepository = userPreferencesRepository
+                    )
+                    ChatViewModelFactory.create(
+                        aiDependencies = AiDependencies.shared,
+                        contextSource = contextSource
+                    )
+                }
+                val chatViewModel: ChatViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(
+                        viewModelStoreOwner = backStackEntry,
+                        factory = viewModelFactory
+                    )
+                ChatScreen(
+                    viewModel = chatViewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
 

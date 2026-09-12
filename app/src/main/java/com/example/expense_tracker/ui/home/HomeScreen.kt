@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
@@ -43,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -480,7 +482,9 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToInput: (Long?) -> Unit = {},
     onNavigateToSummary: (Long?) -> Unit = {},
-    onNavigateToReminder: () -> Unit = {}
+    onNavigateToReminder: () -> Unit = {},
+    onNavigateToAiInput: () -> Unit = {},
+    onNavigateToChat: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -534,6 +538,18 @@ fun HomeScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
         },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onNavigateToChat,
+                icon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Chat,
+                        contentDescription = null
+                    )
+                },
+                text = { Text(stringResource(R.string.chat_home_fab)) }
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
@@ -544,6 +560,16 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
         
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = onNavigateToAiInput,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        ) {
+            Icon(Icons.Default.Star, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.ai_open_input))
+        }
         Spacer(modifier = Modifier.height(8.dp))
 
         // Balance Card
@@ -612,7 +638,7 @@ fun HomeScreen(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
+                    contentPadding = PaddingValues(bottom = 96.dp)
                 ) {
                     items(
                         items = state.transactions,

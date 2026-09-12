@@ -38,9 +38,9 @@
     <string name="privacy_h1">Introduction</string>
     <string name="privacy_p1">Kasflow respects your privacy. We are committed to protecting your personal information and your right to privacy.</string>
     <string name="privacy_h2">Data Collection</string>
-    <string name="privacy_p2">Kasflow is a privacy-first financial management application. All your transactions, wallets, settings, and other information are stored locally on your device (using SQLite Database / Room). We do not collect, transmit, or store your financial data on any servers.</string>
+    <string name="privacy_p2">Kasflow stores transactions, wallets, and settings locally on your device. Manual entry does not require sending data to an AI service. If you use AI entry, input is sent to Claude (Anthropic) as described in Optional AI processing.</string>
     <string name="privacy_h3">Data Usage</string>
-    <string name="privacy_p3">The stored data is used exclusively to provide the core functions of the application, such as displaying expense charts, transaction lists, and account settings. Since the data never leaves your device, you are in full control.</string>
+    <string name="privacy_p3">Local data powers expense charts, transaction lists, and account settings. AI processing runs only when you choose it, and the result is saved as a transaction only after your confirmation.</string>
     <string name="privacy_h4">Data Security</string>
     <string name="privacy_p4">We provide a Screen Lock option using your device\'s biometrics to prevent unauthorized access to the app when your device is unlocked.</string>
     <string name="privacy_h5">User Rights</string>

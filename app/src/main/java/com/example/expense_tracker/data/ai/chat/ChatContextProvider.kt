@@ -12,14 +12,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 
+internal fun interface ChatContextSource {
+    suspend fun loadContext(): ChatContext
+}
+
 internal class ChatContextProvider(
     private val financialSummarySource: FinancialSummarySource,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val clockProvider: () -> Clock = { Clock.systemDefaultZone() },
     private val calculationDispatcher: CoroutineDispatcher = Dispatchers.Default
-) {
+) : ChatContextSource {
     /** Loads a new database snapshot and current preferences for every invocation. */
-    suspend fun loadContext(): ChatContext {
+    override suspend fun loadContext(): ChatContext {
         try {
             val preferences = combine(
                 userPreferencesRepository.currencyFlow,

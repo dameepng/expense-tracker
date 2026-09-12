@@ -1,8 +1,20 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
+
+val localConfig = Properties().apply {
+    val configFile = rootProject.file("local.properties")
+    if (configFile.exists()) configFile.inputStream().use { load(it) }
+}
+fun buildConfigString(value: String): String = "\"" + value
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+    .replace("\r", "\\r")
+    .replace("\n", "\\n") + "\""
 
 // Room schema export directory for version migration checks
 ksp {
@@ -21,6 +33,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "ANTHROPIC_API_KEY", buildConfigString(localConfig.getProperty("ANTHROPIC_API_KEY", "")))
+        buildConfigField("String", "CLAUDE_MODEL", buildConfigString(localConfig.getProperty("CLAUDE_MODEL", "claude-sonnet-4-6")))
     }
 
     buildTypes {
@@ -38,10 +52,13 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+    sourceSets.getByName("test").resources.directories.add("schemas")
 }
 
 dependencies {
+    implementation(libs.okhttp)
     implementation(libs.gson)
     implementation(libs.android.image.cropper)
     implementation(libs.androidx.core.ktx)

@@ -17,10 +17,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.data.ExpenseWithCategory
+import com.example.expense_tracker.R
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.TimeFormatter
 
@@ -43,11 +45,28 @@ fun TransactionListItem(
             )
         },
         supportingContent = {
-            Text(
-                text = TimeFormatter.formatTime(transaction.timestamp),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
+            Column {
+                if (transaction.merchant.isNotBlank()) {
+                    Text(
+                        text = transaction.merchant,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+                if (transaction.isRecurring) {
+                    Text(
+                        text = stringResource(R.string.ai_recurring),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Text(
+                    text = TimeFormatter.formatTime(transaction.timestamp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
         },
         leadingContent = {
             if (isIncome) {

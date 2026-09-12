@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.ExpenseWithCategory
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class CategoryDetailUiState(
     val category: Category? = null,
@@ -24,7 +27,8 @@ data class CategoryDetailUiState(
 
 class CategoryDetailViewModel(
     private val repository: ExpenseRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val categoryId: Long = checkNotNull(savedStateHandle.get<String>("categoryId")?.toLongOrNull())
@@ -66,7 +70,9 @@ class CategoryDetailViewModel(
                             type = expense.type,
                             categoryId = expense.categoryId,
                             walletId = expense.walletId,
-                            categoryName = category?.name ?: "Unknown"
+                            categoryName = category?.name ?: "Unknown",
+                            merchant = expense.merchant,
+                            isRecurring = expense.isRecurring
                         )
                     }
                     CategoryDetailUiState(
@@ -87,31 +93,39 @@ class CategoryDetailViewModel(
 
     fun deleteExpense(expense: ExpenseWithCategory) {
         viewModelScope.launch {
-            val expenseEntity = com.example.expense_tracker.data.Expense(
-                id = expense.id,
-                amount = expense.amount,
-                description = expense.description,
-                timestamp = expense.timestamp,
-                type = expense.type,
-                categoryId = expense.categoryId,
-                walletId = expense.walletId
-            )
-            repository.deleteExpense(expenseEntity)
+            withContext(ioDispatcher) {
+                val expenseEntity = com.example.expense_tracker.data.Expense(
+                    id = expense.id,
+                    amount = expense.amount,
+                    description = expense.description,
+                    timestamp = expense.timestamp,
+                    type = expense.type,
+                    categoryId = expense.categoryId,
+                    walletId = expense.walletId,
+                    merchant = expense.merchant,
+                    isRecurring = expense.isRecurring
+                )
+                repository.deleteExpense(expenseEntity)
+            }
         }
     }
 
     fun undoDeleteExpense(expense: ExpenseWithCategory) {
         viewModelScope.launch {
-            val expenseEntity = com.example.expense_tracker.data.Expense(
-                id = expense.id,
-                amount = expense.amount,
-                description = expense.description,
-                timestamp = expense.timestamp,
-                type = expense.type,
-                categoryId = expense.categoryId,
-                walletId = expense.walletId
-            )
-            repository.insertExpense(expenseEntity)
+            withContext(ioDispatcher) {
+                val expenseEntity = com.example.expense_tracker.data.Expense(
+                    id = expense.id,
+                    amount = expense.amount,
+                    description = expense.description,
+                    timestamp = expense.timestamp,
+                    type = expense.type,
+                    categoryId = expense.categoryId,
+                    walletId = expense.walletId,
+                    merchant = expense.merchant,
+                    isRecurring = expense.isRecurring
+                )
+                repository.insertExpense(expenseEntity)
+            }
         }
     }
 }

@@ -5,6 +5,8 @@ import com.example.expense_tracker.data.Expense
 import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.FakeBillReminderRepository
 import com.example.expense_tracker.data.TransactionType
+import com.example.expense_tracker.ui.summary.categorydetail.CategoryDetailViewModel
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -339,4 +341,60 @@ class HomeViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(3, state.transactions.size)
     }
+
+    @Test
+    fun `home delete and undo preserve AI transaction metadata`() {
+        val original = aiExpense()
+        fakeRepository.setData(listOf(original), listOf(Category(1, "Tagihan")))
+        initAndAdvance()
+        val displayed = viewModel.uiState.value.transactions.single()
+        assertEquals("Netflix", displayed.merchant)
+        assertTrue(displayed.isRecurring)
+
+        viewModel.deleteExpense(displayed)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertNull(fakeRepository.getExpenseById(original.id))
+        viewModel.undoDeleteExpense(displayed)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(original, fakeRepository.getExpenseById(original.id))
+    }
+
+    @Test
+    fun `category detail delete and undo preserve AI transaction metadata`() {
+        val original = aiExpense()
+        fakeRepository.setData(listOf(original), listOf(Category(1, "Tagihan")))
+        val categoryViewModel = CategoryDetailViewModel(
+            fakeRepository,
+            SavedStateHandle(mapOf(
+                "categoryId" to "1",
+                "startTime" to "0",
+                "endTime" to Long.MAX_VALUE.toString()
+            )),
+            testDispatcher
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+        val displayed = categoryViewModel.uiState.value.transactions.single()
+        assertEquals("Netflix", displayed.merchant)
+        assertTrue(displayed.isRecurring)
+
+        categoryViewModel.deleteExpense(displayed)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertNull(fakeRepository.getExpenseById(original.id))
+        categoryViewModel.undoDeleteExpense(displayed)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(original, fakeRepository.getExpenseById(original.id))
+    }
+
+    private fun aiExpense() = Expense(
+        id = 7,
+        amount = 120_000,
+        categoryId = 1,
+        timestamp = todayMidnight(),
+        description = "langganan bulanan",
+        walletId = 3,
+        merchant = "Netflix",
+        isRecurring = true
+    )
 }

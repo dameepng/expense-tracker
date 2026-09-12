@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_title">AI Financial Assistant</string>
+    <string name="chat_home_fab">AI Chat</string>
+    <string name="chat_reset_session">Reset conversation</string>
+    <string name="chat_scope_title">Chat data coverage</string>
+    <string name="chat_scope_summary">All wallets • current week • current month • previous month</string>
+    <string name="chat_transmission_notice">When sent, your question, up to six latest completed conversation pairs, and the aggregate financial summary are sent to Claude (Anthropic).</string>
+    <string name="chat_detail_limit">Answers use aggregate totals and categories. Individual transaction details are unavailable.</string>
+    <string name="chat_history_truncated">Older conversation was removed from context to keep this session concise.</string>
+    <string name="chat_empty_title">Ask about your spending</string>
+    <string name="chat_empty_description">Choose an example or write your own question. Answers only use the available financial data.</string>
+    <string name="chat_example_food_month">How much did I spend on food this month?</string>
+    <string name="chat_example_top_category">Which category has the highest spending this week?</string>
+    <string name="chat_example_month_comparison">Compare this month spending with last month.</string>
+    <string name="chat_example_unusual">Are there any unusual recent spending changes?</string>
+    <string name="chat_role_user">You</string>
+    <string name="chat_role_assistant">AI assistant</string>
+    <string name="chat_message_sending">Sending…</string>
+    <string name="chat_message_failed">Failed to send</string>
+    <string name="chat_loading">The assistant is preparing an answer…</string>
+    <string name="chat_cancel_request">Cancel</string>
+    <string name="chat_input_placeholder">Ask about your spending…</string>
+    <string name="chat_character_count">%1$d/1000 characters</string>
+    <string name="chat_send">Send question</string>
+    <string name="chat_error_title">Question not answered</string>
+    <string name="chat_error_configuration">The AI service key has not been configured.</string>
+    <string name="chat_error_network">Unable to connect to the internet. Check your connection and try again.</string>
+    <string name="chat_error_timeout">The service took too long to respond. Try again.</string>
+    <string name="chat_error_rate_limit">Too many requests were sent to the AI service. Wait a moment and try again.</string>
+    <string name="chat_error_authentication">The AI service configuration could not be authenticated.</string>
+    <string name="chat_error_service">The AI service is currently unavailable. Try again later.</string>
+    <string name="chat_error_invalid_response">The AI answer was incomplete or could not be used. Try again.</string>
+    <string name="chat_error_data_loading">Spending data could not be loaded. Try again.</string>
+    <string name="chat_error_context_limit">The spending summary is too large to send.</string>
+    <string name="chat_error_invalid_input">Write a question before sending.</string>
+    <string name="chat_error_input_limit">Questions are limited to 1,000 characters.</string>
+    <string name="chat_retry">Try again</string>
+    <string name="chat_discard_failed">Discard message</string>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_title">Asisten Keuangan AI</string>
+    <string name="chat_home_fab">Chat AI</string>
+    <string name="chat_reset_session">Reset percakapan</string>
+    <string name="chat_scope_title">Cakupan data chat</string>
+    <string name="chat_scope_summary">Semua wallet • minggu berjalan • bulan berjalan • bulan sebelumnya</string>
+    <string name="chat_transmission_notice">Saat dikirim, pertanyaan, maksimal enam pasangan percakapan selesai terbaru, dan ringkasan keuangan agregat dikirim ke Claude (Anthropic).</string>
+    <string name="chat_detail_limit">Jawaban memakai total dan kategori agregat. Detail transaksi individual tidak tersedia.</string>
+    <string name="chat_history_truncated">Percakapan lama telah dilepas dari konteks agar sesi tetap ringkas.</string>
+    <string name="chat_empty_title">Tanyakan soal pengeluaranmu</string>
+    <string name="chat_empty_description">Pilih contoh atau tulis pertanyaan sendiri. Jawaban hanya memakai data keuangan yang tersedia.</string>
+    <string name="chat_example_food_month">Berapa habis untuk makan bulan ini?</string>
+    <string name="chat_example_top_category">Kategori apa yang paling boros minggu ini?</string>
+    <string name="chat_example_month_comparison">Bandingkan pengeluaran bulan ini dengan bulan lalu.</string>
+    <string name="chat_example_unusual">Ada perubahan pengeluaran yang tidak biasa akhir-akhir ini?</string>
+    <string name="chat_role_user">Anda</string>
+    <string name="chat_role_assistant">Asisten AI</string>
+    <string name="chat_message_sending">Mengirim…</string>
+    <string name="chat_message_failed">Gagal dikirim</string>
+    <string name="chat_loading">Asisten sedang menyiapkan jawaban…</string>
+    <string name="chat_cancel_request">Batalkan</string>
+    <string name="chat_input_placeholder">Tanyakan soal pengeluaran…</string>
+    <string name="chat_character_count">%1$d/1000 karakter</string>
+    <string name="chat_send">Kirim pertanyaan</string>
+    <string name="chat_error_title">Pertanyaan belum terjawab</string>
+    <string name="chat_error_configuration">Kunci layanan AI belum dikonfigurasi.</string>
+    <string name="chat_error_network">Tidak dapat terhubung ke internet. Periksa koneksi lalu coba lagi.</string>
+    <string name="chat_error_timeout">Layanan terlalu lama merespons. Coba lagi.</string>
+    <string name="chat_error_rate_limit">Terlalu banyak permintaan ke layanan AI. Tunggu sebentar lalu coba lagi.</string>
+    <string name="chat_error_authentication">Konfigurasi layanan AI tidak dapat diautentikasi.</string>
+    <string name="chat_error_service">Layanan AI sedang bermasalah. Coba lagi nanti.</string>
+    <string name="chat_error_invalid_response">Jawaban AI tidak lengkap atau tidak dapat digunakan. Coba lagi.</string>
+    <string name="chat_error_data_loading">Data pengeluaran tidak dapat dimuat. Coba lagi.</string>
+    <string name="chat_error_context_limit">Ringkasan pengeluaran terlalu besar untuk dikirim.</string>
+    <string name="chat_error_invalid_input">Tulis pertanyaan sebelum mengirim.</string>
+    <string name="chat_error_input_limit">Pertanyaan maksimal 1.000 karakter.</string>
+    <string name="chat_retry">Coba lagi</string>
+    <string name="chat_discard_failed">Batalkan pesan</string>
+</resources>

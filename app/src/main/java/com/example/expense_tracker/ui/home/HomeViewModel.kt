@@ -98,7 +98,9 @@ class HomeViewModel(
                         description = expense.description,
                         timestamp = expense.timestamp,
                         type = expense.type,
-                        walletId = expense.walletId
+                        walletId = expense.walletId,
+                        merchant = expense.merchant,
+                        isRecurring = expense.isRecurring
                     )
                 }
 
@@ -141,7 +143,9 @@ class HomeViewModel(
                     description = expense.description,
                     timestamp = expense.timestamp,
                     type = expense.type,
-                    walletId = expense.walletId
+                    walletId = expense.walletId,
+                    merchant = expense.merchant,
+                    isRecurring = expense.isRecurring
                 )
                 repository.deleteExpense(dbExpense)
             }
@@ -158,7 +162,9 @@ class HomeViewModel(
                     description = expense.description,
                     timestamp = expense.timestamp,
                     type = expense.type,
-                    walletId = expense.walletId
+                    walletId = expense.walletId,
+                    merchant = expense.merchant,
+                    isRecurring = expense.isRecurring
                 )
                 repository.insertExpense(dbExpense)
             }

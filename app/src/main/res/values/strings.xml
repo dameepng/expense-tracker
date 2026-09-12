@@ -38,9 +38,9 @@
     <string name="privacy_h1">Pendahuluan</string>
     <string name="privacy_p1">Kasflow menghargai privasi Anda. Kami berkomitmen untuk melindungi informasi pribadi Anda dan hak privasi Anda.</string>
     <string name="privacy_h2">Data yang Dikumpulkan</string>
-    <string name="privacy_p2">Kasflow adalah aplikasi pengelola keuangan yang mengutamakan privasi ("Privacy-First"). Semua data transaksi, dompet, pengaturan, dan informasi lainnya hanya disimpan secara lokal di perangkat Anda (menggunakan SQLite Database / Room). Kami tidak mengumpulkan, mengirim, atau menyimpan data keuangan Anda di server manapun.</string>
+    <string name="privacy_p2">Data transaksi, dompet, dan pengaturan Kasflow disimpan secara lokal di perangkat Anda. Pencatatan manual tidak memerlukan pengiriman data ke layanan AI. Jika Anda menggunakan Catat dengan AI, data input dikirim ke Claude (Anthropic) sebagaimana dijelaskan di bagian Pemrosesan AI opsional.</string>
     <string name="privacy_h3">Penggunaan Data</string>
-    <string name="privacy_p3">Data yang disimpan digunakan secara eksklusif untuk memberikan fungsi utama aplikasi, seperti menampilkan grafik pengeluaran, daftar transaksi, dan pengaturan akun. Karena data hanya berada di perangkat Anda, Andalah yang memiliki kontrol penuh.</string>
+    <string name="privacy_p3">Data lokal digunakan untuk menampilkan grafik pengeluaran, daftar transaksi, dan pengaturan akun. Pemrosesan AI hanya berjalan saat Anda memilihnya, dan hasilnya baru disimpan sebagai transaksi setelah Anda mengonfirmasi.</string>
     <string name="privacy_h4">Keamanan Data</string>
     <string name="privacy_p4">Kami menyediakan opsi Kunci Layar (Screen Lock) menggunakan biometrik perangkat Anda untuk mencegah akses tidak sah ke aplikasi saat perangkat Anda terbuka.</string>
     <string name="privacy_h5">Hak Pengguna</string>

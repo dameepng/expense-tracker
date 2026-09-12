@@ -42,6 +42,7 @@ fun PrivacyPolicyScreen(
         PrivacySection(R.string.privacy_h1, R.string.privacy_p1),
         PrivacySection(R.string.privacy_h2, R.string.privacy_p2),
         PrivacySection(R.string.privacy_h3, R.string.privacy_p3),
+        PrivacySection(R.string.privacy_ai_title, R.string.privacy_ai_content),
         PrivacySection(R.string.privacy_h4, R.string.privacy_p4),
         PrivacySection(R.string.privacy_h5, R.string.privacy_p5),
         PrivacySection(R.string.privacy_h6, R.string.privacy_p6)

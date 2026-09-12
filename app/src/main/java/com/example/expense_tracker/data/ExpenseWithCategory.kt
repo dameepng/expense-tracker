@@ -14,5 +14,7 @@ data class ExpenseWithCategory(
     val description: String = "",
     val timestamp: Long,
     val type: String = TransactionType.EXPENSE.name,
-    val walletId: Long = 1L
+    val walletId: Long = 1L,
+    val merchant: String = "",
+    val isRecurring: Boolean = false
 )

@@ -1,5 +1,6 @@
 package com.example.expense_tracker.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -30,7 +31,11 @@ data class Expense(
     val description: String = "",
     val timestamp: Long,
     val type: String = TransactionType.EXPENSE.name,
-    val walletId: Long = 1L
+    val walletId: Long = 1L,
+    @ColumnInfo(defaultValue = "''")
+    val merchant: String = "",
+    @ColumnInfo(defaultValue = "0")
+    val isRecurring: Boolean = false
 ) {
     init {
         require(amount > 0) { "Amount must be greater than 0, but was $amount" }
