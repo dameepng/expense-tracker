@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -17,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.data.ai.chat.ChatMessage
 import com.example.expense_tracker.data.ai.chat.ChatRole
@@ -41,38 +44,44 @@ internal fun ChatMessageBubble(
     val alignment = if (isUser) Alignment.End else Alignment.Start
     val arrangement = if (isUser) Arrangement.End else Arrangement.Start
     val containerColor = if (isUser) {
-        MaterialTheme.colorScheme.primaryContainer
+        Color(0xFF5965E8)
     } else {
-        MaterialTheme.colorScheme.surfaceContainerHigh
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)
     }
     val contentColor = if (isUser) {
-        MaterialTheme.colorScheme.onPrimaryContainer
+        Color.White
     } else {
         MaterialTheme.colorScheme.onSurface
     }
+    val bubbleShape = if (isUser) {
+        RoundedCornerShape(topStart = 22.dp, topEnd = 5.dp, bottomStart = 22.dp, bottomEnd = 22.dp)
+    } else {
+        RoundedCornerShape(topStart = 5.dp, topEnd = 22.dp, bottomStart = 22.dp, bottomEnd = 22.dp)
+    }
+    val roleLabel = if (isUser) userLabel else assistantLabel
 
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$roleLabel: ${message.content}"
+            },
         horizontalArrangement = arrangement
     ) {
         Surface(
             color = containerColor,
             contentColor = contentColor,
-            shape = MaterialTheme.shapes.large,
+            shape = bubbleShape,
+            shadowElevation = if (isUser) 0.dp else 5.dp,
             modifier = Modifier
-                .fillMaxWidth(0.86f)
-                .clip(MaterialTheme.shapes.large)
+                .fillMaxWidth(if (isUser) 0.82f else 0.88f)
+                .clip(bubbleShape)
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = 17.dp, vertical = 14.dp),
                 horizontalAlignment = alignment,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = if (isUser) userLabel else assistantLabel,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
                 SelectionContainer {
                     Text(
                         text = message.content,

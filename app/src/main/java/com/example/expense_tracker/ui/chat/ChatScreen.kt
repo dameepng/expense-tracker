@@ -2,6 +2,9 @@ package com.example.expense_tracker.ui.chat
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -17,14 +21,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.MicNone
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,8 +42,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,6 +59,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -107,6 +116,7 @@ internal fun ChatScreenContent(
 ) {
     val listState = rememberLazyListState()
     var followsLatest by remember { mutableStateOf(true) }
+    var showScopeInfo by remember { mutableStateOf(false) }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress to listState.canScrollForward }
@@ -127,152 +137,148 @@ internal fun ChatScreenContent(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.chat_title),
-                        fontWeight = FontWeight.Bold
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(chatBackgroundBrush())
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.chat_title),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.back)
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { showScopeInfo = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = stringResource(R.string.chat_scope_action)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = onReset,
-                        enabled = state.messages.isNotEmpty() || state.inputText.isNotEmpty()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.chat_reset_session)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
                 )
-            )
-        },
-        bottomBar = {
-            ChatInputBar(
-                state = state,
-                onInputChange = onInputChange,
-                onSend = onSend
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets.safeDrawing
-    ) { contentPadding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item(key = "scope") {
-                ChatScopeCard()
-            }
-            if (state.isHistoryTruncated) {
-                item(key = "history-truncated") {
-                    ChatNotice(text = stringResource(R.string.chat_history_truncated))
-                }
-            }
-            if (state.messages.isEmpty()) {
-                item(key = "empty") {
-                    ChatEmptyState(onExampleClick = onInputChange)
-                }
-            } else {
-                items(state.messages, key = ChatMessage::id) { message ->
-                    val status = when (message.id) {
-                        state.pendingMessage?.id -> ChatBubbleStatus.SENDING
-                        state.failedMessage?.id -> ChatBubbleStatus.FAILED
-                        else -> null
+            },
+            bottomBar = {
+                ChatInputBar(
+                    state = state,
+                    onReset = onReset,
+                    onInputChange = onInputChange,
+                    onSend = onSend
+                )
+            },
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets.safeDrawing
+        ) { contentPadding ->
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding),
+                contentPadding = PaddingValues(horizontal = 17.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                if (state.isHistoryTruncated) {
+                    item(key = "history-truncated") {
+                        ChatNotice(text = stringResource(R.string.chat_history_truncated))
                     }
-                    ChatMessageBubble(
-                        message = message,
-                        userLabel = stringResource(R.string.chat_role_user),
-                        assistantLabel = stringResource(R.string.chat_role_assistant),
-                        sendingLabel = stringResource(R.string.chat_message_sending),
-                        failedLabel = stringResource(R.string.chat_message_failed),
-                        status = status
-                    )
+                }
+                if (state.messages.isEmpty()) {
+                    item(key = "empty") {
+                        ChatEmptyState(onExampleClick = onInputChange)
+                    }
+                } else {
+                    items(state.messages, key = ChatMessage::id) { message ->
+                        val status = when (message.id) {
+                            state.pendingMessage?.id -> ChatBubbleStatus.SENDING
+                            state.failedMessage?.id -> ChatBubbleStatus.FAILED
+                            else -> null
+                        }
+                        ChatMessageBubble(
+                            message = message,
+                            userLabel = stringResource(R.string.chat_role_user),
+                            assistantLabel = stringResource(R.string.chat_role_assistant),
+                            sendingLabel = stringResource(R.string.chat_message_sending),
+                            failedLabel = stringResource(R.string.chat_message_failed),
+                            status = status
+                        )
+                    }
+                }
+                if (state.isLoading) {
+                    item(key = "loading") {
+                        ChatLoading(onCancel = onCancelRequest)
+                    }
+                }
+                state.error?.let { error ->
+                    item(key = "error-${error.name}") {
+                        ChatErrorCard(
+                            error = error,
+                            canRetry = state.canRetry,
+                            onRetry = onRetry,
+                            onDiscard = onDiscardFailed
+                        )
+                    }
                 }
             }
-            if (state.isLoading) {
-                item(key = "loading") {
-                    ChatLoading(onCancel = onCancelRequest)
-                }
-            }
-            state.error?.let { error ->
-                item(key = "error-${error.name}") {
-                    ChatErrorCard(
-                        error = error,
-                        canRetry = state.canRetry,
-                        onRetry = onRetry,
-                        onDiscard = onDiscardFailed
-                    )
-                }
-            }
+        }
+
+        if (showScopeInfo) {
+            ChatScopeDialog(onDismiss = { showScopeInfo = false })
         }
     }
 }
 
 @Composable
-private fun ChatScopeCard() {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+private fun ChatScopeDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(imageVector = Icons.Default.Info, contentDescription = null) },
+        title = { Text(text = stringResource(R.string.chat_scope_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = stringResource(R.string.chat_scope_title),
-                    style = MaterialTheme.typography.titleSmall,
+                    text = stringResource(R.string.chat_scope_summary),
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = stringResource(R.string.chat_scope_summary),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
                     text = stringResource(R.string.chat_transmission_notice),
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
                     text = stringResource(R.string.chat_detail_limit),
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.chat_scope_close))
+            }
         }
-    }
+    )
 }
 
 @Composable
 private fun ChatNotice(text: String) {
     Surface(
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.74f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = RoundedCornerShape(18.dp),
+        shadowElevation = 2.dp,
         modifier = Modifier
             .fillMaxWidth()
             .semantics { liveRegion = LiveRegionMode.Polite }
@@ -297,25 +303,41 @@ private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
         stringResource(R.string.chat_example_unusual)
     )
     Column(
-        modifier = Modifier.padding(vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text(
-            text = stringResource(R.string.chat_empty_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+        ChatMessageBubble(
+            message = previewMessage(
+                id = "assistant-welcome",
+                role = ChatRole.ASSISTANT,
+                content = stringResource(R.string.chat_welcome)
+            ),
+            userLabel = stringResource(R.string.chat_role_user),
+            assistantLabel = stringResource(R.string.chat_role_assistant),
+            sendingLabel = stringResource(R.string.chat_message_sending),
+            failedLabel = stringResource(R.string.chat_message_failed),
+            status = null
         )
+        ChatNotice(text = stringResource(R.string.chat_privacy_summary))
         Text(
             text = stringResource(R.string.chat_empty_description),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
         )
         examples.forEach { example ->
-            OutlinedButton(
+            Surface(
                 onClick = { onExampleClick(example) },
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.68f),
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shape = RoundedCornerShape(20.dp),
+                shadowElevation = 2.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = example, modifier = Modifier.fillMaxWidth())
+                Text(
+                    text = example,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 17.dp, vertical = 13.dp)
+                )
             }
         }
     }
@@ -401,61 +423,168 @@ private fun ChatErrorCard(
 @Composable
 private fun ChatInputBar(
     state: ChatUiState,
+    onReset: () -> Unit,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val inputError = state.error == ChatUiError.INVALID_INPUT ||
         state.error == ChatUiError.INPUT_LIMIT
-    Surface(tonalElevation = 3.dp, shadowElevation = 6.dp) {
+    val canReset = state.messages.isNotEmpty() || state.inputText.isNotEmpty()
+
+    Surface(color = Color.Transparent) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
                 .imePadding()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Bottom
         ) {
-            OutlinedTextField(
-                value = state.inputText,
-                onValueChange = onInputChange,
-                enabled = state.failedMessage == null,
-                placeholder = { Text(stringResource(R.string.chat_input_placeholder)) },
-                supportingText = {
-                    Text(stringResource(R.string.chat_character_count, state.inputText.length))
-                },
-                isError = inputError,
-                minLines = 1,
-                maxLines = 4,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Send
-                ),
-                keyboardActions = KeyboardActions(
-                    onSend = {
-                        if (state.canSend) {
-                            keyboard?.hide()
-                            onSend()
+            Surface(
+                onClick = onReset,
+                enabled = canReset,
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shadowElevation = 5.dp
+            ) {
+                Box(
+                    modifier = Modifier.size(54.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.chat_reset_session),
+                        modifier = Modifier.size(25.dp)
+                    )
+                }
+            }
+
+            Surface(
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.80f),
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shape = RoundedCornerShape(29.dp),
+                shadowElevation = 5.dp,
+                modifier = Modifier.weight(1f)
+            ) {
+                Column(
+                    modifier = Modifier.padding(start = 17.dp, top = 4.dp, end = 5.dp, bottom = 4.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        BasicTextField(
+                            value = state.inputText,
+                            onValueChange = onInputChange,
+                            enabled = state.failedMessage == null,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
+                            minLines = 1,
+                            maxLines = 4,
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Sentences,
+                                imeAction = ImeAction.Send
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onSend = {
+                                    if (state.canSend) {
+                                        keyboard?.hide()
+                                        onSend()
+                                    }
+                                }
+                            ),
+                            decorationBox = { innerTextField ->
+                                Box(
+                                    modifier = Modifier.heightIn(min = 46.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    if (state.inputText.isEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.chat_input_placeholder),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .heightIn(min = 46.dp)
+                        )
+                        Icon(
+                            imageVector = Icons.Outlined.MicNone,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Surface(
+                            onClick = {
+                                keyboard?.hide()
+                                onSend()
+                            },
+                            enabled = state.canSend,
+                            shape = CircleShape,
+                            color = if (state.canSend) {
+                                Color(0xFF202126)
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f)
+                            },
+                            contentColor = Color.White
+                        ) {
+                            Box(
+                                modifier = Modifier.size(46.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.GraphicEq,
+                                    contentDescription = stringResource(R.string.chat_send),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
                         }
                     }
-                ),
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(
-                onClick = {
-                    keyboard?.hide()
-                    onSend()
-                },
-                enabled = state.canSend
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = stringResource(R.string.chat_send)
-                )
+                    if (inputError || state.inputText.length >= 900) {
+                        Text(
+                            text = stringResource(
+                                R.string.chat_character_count,
+                                state.inputText.length
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (inputError) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.padding(start = 2.dp, end = 8.dp, bottom = 5.dp)
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+private fun chatBackgroundBrush(): Brush {
+    val colors = if (isSystemInDarkTheme()) {
+        listOf(
+            Color(0xFF181820),
+            Color(0xFF201C2A),
+            Color(0xFF2A1F35)
+        )
+    } else {
+        listOf(
+            Color(0xFFF6F6FB),
+            Color(0xFFF3EDF9),
+            Color(0xFFEAD8F8)
+        )
+    }
+    return Brush.verticalGradient(colors)
 }
 
 private fun ChatUiError.messageResource(): Int = when (this) {

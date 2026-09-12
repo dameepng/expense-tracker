@@ -3,12 +3,15 @@
     <string name="chat_title">AI Financial Assistant</string>
     <string name="chat_home_fab">AI Chat</string>
     <string name="chat_reset_session">Reset conversation</string>
+    <string name="chat_scope_action">View chat data coverage</string>
     <string name="chat_scope_title">Chat data coverage</string>
     <string name="chat_scope_summary">All wallets • current week • current month • previous month</string>
     <string name="chat_transmission_notice">When sent, your question, up to six latest completed conversation pairs, and the aggregate financial summary are sent to Claude (Anthropic).</string>
+    <string name="chat_privacy_summary">Your question, limited history, and an aggregate summary across all wallets are sent to Claude when you send a message.</string>
     <string name="chat_detail_limit">Answers use aggregate totals and categories. Individual transaction details are unavailable.</string>
+    <string name="chat_scope_close">Got it</string>
     <string name="chat_history_truncated">Older conversation was removed from context to keep this session concise.</string>
-    <string name="chat_empty_title">Ask about your spending</string>
+    <string name="chat_welcome">Hello, how can I help you?</string>
     <string name="chat_empty_description">Choose an example or write your own question. Answers only use the available financial data.</string>
     <string name="chat_example_food_month">How much did I spend on food this month?</string>
     <string name="chat_example_top_category">Which category has the highest spending this week?</string>
