@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,6 +20,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,6 +30,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -35,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -111,6 +115,19 @@ class MainActivity : AppCompatActivity() {
                 "Dark Mode" -> true
                 "Light Mode" -> false
                 else -> isSystemDark
+            }
+
+            SideEffect {
+                val transparent = android.graphics.Color.TRANSPARENT
+                val systemBarStyle = if (darkTheme) {
+                    SystemBarStyle.dark(transparent)
+                } else {
+                    SystemBarStyle.light(transparent, transparent)
+                }
+                enableEdgeToEdge(
+                    statusBarStyle = systemBarStyle,
+                    navigationBarStyle = systemBarStyle
+                )
             }
             
             val isAuthenticated by AuthManager.isAuthenticated.collectAsState()
@@ -222,6 +239,11 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
+        contentWindowInsets = if (currentRoute == NavRoutes.CHAT) {
+            WindowInsets(0, 0, 0, 0)
+        } else {
+            ScaffoldDefaults.contentWindowInsets
+        },
         bottomBar = {
             if (NavRoutes.shouldShowBottomBar(currentRoute)) {
                 com.example.expense_tracker.ui.navigation.BottomNavBar(
