@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.expense_tracker.data.analytics.FinancialTransactionEntry
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -92,6 +93,27 @@ interface ExpenseDao {
         ORDER BY totalAmount DESC
     """)
     fun getBreakdownByCategoryAndTypeAndWallet(startTime: Long, endTime: Long, type: String, walletId: Long): Flow<List<CategoryBreakdown>>
+
+    /**
+     * One query provides a consistent, minimal snapshot for local financial aggregation.
+     * Type filtering remains explicit in the aggregator so unsupported values cannot be
+     * silently classified as expenses.
+     */
+    @Query("""
+        SELECT e.amount AS amount,
+               e.categoryId AS categoryId,
+               c.name AS categoryName,
+               e.timestamp AS timestamp,
+               e.type AS type
+        FROM expenses e
+        INNER JOIN categories c ON c.id = e.categoryId
+        WHERE e.timestamp >= :startTime AND e.timestamp < :endTime
+        ORDER BY e.timestamp ASC, e.id ASC
+    """)
+    fun getFinancialSummaryEntries(
+        startTime: Long,
+        endTime: Long
+    ): List<FinancialTransactionEntry>
 
     @Query("SELECT DISTINCT timestamp FROM expenses ORDER BY timestamp DESC")
     fun getDistinctDatesWithExpense(): List<Long>
