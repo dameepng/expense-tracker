@@ -2,7 +2,7 @@
 <resources>
     <string name="chat_title">Asisten Keuangan AI</string>
     <string name="chat_home_fab">Chat AI</string>
-    <string name="chat_reset_session">Reset percakapan</string>
+    <string name="chat_new_session">Percakapan baru</string>
     <string name="chat_scope_action">Lihat cakupan data chat</string>
     <string name="chat_scope_title">Cakupan data chat</string>
     <string name="chat_scope_summary">Semua wallet • minggu berjalan • bulan berjalan • bulan sebelumnya</string>

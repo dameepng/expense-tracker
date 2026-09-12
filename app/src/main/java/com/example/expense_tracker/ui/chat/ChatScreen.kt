@@ -8,14 +8,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,6 +35,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -45,8 +45,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,6 +59,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -67,6 +68,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.R
@@ -113,6 +115,9 @@ internal fun ChatScreenContent(
     onDiscardFailed: () -> Unit
 ) {
     val listState = rememberLazyListState()
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
+        rememberTopAppBarState()
+    )
     var followsLatest by remember { mutableStateOf(true) }
     var showScopeInfo by remember { mutableStateOf(false) }
 
@@ -141,12 +146,14 @@ internal fun ChatScreenContent(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Scaffold(
+            modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
             topBar = {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     title = {
                         Text(
                             text = stringResource(R.string.chat_title),
-                            fontWeight = FontWeight.SemiBold
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     },
                     navigationIcon = {
@@ -166,8 +173,13 @@ internal fun ChatScreenContent(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent
-                    )
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    scrollBehavior = topAppBarScrollBehavior
                 )
             },
             bottomBar = {
@@ -178,14 +190,14 @@ internal fun ChatScreenContent(
                     onSend = onSend
                 )
             },
-            containerColor = Color.Transparent,
-            contentWindowInsets = WindowInsets.safeDrawing
+            containerColor = Color.Transparent
         ) { contentPadding ->
             LazyColumn(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(contentPadding),
+                    .padding(contentPadding)
+                    .consumeWindowInsets(contentPadding),
                 contentPadding = PaddingValues(horizontal = 17.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
@@ -449,12 +461,12 @@ private fun ChatInputBar(
                 shadowElevation = 5.dp
             ) {
                 Box(
-                    modifier = Modifier.size(54.dp),
+                    modifier = Modifier.size(56.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.chat_reset_session),
+                        contentDescription = stringResource(R.string.chat_new_session),
                         modifier = Modifier.size(25.dp)
                     )
                 }
@@ -535,7 +547,7 @@ private fun ChatInputBar(
                             contentColor = Color.White
                         ) {
                             Box(
-                                modifier = Modifier.size(46.dp),
+                                modifier = Modifier.size(48.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(

@@ -2,7 +2,7 @@
 <resources>
     <string name="chat_title">AI Financial Assistant</string>
     <string name="chat_home_fab">AI Chat</string>
-    <string name="chat_reset_session">Reset conversation</string>
+    <string name="chat_new_session">New conversation</string>
     <string name="chat_scope_action">View chat data coverage</string>
     <string name="chat_scope_title">Chat data coverage</string>
     <string name="chat_scope_summary">All wallets • current week • current month • previous month</string>
