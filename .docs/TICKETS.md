@@ -13,7 +13,7 @@ Dokumen ini hanya merencanakan implementasi. Pembuatan backlog tidak berarti tic
 |---|---|---|---|---|
 | 1 | [ISSUE-089: Agregasi keuangan dan periode](issues/ISSUE-089-chat-financial-aggregation.md) | Snapshot pengeluaran akurat beserta unit test | Baseline fase 1 tersedia | Done |
 | 2 | [ISSUE-090: Shared client Claude](issues/ISSUE-090-shared-claude-client.md) | Client/config bersama; NL Input tetap berfungsi | Baseline fase 1 tersedia | Todo |
-| 3 | [ISSUE-091: Context builder dan scope prompt](issues/ISSUE-091-chat-context-and-prompt.md) | Context agregat terbatas dan aturan jawaban AI | 089 | Todo |
+| 3 | [ISSUE-091: Context builder dan scope prompt](issues/ISSUE-091-chat-context-and-prompt.md) | Context agregat terbatas dan aturan jawaban AI | 089 | Done |
 | 4 | [ISSUE-092: Chat model dan repository](issues/ISSUE-092-chat-model-and-repository.md) | Request multi-turn melalui client yang sama | 090, 091 | Todo |
 | 5 | [ISSUE-093: Chat ViewModel dan state](issues/ISSUE-093-chat-viewmodel-and-state.md) | Session, loading, error, retry, dan cancellation | 092 | Todo |
 | 6 | [ISSUE-094: Chat screen Compose](issues/ISSUE-094-chat-screen-compose.md) | Bubble chat, input, loading, dan error UI | 093 | Todo |

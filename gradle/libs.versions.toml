@@ -19,6 +19,7 @@ ksp = "2.3.9"
 work = "2.11.2"
 
 [libraries]
+gson = { module = "com.google.code.gson:gson", version = "2.13.2" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 android-image-cropper = { module = "com.vanniktech:android-image-cropper", version.ref = "androidImageCropper" }

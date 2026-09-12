@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.gson)
     implementation(libs.android.image.cropper)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
