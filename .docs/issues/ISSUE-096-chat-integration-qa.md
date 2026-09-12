@@ -1,6 +1,6 @@
 # ISSUE-096: QA Integrasi AI Chat dan Dokumentasi Penggunaan
 
-**Status:** Todo
+**Status:** In Review - automated QA complete; end-to-end testing pending user
 **Priority:** High
 **Type:** QA - Integration
 **Depends on:** ISSUE-089 sampai ISSUE-095
@@ -27,16 +27,27 @@ Verifikasi alur Chat lengkap terhadap dataset yang diketahui dan pastikan peruba
 
 ## Acceptance Criteria
 
-- [ ] `assembleDebug`, `testDebugUnitTest`, dan `lintDebug` lulus; test otomatis memakai fake dan tidak membutuhkan key API.
-- [ ] Dengan fixture di atas, context/request untuk pertanyaan makanan bulan ini berisi total 40.000; kategori terbesar minggu ini makanan; total expense bulan berjalan 50.000, bulan sebelumnya 40.000, delta +10.000/+25% dengan periode jelas. Jika live dijalankan, angka jawaban juga dibandingkan dengan fixture ini.
-- [ ] Request follow-up "gimana kalau dibanding bulan lalu?" mempertahankan history topik/kategori sebelumnya dan breakdown kedua bulan; income tidak masuk expense. Relevansi jawaban model hanya dilaporkan terverifikasi bila diuji live.
-- [ ] Prompt/context untuk pertanyaan transaksi aneh membatasi interpretasi pada agregat tersedia dan mengharuskan pengakuan data belum cukup untuk detail transaksi. Jika live dijalankan, cek bahwa jawaban tidak menyebut merchant/transaksi yang tidak ada di context.
-- [ ] Dataset kosong, pembanding nol, periode di luar cakupan, perubahan data di antara dua send, dan history/context mencapai batas memberi perilaku sesuai ticket pemiliknya.
-- [ ] Offline, timeout, rate limit, authentication, konfigurasi kosong, respons invalid, retry, cancel, dan reset tidak menyebabkan crash, loading macet, atau bubble ganda.
+- [x] `assembleDebug`, `testDebugUnitTest`, dan `lintDebug` lulus; test otomatis memakai fake dan tidak membutuhkan key API.
+- [x] Dengan fixture di atas, context/request untuk pertanyaan makanan bulan ini berisi total 40.000; kategori terbesar minggu ini makanan; total expense bulan berjalan 50.000, bulan sebelumnya 40.000, delta +10.000/+25% dengan periode jelas. Jika live dijalankan, angka jawaban juga dibandingkan dengan fixture ini.
+- [x] Request follow-up "gimana kalau dibanding bulan lalu?" mempertahankan history topik/kategori sebelumnya dan breakdown kedua bulan; income tidak masuk expense. Relevansi jawaban model hanya dilaporkan terverifikasi bila diuji live.
+- [x] Prompt/context untuk pertanyaan transaksi aneh membatasi interpretasi pada agregat tersedia dan mengharuskan pengakuan data belum cukup untuk detail transaksi. Jika live dijalankan, cek bahwa jawaban tidak menyebut merchant/transaksi yang tidak ada di context.
+- [x] Dataset kosong, pembanding nol, periode di luar cakupan, perubahan data di antara dua send, dan history/context mencapai batas memberi perilaku sesuai ticket pemiliknya.
+- [x] Offline, timeout, rate limit, authentication, konfigurasi kosong, respons invalid, retry, cancel, dan reset tidak menyebabkan crash, loading macet, atau bubble ganda.
 - [ ] Navigasi, rotasi, exit/reopen, keyboard, light/dark, dan Indonesia/Inggris diverifikasi; NL Input expense/income serta pencatatan manual offline tetap bekerja.
-- [ ] Payload fixture memverifikasi minimisasi data, aturan off-topic, dan perlakuan input mirip prompt injection sebagai data. Jika live tersedia, uji skenario tersebut pada model dan catat hasil aktual; tanpa live, tandai perilaku model belum terverifikasi.
-- [ ] Laporan menyebut tanggal, perangkat/emulator, konfigurasi model bila live, perintah, hasil, serta skenario belum dijalankan dan alasannya. Jangan centang validasi manual/live yang belum dilakukan.
-- [ ] `AI_CHAT.md` menjelaskan entry point, setup konfigurasi bersama, scope wallet/periode, history in-memory, batas request, kebutuhan internet, keterbatasan anomali, dan cara test/review.
+- [x] Payload fixture memverifikasi minimisasi data, aturan off-topic, dan perlakuan input mirip prompt injection sebagai data. Jika live tersedia, uji skenario tersebut pada model dan catat hasil aktual; tanpa live, tandai perilaku model belum terverifikasi.
+- [x] Laporan menyebut tanggal, perangkat/emulator, konfigurasi model bila live, perintah, hasil, serta skenario belum dijalankan dan alasannya. Jangan centang validasi manual/live yang belum dilakukan.
+- [x] `AI_CHAT.md` menjelaskan entry point, setup konfigurasi bersama, scope wallet/periode, history in-memory, batas request, kebutuhan internet, keterbatasan anomali, dan cara test/review.
+
+## Hasil QA Otomatis
+
+- Fixture tetap memakai snapshot `2026-09-10T12:00:00+07:00`, currency IDR, locale Indonesia, dua wallet, expense lintas kategori/periode, dan income sebagai kontrol eksklusi.
+- `AiChatIntegrationTest` menjalankan empat contoh pertanyaan PRD melalui alur aggregator, context provider, prompt builder, repository, dan fake Claude API.
+- Context menghasilkan Makanan bulan berjalan 40.000, total minggu/bulan berjalan 50.000, bulan sebelumnya 40.000, serta delta +10.000/+25% dengan status periode yang benar.
+- Follow-up mempertahankan pasangan percakapan secara urut dan membaca snapshot baru setelah fixture berubah. Pertanyaan baru muncul tepat sekali.
+- Marker merchant, note, metadata kartu, dan ID wallet tidak masuk payload. Aturan periode, off-topic, data tidak tepercaya, serta keterbatasan anomali tetap berada pada system prompt.
+- Regresi otomatis mencakup data kosong, pembanding nol, batas context/history/input, seluruh kelompok error, retry/cancel/reset, respons terlambat, NL Input expense/income, serta input manual/Room.
+- `.\gradlew.bat assembleDebug testDebugUnitTest lintDebug` lulus pada 2026-09-13: 199 test, 0 failure, 0 error, 0 skipped; lint 0 issue.
+- Request live dan test perangkat tidak dijalankan. Sesuai arahan user, QA end-to-end dilakukan oleh user memakai checklist pada laporan QA; hasil model live tidak diklaim.
 
 ## Validasi dan Checkpoint
 

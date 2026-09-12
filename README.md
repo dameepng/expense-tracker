@@ -14,6 +14,7 @@ Selamat datang di **Kasflow**! Aplikasi modern dan simpel yang dirancang khusus 
   - Tersedia dalam Bahasa Indonesia dan Bahasa Inggris.
 - **Ekspor Data ke CSV**: Ingin menganalisis data di Excel atau sekadar melakukan *backup*? Anda bisa mengekspor riwayat transaksi Anda kapan pun.
 - **Pencatatan Manual Offline**: Transaksi tersimpan secara lokal di HP. Fitur opsional **Catat dengan AI** membutuhkan internet untuk memproses kalimat melalui Claude; hasilnya bisa diedit sebelum disimpan. Lihat [setup AI fase 1](AI_INPUT.md).
+- **AI Chat Assistant**: Tanyakan total dan kategori pengeluaran untuk seluruh dompet pada minggu berjalan, bulan berjalan, atau bulan sebelumnya. Pertanyaan, history terbatas, dan ringkasan agregat dikirim ke Claude. Lihat [panduan AI Chat](AI_CHAT.md).
 
 ## Cara Menggunakan
 

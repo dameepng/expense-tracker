@@ -1,6 +1,6 @@
 # AI Chat Assistant - Ticket Implementasi Fase 2
 
-**Status:** Ready for ISSUE-096; ISSUE-089 sampai ISSUE-095 selesai.
+**Status:** In Review; QA otomatis ISSUE-096 selesai, end-to-end menunggu hasil user.
 **Tanggal:** 2026-09-12
 **Sumber kebutuhan:** [PRD AI Chat Assistant](prd/prompt-ai-chat-assistant.md)
 **Lokasi issue:** `.docs/issues/`, melanjutkan penomoran terakhir `ISSUE-088`.
@@ -18,7 +18,7 @@ Dokumen ini hanya merencanakan implementasi. Pembuatan backlog tidak berarti tic
 | 5 | [ISSUE-093: Chat ViewModel dan state](issues/ISSUE-093-chat-viewmodel-and-state.md) | Session, loading, error, retry, dan cancellation | 092 | Done |
 | 6 | [ISSUE-094: Chat screen Compose](issues/ISSUE-094-chat-screen-compose.md) | Bubble chat, input, loading, dan error UI | 093 | Done |
 | 7 | [ISSUE-095: Navigasi dan informasi privasi](issues/ISSUE-095-chat-navigation-and-privacy.md) | Chat dapat dibuka dari Home dan scope data jelas | 090, 093, 094 | Done |
-| 8 | [ISSUE-096: QA integrasi dan dokumentasi](issues/ISSUE-096-chat-integration-qa.md) | Bukti pengujian alur lengkap dan regresi fase 1 | 089-095 | Todo |
+| 8 | [ISSUE-096: QA integrasi dan dokumentasi](issues/ISSUE-096-chat-integration-qa.md) | Bukti pengujian alur lengkap dan regresi fase 1 | 089-095 | In Review - E2E pending user |
 
 ISSUE-089 sampai ISSUE-095 telah selesai. Baseline AI fase 1 dan ticket yang sebelumnya tertahan dicatat melalui catch-up commit terverifikasi sebelum pengerjaan ISSUE-096.
 

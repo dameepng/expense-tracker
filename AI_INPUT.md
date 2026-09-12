@@ -18,8 +18,8 @@ Dependency baru: OkHttp `4.12.0` dan Gson `2.13.2` melalui version catalog. Mani
 ## Pemakaian
 
 1. Home → **Catat dengan AI**.
-2. Ketik satu pengeluaran, misalnya `makan siang di warteg 25rb`, `beli bensin 50000 kemarin`, atau `langganan netflix 120rb tiap bulan`.
-3. Ketuk **Proses dengan AI**. Kalimat, kategori pengeluaran, tanggal, dan zona waktu perangkat dikirim ke Claude; riwayat transaksi dan detail dompet tidak dikirim.
+2. Ketik satu transaksi pengeluaran atau pemasukan, misalnya `makan siang di warteg 25rb`, `gajian kantor 5.7jt`, atau `langganan netflix 120rb tiap bulan`.
+3. Ketuk **Proses dengan AI**. Kalimat, daftar kategori yang tersedia, tanggal, dan zona waktu perangkat dikirim ke Claude; riwayat transaksi dan detail dompet tidak dikirim.
 4. Periksa/edit nominal rupiah, kategori, merchant, tanggal `yyyy-MM-dd`, catatan, recurring, dan dompet. Jika ada beberapa dompet, pilih secara eksplisit.
 5. Ketuk **Konfirmasi & simpan**. Parsing tidak menulis transaksi ke Room.
 
@@ -27,11 +27,11 @@ Jika AI gagal, proses ulang atau pilih **Isi manual**. UI membedakan masalah kon
 
 ## Konvensi dan batas fase ini
 
-- Kategori berasal dari tabel `categories` melalui DAO existing (`EXPENSE`/`BOTH`). Contoh output menggunakan `Makanan`, sesuai kategori app; tidak membuat kategori `Makanan & Minuman` baru.
+- Kategori berasal dari tabel `categories` melalui DAO existing (`EXPENSE`/`INCOME`/`BOTH`). Contoh output menggunakan nama kategori yang tersedia di aplikasi dan tidak membuat kategori baru.
 - Field JSON `note` disimpan sebagai `Expense.description`; `merchant` dan `isRecurring` menjadi kolom baru. Migrasi Room **11 → 12** mempertahankan data lama dengan default merchant kosong dan recurring false. Metadata dipertahankan saat edit dan undo delete.
 - Tanggal relatif menggunakan tanggal/zona perangkat saat submit; `kemarin` dan `tadi pagi` yang tidak ambigu diperiksa kembali secara lokal. Tanggal pilihan disimpan sebagai awal hari pada zona perangkat, karena output fase ini berupa tanggal tanpa jam.
 - `isRecurring` adalah penanda transaksi. Fase ini tidak membuat transaksi berikutnya atau `BillReminder` otomatis. Pengingat bulanan existing tetap dapat dibuat lewat form pengingat.
-- Mendukung satu pengeluaran per request. Pemasukan, transfer, beberapa transaksi sekaligus, atau nominal/tanggal ambigu diarahkan untuk diperjelas/diisi manual. Voice-to-text dan fase 2–4 belum diimplementasikan.
+- Mendukung satu pengeluaran atau pemasukan per request. Transfer, beberapa transaksi sekaligus, atau nominal/tanggal ambigu diarahkan untuk diperjelas atau diisi manual. Voice-to-text belum diimplementasikan.
 
 ## Struktur
 
