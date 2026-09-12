@@ -3,7 +3,6 @@ package com.example.expense_tracker.ui.chat
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -59,7 +58,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -140,7 +138,7 @@ internal fun ChatScreenContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(chatBackgroundBrush())
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Scaffold(
             topBar = {
@@ -567,24 +565,6 @@ private fun ChatInputBar(
             }
         }
     }
-}
-
-@Composable
-private fun chatBackgroundBrush(): Brush {
-    val colors = if (isSystemInDarkTheme()) {
-        listOf(
-            Color(0xFF181820),
-            Color(0xFF201C2A),
-            Color(0xFF2A1F35)
-        )
-    } else {
-        listOf(
-            Color(0xFFF6F6FB),
-            Color(0xFFF3EDF9),
-            Color(0xFFEAD8F8)
-        )
-    }
-    return Brush.verticalGradient(colors)
 }
 
 private fun ChatUiError.messageResource(): Int = when (this) {
