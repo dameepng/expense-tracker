@@ -23,7 +23,9 @@ internal data class ClaudeMessageRequest(
     val messages: List<ClaudeMessage>
 )
 
-internal data class ClaudeMessage(val role: String, val content: String)
+internal data class ClaudeImage(val mediaType: String, val data: String)
+
+internal data class ClaudeMessage(val role: String, val content: String, val image: ClaudeImage? = null)
 
 internal data class ClaudeMessageResponse(
     val content: List<ClaudeContentBlock>? = null,
@@ -58,7 +60,7 @@ internal class OkHttpClaudeApi(
             .url("https://api.anthropic.com/v1/messages")
             .header("x-api-key", apiKey)
             .header("anthropic-version", "2023-06-01")
-            .post(gson.toJson(request).toRequestBody("application/json; charset=utf-8".toMediaType()))
+            .post(requestJson(request).toRequestBody("application/json; charset=utf-8".toMediaType()))
             .build()
         val call = callFactory.newCall(httpRequest)
         continuation.invokeOnCancellation { call.cancel() }
@@ -87,7 +89,27 @@ internal class OkHttpClaudeApi(
         })
     }
 
+    private fun requestJson(request: ClaudeMessageRequest): String {
+        if (request.messages.any { it.image?.data?.length ?: 0 > MAX_IMAGE_DATA_CHARS }) {
+            throw AiInputException(AiError.INVALID_INPUT)
+        }
+        val root = gson.toJsonTree(request).asJsonObject
+        root.getAsJsonArray("messages").forEach { element ->
+            val message = element.asJsonObject
+            val image = message.remove("image") ?: return@forEach
+            val text = message.get("content").asString
+            message.add("content", gson.toJsonTree(listOf(
+                mapOf("type" to "image", "source" to mapOf(
+                    "type" to "base64", "media_type" to image.asJsonObject.get("mediaType").asString,
+                    "data" to image.asJsonObject.get("data").asString
+                )), mapOf("type" to "text", "text" to text)
+            )))
+        }
+        return gson.toJson(root)
+    }
+
     private companion object {
         const val MAX_BODY_BYTES = 262_144L
+        const val MAX_IMAGE_DATA_CHARS = 240_000
     }
 }

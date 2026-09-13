@@ -92,7 +92,7 @@ Keputusan MVP: satu gambar struk menghasilkan satu transaksi expense berdasarkan
 | Urutan | Ticket | Hasil yang bisa direview | Depends on | Status |
 |---|---|---|---|---|
 | 1 | [ISSUE-097: Kontrak dan parser receipt](issues/ISSUE-097-receipt-contract-parser.md) | DTO type-safe dan parser strict untuk hasil vision | Baseline AI fase 1 | Done |
-| 2 | [ISSUE-098: Claude multimodal transport](issues/ISSUE-098-receipt-multimodal-client.md) | Client bersama dapat mengirim content text + image | 097, shared client ISSUE-090 | Planned |
+| 2 | [ISSUE-098: Claude multimodal transport](issues/ISSUE-098-receipt-multimodal-client.md) | Client bersama dapat mengirim content text + image | 097, shared client ISSUE-090 | Done |
 | 3 | [ISSUE-099: Pemrosesan dan batas gambar](issues/ISSUE-099-receipt-image-processing.md) | URI menjadi payload base64 terkompresi dengan aman | Baseline Android image dependencies | Planned |
 | 4 | [ISSUE-100: Picker, kamera, permission, dan preview](issues/ISSUE-100-receipt-picker-permission-preview.md) | User memilih/mengambil foto dan melihat preview sebelum scan | 099 | Planned |
 | 5 | [ISSUE-101: Repository vision receipt](issues/ISSUE-101-receipt-vision-repository.md) | Prompt kategori + image menghasilkan draft atau fallback | 097-099 | Planned |

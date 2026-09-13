@@ -1,6 +1,6 @@
 # ISSUE-098: Ekstensi Claude Client untuk Request Multimodal
 
-**Status:** Planned
+**Status:** Done
 **Priority:** High
 **Type:** Feature - AI Transport
 **Depends on:** ISSUE-097 dan shared client ISSUE-090
@@ -24,13 +24,12 @@ Perluas transport Claude bersama agar satu request dapat membawa blok teks dan i
 
 ## Acceptance Criteria
 
-- [ ] Payload receipt berisi image block base64 dengan media type yang benar dan prompt text strict JSON.
-- [ ] Payload text-only existing tidak berubah secara semantik dan seluruh test AI existing lulus.
-- [ ] Key kosong, network, timeout, 429, auth, server, invalid response, dan cancellation dipetakan konsisten tanpa membocorkan body/key.
-- [ ] Payload yang melewati batas ditolak sebelum request dikirim.
-- [ ] Tidak ada instance transport/configuration baru pada jalur aplikasi.
+- [x] Payload receipt berisi image block base64 dengan media type yang benar dan prompt text strict JSON.
+- [x] Payload text-only existing tidak berubah secara semantik dan seluruh test AI existing lulus.
+- [x] Key kosong, network, timeout, 429, auth, server, invalid response, dan cancellation dipetakan konsisten tanpa membocorkan body/key.
+- [x] Payload yang melewati batas ditolak sebelum request dikirim.
+- [x] Tidak ada instance transport/configuration baru pada jalur aplikasi.
 
 ## Validasi dan Checkpoint
 
-Gunakan fake `ClaudeApi` untuk test; tidak ada API key atau request live yang diperlukan.
-
+Test multimodal dan transport existing lulus dengan fake `ClaudeApi`; tidak ada API key atau request live yang diperlukan.
