@@ -1,6 +1,6 @@
 # ISSUE-097: Kontrak Data dan Strict Parser Receipt
 
-**Status:** Planned
+**Status:** Done
 **Priority:** High
 **Type:** Feature - AI Receipt Foundation
 **Depends on:** Baseline AI fase 1 tersedia
@@ -25,13 +25,12 @@ Tetapkan kontrak type-safe untuk hasil vision receipt dan parser JSON strict yan
 
 ## Acceptance Criteria
 
-- [ ] JSON valid dengan field wajib dan item terbatas menghasilkan model domain dengan kategori existing yang tepat.
-- [ ] Field tambahan, duplicate key, tipe salah, angka non-positive, tanggal invalid, output terlalu panjang, dan item terlalu banyak ditolak sebagai `INVALID_RESPONSE`.
-- [ ] Error receipt yang didukung dipetakan ke alasan fallback yang dapat ditampilkan UI; tidak ada data parsial yang dipaksa menjadi transaksi.
-- [ ] Kategori yang tidak ada atau tidak sesuai type tidak lolos parsing.
-- [ ] Unit test mencakup JSON fenced, whitespace, error response, batas panjang, dan fixture PRD.
+- [x] JSON valid dengan field wajib dan item terbatas menghasilkan model domain dengan kategori existing yang tepat.
+- [x] Field tambahan, duplicate key, tipe salah, angka non-positive, tanggal invalid, output terlalu panjang, dan item terlalu banyak ditolak sebagai `INVALID_RESPONSE`.
+- [x] Error receipt yang didukung dipetakan ke alasan fallback yang dapat ditampilkan UI; tidak ada data parsial yang dipaksa menjadi transaksi.
+- [x] Kategori yang tidak ada atau tidak sesuai type tidak lolos parsing.
+- [x] Unit test mencakup JSON fenced, whitespace, error response, batas panjang, dan fixture PRD.
 
 ## Validasi dan Checkpoint
 
-Jalankan test parser terkait. Belum mengubah UI, API transport, Room, atau manifest.
-
+Test `ReceiptResponseParserTest` lulus. Belum mengubah UI, API transport, Room, atau manifest.
