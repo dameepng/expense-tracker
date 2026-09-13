@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -149,7 +150,9 @@ internal fun ChatScreenContent(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Scaffold(
-            modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .imePadding()
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
@@ -480,8 +483,8 @@ private fun ChatInputBar(
             },
             trailingIcon = {
                 Row(
-                    modifier = Modifier.padding(end = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(end = 10.dp, top = 8.dp, bottom = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
