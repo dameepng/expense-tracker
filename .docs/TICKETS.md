@@ -80,3 +80,34 @@ Batas panjang, entry point, scope wallet, dan perilaku session di atas adalah ke
 | Satu ticket selesai, commit, push, lalu stop | Workflow berlaku untuk 089-096 |
 
 Tool use/function calling, penyimpanan history di Room, Smart Receipt Scan, AI Wrapped, perubahan transaksi lewat chat, dan fitur perencanaan keuangan baru berada di luar scope fase ini.
+
+## Fase: Receipt Scan
+
+**Status fase:** Planned — backlog saja; belum ada implementasi.
+**Sumber kebutuhan:** [PRD Smart Receipt Scan](prd/prompt-ai-receipt-scan.md)
+**Lokasi issue:** `.docs/issues/`, melanjutkan penomoran dari `ISSUE-096`.
+
+Keputusan MVP: satu gambar struk menghasilkan satu transaksi expense berdasarkan total struk. Item diekstrak dan ditampilkan pada layar review, lalu disimpan sebagai ringkasan terbatas pada note karena `Expense` belum memiliki kolom item; item tidak menjadi transaksi terpisah atau data yang dapat difilter. Kategori dikirim ke AI dari katalog Room dan hasilnya divalidasi terhadap ID/nama kategori yang tersedia. Struk buram, terpotong, bukan struk, atau field wajib ambigu menghasilkan fallback manual/NL Input.
+
+| Urutan | Ticket | Hasil yang bisa direview | Depends on | Status |
+|---|---|---|---|---|
+| 1 | [ISSUE-097: Kontrak dan parser receipt](issues/ISSUE-097-receipt-contract-parser.md) | DTO type-safe dan parser strict untuk hasil vision | Baseline AI fase 1 | Planned |
+| 2 | [ISSUE-098: Claude multimodal transport](issues/ISSUE-098-receipt-multimodal-client.md) | Client bersama dapat mengirim content text + image | 097, shared client ISSUE-090 | Planned |
+| 3 | [ISSUE-099: Pemrosesan dan batas gambar](issues/ISSUE-099-receipt-image-processing.md) | URI menjadi payload base64 terkompresi dengan aman | Baseline Android image dependencies | Planned |
+| 4 | [ISSUE-100: Picker, kamera, permission, dan preview](issues/ISSUE-100-receipt-picker-permission-preview.md) | User memilih/mengambil foto dan melihat preview sebelum scan | 099 | Planned |
+| 5 | [ISSUE-101: Repository vision receipt](issues/ISSUE-101-receipt-vision-repository.md) | Prompt kategori + image menghasilkan draft atau fallback | 097-099 | Planned |
+| 6 | [ISSUE-102: ViewModel dan state scan](issues/ISSUE-102-receipt-scan-viewmodel.md) | State idle/loading/success/error, retry, cancel | 101 | Planned |
+| 7 | [ISSUE-103: Review dan edit hasil scan](issues/ISSUE-103-receipt-review-screen.md) | Draft receipt dapat dikoreksi sebelum disimpan | 102; reusable UI dari AI Input | Planned |
+| 8 | [ISSUE-104: Simpan transaksi dan ringkasan item](issues/ISSUE-104-receipt-save-transaction.md) | Confirm membuat satu Expense valid tanpa duplikasi | 103; Room repositories existing | Planned |
+| 9 | [ISSUE-105: Entry point, navigasi, dan privacy](issues/ISSUE-105-receipt-navigation-privacy.md) | Receipt Scan dapat dibuka dari Home dan scope data dijelaskan | 100-104 | Planned |
+| 10 | [ISSUE-106: QA integrasi receipt scan](issues/ISSUE-106-receipt-integration-qa.md) | Bukti test otomatis/manual, regresi, dan dokumentasi | 097-105 | Planned |
+
+### Workflow Receipt Scan
+
+1. Tunggu user menyetujui atau mengoreksi breakdown ini; belum boleh menulis kode implementasi.
+2. Setelah disetujui, kerjakan tepat satu ticket per giliran dan tandai `In Progress` pada issue serta tabel ini.
+3. Jalankan validasi ticket dan pemeriksaan CI `.\\gradlew.bat assembleDebug testDebugUnitTest lintDebug` sebelum menandai `Done`.
+4. Stage hanya file ticket dan pembaruan statusnya. Jangan memasukkan perubahan working tree lain.
+5. Setelah acceptance criteria terpenuhi, commit dengan pesan yang menyebut nomor issue lalu push ke GitHub.
+6. Laporkan file, validasi, cara review, SHA, dan branch/tautan commit; lalu STOP sampai user meminta ticket berikutnya.
+7. Bila validasi, commit, atau push gagal, laporkan keadaan sebenarnya dan jangan lanjut ke ticket lain.
