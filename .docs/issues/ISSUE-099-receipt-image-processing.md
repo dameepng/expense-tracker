@@ -1,6 +1,6 @@
 # ISSUE-099: Kompresi, Resize, dan Normalisasi Gambar Receipt
 
-**Status:** Planned
+**Status:** Done
 **Priority:** High
 **Type:** Feature - Image Pipeline
 **Depends on:** Baseline dependency image existing
@@ -24,13 +24,12 @@ Bangun pipeline deterministik dari `Uri` kamera/galeri menjadi JPEG yang terbaca
 
 ## Acceptance Criteria
 
-- [ ] Gambar valid menghasilkan JPEG base64 di bawah batas yang disepakati dan dimensi tetap terbaca.
-- [ ] Orientasi EXIF tidak memutar teks struk terbalik; resource selalu ditutup.
-- [ ] URI kosong/tidak dapat dibaca, MIME bukan image, decode gagal, dan hasil masih melewati batas menghasilkan error terkontrol.
-- [ ] Processing tidak berjalan di main thread dan tidak mengubah bitmap input asli.
-- [ ] Batas pipeline konsisten dengan batas transport ISSUE-098.
+- [x] Gambar valid menghasilkan JPEG base64 di bawah batas yang disepakati dan dimensi tetap terbaca.
+- [x] Orientasi EXIF tidak memutar teks struk terbalik; resource selalu ditutup.
+- [x] URI kosong/tidak dapat dibaca, MIME bukan image, decode gagal, dan hasil masih melewati batas menghasilkan error terkontrol.
+- [x] Processing tidak berjalan di main thread dan tidak mengubah bitmap input asli.
+- [x] Batas pipeline konsisten dengan batas transport ISSUE-098.
 
 ## Validasi dan Checkpoint
 
-Unit test memakai resolver/fake fixture; belum menambah screen atau permission.
-
+Unit test `ReceiptImageProcessorTest` lulus memakai fixture bitmap dan URI invalid; belum menambah screen atau permission.

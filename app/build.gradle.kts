@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.exifinterface)
     implementation(libs.coil.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.markdown.renderer.m3)
