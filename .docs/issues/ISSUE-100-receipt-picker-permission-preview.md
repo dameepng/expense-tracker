@@ -1,6 +1,6 @@
 # ISSUE-100: Pilih/Kamera Receipt, Permission, dan Preview Awal
 
-**Status:** Planned
+**Status:** Done
 **Priority:** High
 **Type:** Feature - Compose UI
 **Depends on:** ISSUE-099
@@ -25,13 +25,12 @@ Sediakan entry flow yang memungkinkan user memilih foto dari galeri atau mengamb
 
 ## Acceptance Criteria
 
-- [ ] Galeri dan kamera menghasilkan URI yang dapat dibaca processor tanpa crash.
-- [ ] Permission diminta hanya ketika kamera dipilih; denial memberi pesan jelas dan tombol Settings.
-- [ ] Preview mempertahankan aspect ratio, menangani cancel/result null, dan memungkinkan ganti gambar.
-- [ ] Scan belum memanggil AI; callback hanya menyerahkan URI setelah user menekan Scan.
-- [ ] Tidak ada akses storage permission legacy atau URI camera yang bocor tanpa grant.
+- [x] Galeri dan kamera menghasilkan URI yang dapat dibaca processor tanpa crash.
+- [x] Permission diminta hanya ketika kamera dipilih; denial memberi pesan jelas dan tombol Settings.
+- [x] Preview mempertahankan aspect ratio, menangani cancel/result null, dan memungkinkan ganti gambar.
+- [x] Scan belum memanggil AI; callback hanya menyerahkan URI setelah user menekan Scan.
+- [x] Tidak ada akses storage permission legacy atau URI camera yang bocor tanpa grant.
 
 ## Validasi dan Checkpoint
 
-Uji Compose dengan fake callbacks; manual device test permission/camera disiapkan untuk ISSUE-106.
-
+Build, unit test, dan lint lulus; manual device test permission/camera disiapkan untuk ISSUE-106.

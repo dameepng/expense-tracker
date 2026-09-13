@@ -1,0 +1,91 @@
+package com.example.expense_tracker.ui.receipt
+
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import coil.compose.AsyncImage
+import java.io.File
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
+    val context = LocalContext.current
+    var selectedUri by remember { mutableStateOf<Uri?>(null) }
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    var cameraDenied by remember { mutableStateOf(false) }
+    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) selectedUri = uri }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val uri = pendingCameraUri
+        if (saved && uri != null) selectedUri = uri else uri?.let { context.contentResolver.delete(it, null, null) }
+        pendingCameraUri = null
+    }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            val file = File(context.getExternalFilesDir("Documents"), "receipt_${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            pendingCameraUri = uri; camera.launch(uri)
+        } else cameraDenied = true
+    }
+    Scaffold(topBar = { TopAppBar(title = { Text("Foto struk") }, navigationIcon = {
+        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali") }
+    }) }) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (selectedUri == null) {
+                Text("Ambil atau pilih foto struk", style = MaterialTheme.typography.titleMedium)
+                Button(onClick = { gallery.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.PhotoLibrary, null); Text(" Pilih dari galeri")
+                }
+                OutlinedButton(onClick = {
+                    cameraDenied = false
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                        permission.launch(Manifest.permission.CAMERA)
+                    } else permission.launch(Manifest.permission.CAMERA)
+                }, Modifier.fillMaxWidth()) { Icon(Icons.Default.PhotoCamera, null); Text(" Ambil dengan kamera") }
+            } else {
+                Card(Modifier.fillMaxWidth()) { AsyncImage(model = selectedUri, contentDescription = "Preview foto struk", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth().height(320.dp)) }
+                Button(onClick = { selectedUri?.let(onScan) }, Modifier.fillMaxWidth()) { Text("Scan") }
+                OutlinedButton(onClick = { selectedUri = null }, Modifier.fillMaxWidth()) { Icon(Icons.Default.Delete, null); Text(" Hapus / ganti foto") }
+            }
+            if (cameraDenied) {
+                Text("Izin kamera ditolak. Aktifkan izin kamera di Settings untuk mengambil foto.", color = MaterialTheme.colorScheme.error)
+                TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))) }) { Text("Buka Settings") }
+            }
+        }
+    }
+}
