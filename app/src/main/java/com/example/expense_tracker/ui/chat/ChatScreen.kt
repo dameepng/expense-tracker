@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -47,8 +48,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -63,6 +62,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -75,7 +75,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.ai.chat.ChatMessage
 import com.example.expense_tracker.data.ai.chat.ChatRole
@@ -449,15 +448,15 @@ private fun ChatInputBar(
     val inputError = state.error == ChatUiError.INVALID_INPUT ||
         state.error == ChatUiError.INPUT_LIMIT
     val showSendAction = state.inputText.isNotEmpty()
-    // 32sp line height + the field's 16dp top/bottom padding matches the 64dp actions.
-    val inputTextStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 32.sp)
     val keyboardVisible = WindowInsets.isImeVisible
-    // Match the reference's expanded composer above the keyboard and inset idle composer.
     val horizontalSpacing = if (keyboardVisible) 12.dp else 32.dp
     val bottomSpacing = if (keyboardVisible) 12.dp else 24.dp
+    val inputTextStyle = MaterialTheme.typography.bodyLarge.copy(
+        color = MaterialTheme.colorScheme.onSurface
+    )
+    val inputShape = RoundedCornerShape(32.dp)
 
-    Surface(
-        color = Color.Transparent,
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
@@ -466,126 +465,114 @@ private fun ChatInputBar(
                 end = horizontalSpacing,
                 top = 8.dp,
                 bottom = bottomSpacing
-            )
+            ),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        TextField(
+        BasicTextField(
             value = state.inputText,
             onValueChange = onInputChange,
             enabled = state.failedMessage == null,
             textStyle = inputTextStyle,
-            placeholder = {
-                Text(
-                    text = stringResource(R.string.chat_input_placeholder),
-                    style = inputTextStyle,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            leadingIcon = {
-                IconButton(onClick = onReset) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.chat_new_session),
-                        modifier = Modifier.size(26.dp)
-                    )
-                }
-            },
-            trailingIcon = {
-                Row(
-                    modifier = Modifier.padding(end = 10.dp, top = 8.dp, bottom = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.MicNone,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Surface(
-                        shape = CircleShape,
-                        color = if (showSendAction && state.canSend) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerHighest
-                        },
-                        contentColor = if (showSendAction && state.canSend) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    ) {
-                        IconButton(
-                            onClick = {
-                                keyboard?.hide()
-                                onSend()
-                            },
-                            enabled = showSendAction && state.canSend,
-                            modifier = Modifier.size(48.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (showSendAction) {
-                                    Icons.Default.ArrowUpward
-                                } else {
-                                    Icons.Rounded.GraphicEq
-                                },
-                                contentDescription = stringResource(
-                                    if (showSendAction) {
-                                        R.string.chat_send
-                                    } else {
-                                        R.string.chat_record_audio
-                                    }
-                                ),
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                    }
-                }
-            },
-            supportingText = if (inputError || state.inputText.length >= 900) {
-                {
-                    Text(
-                        text = stringResource(
-                            R.string.chat_character_count,
-                            state.inputText.length
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (inputError) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                }
-            } else {
-                null
-            },
-            isError = inputError,
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             minLines = 1,
             maxLines = 4,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Default
             ),
-            shape = RoundedCornerShape(32.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                errorContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = RoundedCornerShape(32.dp)
-                )
+            modifier = Modifier.fillMaxWidth(),
+            decorationBox = { innerTextField ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh, inputShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, inputShape)
+                        .padding(start = 4.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onReset, modifier = Modifier.size(48.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.chat_new_session),
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                    Box(
+                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (state.inputText.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.chat_input_placeholder),
+                                style = inputTextStyle,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        innerTextField()
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.MicNone,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = if (showSendAction && state.canSend) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHighest
+                            },
+                            contentColor = if (showSendAction && state.canSend) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    keyboard?.hide()
+                                    onSend()
+                                },
+                                enabled = showSendAction && state.canSend,
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (showSendAction) {
+                                        Icons.Default.ArrowUpward
+                                    } else {
+                                        Icons.Rounded.GraphicEq
+                                    },
+                                    contentDescription = stringResource(
+                                        if (showSendAction) R.string.chat_send
+                                        else R.string.chat_record_audio
+                                    ),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         )
+        if (inputError || state.inputText.length >= 900) {
+            Text(
+                text = stringResource(R.string.chat_character_count, state.inputText.length),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (inputError) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
     }
 }
 
