@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -430,6 +433,7 @@ private fun ChatErrorCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChatInputBar(
     state: ChatUiState,
@@ -441,13 +445,22 @@ private fun ChatInputBar(
     val inputError = state.error == ChatUiError.INVALID_INPUT ||
         state.error == ChatUiError.INPUT_LIMIT
     val showSendAction = state.inputText.isNotEmpty()
+    val keyboardVisible = WindowInsets.isImeVisible
+    // Match the reference's expanded composer above the keyboard and inset idle composer.
+    val horizontalSpacing = if (keyboardVisible) 12.dp else 32.dp
+    val bottomSpacing = if (keyboardVisible) 12.dp else 24.dp
 
     Surface(
         color = Color.Transparent,
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(
+                start = horizontalSpacing,
+                end = horizontalSpacing,
+                top = 8.dp,
+                bottom = bottomSpacing
+            )
     ) {
         TextField(
             value = state.inputText,
