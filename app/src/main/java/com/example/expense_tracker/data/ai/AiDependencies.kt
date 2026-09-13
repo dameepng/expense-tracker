@@ -32,6 +32,9 @@ internal class AiDependencies(
             contextSource = contextSource
         )
 
+    fun createReceiptRepository(imageProcessor: com.example.expense_tracker.data.ai.receipt.ReceiptImageProcessor): com.example.expense_tracker.data.ai.receipt.ReceiptRepository =
+        com.example.expense_tracker.data.ai.receipt.ClaudeReceiptRepository(configuration.apiKey, configuration.model, claudeApi, imageProcessor)
+
     companion object {
         val shared: AiDependencies by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             AiDependencies(

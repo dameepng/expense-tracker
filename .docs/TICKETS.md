@@ -95,7 +95,7 @@ Keputusan MVP: satu gambar struk menghasilkan satu transaksi expense berdasarkan
 | 2 | [ISSUE-098: Claude multimodal transport](issues/ISSUE-098-receipt-multimodal-client.md) | Client bersama dapat mengirim content text + image | 097, shared client ISSUE-090 | Done |
 | 3 | [ISSUE-099: Pemrosesan dan batas gambar](issues/ISSUE-099-receipt-image-processing.md) | URI menjadi payload base64 terkompresi dengan aman | Baseline Android image dependencies | Done |
 | 4 | [ISSUE-100: Picker, kamera, permission, dan preview](issues/ISSUE-100-receipt-picker-permission-preview.md) | User memilih/mengambil foto dan melihat preview sebelum scan | 099 | Done |
-| 5 | [ISSUE-101: Repository vision receipt](issues/ISSUE-101-receipt-vision-repository.md) | Prompt kategori + image menghasilkan draft atau fallback | 097-099 | Planned |
+| 5 | [ISSUE-101: Repository vision receipt](issues/ISSUE-101-receipt-vision-repository.md) | Prompt kategori + image menghasilkan draft atau fallback | 097-099 | Done |
 | 6 | [ISSUE-102: ViewModel dan state scan](issues/ISSUE-102-receipt-scan-viewmodel.md) | State idle/loading/success/error, retry, cancel | 101 | Planned |
 | 7 | [ISSUE-103: Review dan edit hasil scan](issues/ISSUE-103-receipt-review-screen.md) | Draft receipt dapat dikoreksi sebelum disimpan | 102; reusable UI dari AI Input | Planned |
 | 8 | [ISSUE-104: Simpan transaksi dan ringkasan item](issues/ISSUE-104-receipt-save-transaction.md) | Confirm membuat satu Expense valid tanpa duplikasi | 103; Room repositories existing | Planned |
