@@ -110,7 +110,7 @@
     <string name="delete_wallet_warning">All transactions in this wallet will be permanently deleted. This action cannot be undone.</string>
     <string name="delete_wallet_hint">Type "hapus dompet" to confirm</string>
     <string name="delete_wallet_action">Delete</string>
-    <string name="delete_wallet_error_last">Cannot delete the last wallet</string>
+
     <string name="card_holder">CARD HOLDER</string>
     <string name="expires">EXPIRES</string>
     <string name="repeat_every_month">Repeat Every Month</string>

@@ -11,15 +11,16 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,12 +54,14 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -106,7 +109,7 @@ fun ChatScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun ChatScreenContent(
     state: ChatUiState,
@@ -122,25 +125,53 @@ internal fun ChatScreenContent(
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
-    var followsLatest by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Status apakah user sedang berada di posisi paling bawah chat (pesan terbaru).
+    // Pada reverseLayout = true, item index 0 adalah posisi visual paling bawah.
+    val isAtBottom by remember(listState) {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 }
+    }
     var showScopeInfo by remember { mutableStateOf(false) }
 
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.isScrollInProgress to listState.canScrollForward }
-            .collect { (isScrolling, canScrollForward) ->
-                if (isScrolling) followsLatest = !canScrollForward
-            }
+    @Suppress("OPT_IN_USAGE")
+    val keyboardVisible = WindowInsets.isImeVisible
+
+    // 1. Auto-scroll saat keyboard dibuka:
+    // Dengan reverseLayout = true, item index 0 secara natural terkunci di tepi bawah saat keyboard naik.
+    // Jika user sedang berada di paling bawah (isAtBottom), kita pastikan index 0 tetap tampil sempurna.
+    LaunchedEffect(keyboardVisible) {
+        if (keyboardVisible && isAtBottom && state.messages.isNotEmpty()) {
+            withFrameNanos { } // Tunggu 1 frame agar layoutInfo viewport selesai diukur ulang
+            listState.animateScrollToItem(0)
+        }
     }
+
+    // 2. Auto-scroll saat pesan baru masuk, loading, atau error:
+    // HANYA dipicu jika user memang sedang berada di paling bawah (isAtBottom).
+    // Jika user sedang scroll ke atas membaca histori, posisinya tidak akan ditarik paksa ke bawah.
     LaunchedEffect(
         state.messages.size,
         state.isLoading,
         state.error,
         state.isHistoryTruncated
     ) {
-        if (followsLatest) {
-            withFrameNanos { }
-            val lastIndex = listState.layoutInfo.totalItemsCount - 1
-            if (lastIndex >= 0) listState.animateScrollToItem(lastIndex)
+        if (isAtBottom && state.messages.isNotEmpty()) {
+            withFrameNanos { } // Tunggu 1 frame agar item baru selesai dikomposisi dan masuk layoutInfo
+            listState.animateScrollToItem(0)
+        }
+    }
+
+    // Saat user sendiri yang mengirim pesan, langsung picu scroll ke pesan terbaru
+    val handleSend = remember(onSend, coroutineScope, listState) {
+        {
+            onSend()
+            coroutineScope.launch {
+                withFrameNanos { }
+                if (listState.layoutInfo.totalItemsCount > 0) {
+                    listState.animateScrollToItem(0)
+                }
+            }
         }
     }
 
@@ -151,8 +182,14 @@ internal fun ChatScreenContent(
     ) {
         Scaffold(
             modifier = Modifier
-                .imePadding()
                 .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+            // WindowInsets(0): Matikan inset handling otomatis Scaffold.
+            // Alasan: Jika Scaffold mengurus insets secara otomatis, bottomBar atau contentPadding
+            // akan sering mendapat dobel inset (misalnya IME + navigationBars dijumlahkan dua kali).
+            // Dengan WindowInsets(0, 0, 0, 0), kita memegang kendali penuh:
+            // - TopAppBar menangani statusBars secara internal
+            // - ChatInputBar menangani imePadding() & navigationBarsPadding() sendiri secara terisolasi
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
@@ -190,69 +227,138 @@ internal fun ChatScreenContent(
             },
             bottomBar = {
                 ChatInputBar(
-                    state = state,
+                    inputText = state.inputText,
+                    canSend = state.canSend,
+                    isFailed = state.failedMessage != null,
+                    hasInputError = state.error == ChatUiError.INVALID_INPUT ||
+                        state.error == ChatUiError.INPUT_LIMIT,
                     onReset = onReset,
                     onInputChange = onInputChange,
-                    onSend = onSend
+                    onSend = { handleSend() }
                 )
             },
             containerColor = Color.Transparent
         ) { contentPadding ->
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding)
-                    .consumeWindowInsets(contentPadding),
-                contentPadding = PaddingValues(horizontal = 17.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                if (state.isHistoryTruncated) {
-                    item(key = "history-truncated") {
-                        ChatNotice(text = stringResource(R.string.chat_history_truncated))
-                    }
-                }
-                if (state.messages.isEmpty()) {
-                    item(key = "empty") {
-                        ChatEmptyState(onExampleClick = onInputChange)
-                    }
-                } else {
-                    items(state.messages, key = ChatMessage::id) { message ->
-                        val status = when (message.id) {
-                            state.pendingMessage?.id -> ChatBubbleStatus.SENDING
-                            state.failedMessage?.id -> ChatBubbleStatus.FAILED
-                            else -> null
-                        }
-                        ChatMessageBubble(
-                            message = message,
-                            userLabel = stringResource(R.string.chat_role_user),
-                            assistantLabel = stringResource(R.string.chat_role_assistant),
-                            sendingLabel = stringResource(R.string.chat_message_sending),
-                            failedLabel = stringResource(R.string.chat_message_failed),
-                            status = status
-                        )
-                    }
-                }
-                if (state.isLoading) {
-                    item(key = "loading") {
-                        ChatLoading(onCancel = onCancelRequest)
-                    }
-                }
-                state.error?.let { error ->
-                    item(key = "error-${error.name}") {
-                        ChatErrorCard(
-                            error = error,
-                            canRetry = state.canRetry,
-                            onRetry = onRetry,
-                            onDiscard = onDiscardFailed
-                        )
-                    }
-                }
-            }
+            ChatMessagesList(
+                listState = listState,
+                messages = state.messages,
+                pendingMessageId = state.pendingMessage?.id,
+                failedMessageId = state.failedMessage?.id,
+                isLoading = state.isLoading,
+                error = state.error,
+                canRetry = state.canRetry,
+                isHistoryTruncated = state.isHistoryTruncated,
+                onExampleClick = onInputChange,
+                onCancelRequest = onCancelRequest,
+                onRetry = onRetry,
+                onDiscardFailed = onDiscardFailed,
+                contentPadding = contentPadding
+            )
         }
 
         if (showScopeInfo) {
             ChatScopeDialog(onDismiss = { showScopeInfo = false })
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChatMessagesList(
+    listState: LazyListState,
+    messages: List<ChatMessage>,
+    pendingMessageId: String?,
+    failedMessageId: String?,
+    isLoading: Boolean,
+    error: ChatUiError?,
+    canRetry: Boolean,
+    isHistoryTruncated: Boolean,
+    onExampleClick: (String) -> Unit,
+    onCancelRequest: () -> Unit,
+    onRetry: () -> Unit,
+    onDiscardFailed: () -> Unit,
+    contentPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
+    // Pola Standar Chat (WhatsApp/Telegram):
+    // Ketika ada pesan, gunakan reverseLayout = true dengan list dibalik (newest item di index 0).
+    // Keuntungan besar:
+    // 1. Pesan terbaru "auto-nempel" di bawah secara gratis tanpa perlu kalkulasi scroll manual.
+    // 2. Saat keyboard (IME) muncul dan resize viewport, posisi item 0 tetap diam di atas input bar.
+    // Saat pesan kosong, gunakan reverseLayout = false agar layout Empty State (welcome card & suggestions)
+    // mengalir secara wajar dari atas ke bawah.
+    val isReversed = messages.isNotEmpty()
+    val messagesReversed = remember(messages) { messages.asReversed() }
+
+    LazyColumn(
+        state = listState,
+        reverseLayout = isReversed,
+        modifier = modifier
+            .fillMaxSize()
+            // padding(contentPadding): Meneruskan padding Scaffold (topBar & bottomBar height)
+            .padding(contentPadding)
+            // consumeWindowInsets: Memberitahu Compose insets ini sudah dikonsumsi agar tidak dihitung ganda
+            .consumeWindowInsets(contentPadding),
+        contentPadding = PaddingValues(horizontal = 17.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        if (isReversed) {
+            // Karena reverseLayout = true, indeks 0 digambar di posisi visual paling bawah.
+            // 1. Error card (posisi visual paling bawah jika ada error)
+            error?.let { err ->
+                item(key = "error-${err.name}") {
+                    ChatErrorCard(
+                        error = err,
+                        canRetry = canRetry,
+                        onRetry = onRetry,
+                        onDiscard = onDiscardFailed
+                    )
+                }
+            }
+
+            // 2. Loading indicator (posisi visual di bawah pesan terakhir, menunggu jawaban AI)
+            if (isLoading) {
+                item(key = "loading") {
+                    ChatLoading(onCancel = onCancelRequest)
+                }
+            }
+
+            // 3. Pesan-pesan dalam urutan terbalik:
+            // messagesReversed[0] (pesan terbaru) digambar di bawah,
+            // messagesReversed[last] (pesan terlama) digambar di atas.
+            items(messagesReversed, key = ChatMessage::id) { message ->
+                val status = when (message.id) {
+                    pendingMessageId -> ChatBubbleStatus.SENDING
+                    failedMessageId -> ChatBubbleStatus.FAILED
+                    else -> null
+                }
+                ChatMessageBubble(
+                    message = message,
+                    userLabel = stringResource(R.string.chat_role_user),
+                    assistantLabel = stringResource(R.string.chat_role_assistant),
+                    sendingLabel = stringResource(R.string.chat_message_sending),
+                    failedLabel = stringResource(R.string.chat_message_failed),
+                    status = status
+                )
+            }
+
+            // 4. Notifikasi riwayat terpotong:
+            // Diletakkan di indeks terakhir agar tampil di posisi visual paling atas (sebelum pesan terlama).
+            if (isHistoryTruncated) {
+                item(key = "history-truncated") {
+                    ChatNotice(text = stringResource(R.string.chat_history_truncated))
+                }
+            }
+        } else {
+            // Layout normal top-to-bottom saat chat masih kosong
+            if (isHistoryTruncated) {
+                item(key = "history-truncated") {
+                    ChatNotice(text = stringResource(R.string.chat_history_truncated))
+                }
+            }
+            item(key = "empty") {
+                ChatEmptyState(onExampleClick = onExampleClick)
+            }
         }
     }
 }
@@ -312,12 +418,13 @@ private fun ChatNotice(text: String) {
 
 @Composable
 private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
-    val examples = listOf(
-        stringResource(R.string.chat_example_food_month),
-        stringResource(R.string.chat_example_top_category),
-        stringResource(R.string.chat_example_month_comparison),
-        stringResource(R.string.chat_example_unusual)
-    )
+    val exFood = stringResource(R.string.chat_example_food_month)
+    val exTop = stringResource(R.string.chat_example_top_category)
+    val exComp = stringResource(R.string.chat_example_month_comparison)
+    val exUnusual = stringResource(R.string.chat_example_unusual)
+    val examples = remember(exFood, exTop, exComp, exUnusual) {
+        listOf(exFood, exTop, exComp, exUnusual)
+    }
     Column(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -439,39 +546,43 @@ private fun ChatErrorCard(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChatInputBar(
-    state: ChatUiState,
+    inputText: String,
+    canSend: Boolean,
+    isFailed: Boolean,
+    hasInputError: Boolean,
     onReset: () -> Unit,
     onInputChange: (String) -> Unit,
-    onSend: () -> Unit
+    onSend: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
-    val inputError = state.error == ChatUiError.INVALID_INPUT ||
-        state.error == ChatUiError.INPUT_LIMIT
-    val showSendAction = state.inputText.isNotEmpty()
-    val keyboardVisible = WindowInsets.isImeVisible
-    val horizontalSpacing = if (keyboardVisible) 12.dp else 32.dp
-    val bottomSpacing = if (keyboardVisible) 12.dp else 24.dp
-    val inputTextStyle = MaterialTheme.typography.bodyLarge.copy(
-        color = MaterialTheme.colorScheme.onSurface
-    )
-    val inputShape = RoundedCornerShape(32.dp)
+    val showSendAction = inputText.isNotEmpty()
 
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val baseStyle = MaterialTheme.typography.bodyLarge
+    val inputTextStyle = remember(baseStyle, onSurfaceColor) {
+        baseStyle.copy(color = onSurfaceColor)
+    }
+    val inputShape = remember { RoundedCornerShape(24.dp) }
+
+    // Best Practice Insets (Google Jetchat Sample):
+    // Modifier.imePadding().navigationBarsPadding() dipasang langsung pada root composable input bar.
+    // - Saat keyboard tertutup: imePadding() = 0, navigationBarsPadding() memberi ruang pas di atas gesture pill / 3-button nav.
+    // - Saat keyboard terbuka: imePadding() mengangkat bar setinggi keyboard. navigationBars yang berada di balik keyboard
+    //   otomatis ter-consume sehingga navigationBarsPadding() tidak menambahkan padding ekstra (bebas celah/gap ganda).
+    // - Hindari menghitung WindowInsets.navigationBars.asPaddingValues() secara manual karena rawan salah hitung.
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .imePadding()
             .navigationBarsPadding()
-            .padding(
-                start = horizontalSpacing,
-                end = horizontalSpacing,
-                top = 8.dp,
-                bottom = bottomSpacing
-            ),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         BasicTextField(
-            value = state.inputText,
+            value = inputText,
             onValueChange = onInputChange,
-            enabled = state.failedMessage == null,
+            enabled = !isFailed,
             textStyle = inputTextStyle,
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             minLines = 1,
@@ -498,10 +609,12 @@ private fun ChatInputBar(
                         )
                     }
                     Box(
-                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 8.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        if (state.inputText.isEmpty()) {
+                        if (inputText.isEmpty()) {
                             Text(
                                 text = stringResource(R.string.chat_input_placeholder),
                                 style = inputTextStyle,
@@ -524,12 +637,12 @@ private fun ChatInputBar(
                         )
                         Surface(
                             shape = CircleShape,
-                            color = if (showSendAction && state.canSend) {
+                            color = if (showSendAction && canSend) {
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.surfaceContainerHighest
                             },
-                            contentColor = if (showSendAction && state.canSend) {
+                            contentColor = if (showSendAction && canSend) {
                                 MaterialTheme.colorScheme.onPrimary
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
@@ -540,7 +653,7 @@ private fun ChatInputBar(
                                     keyboard?.hide()
                                     onSend()
                                 },
-                                enabled = showSendAction && state.canSend,
+                                enabled = showSendAction && canSend,
                                 modifier = Modifier.size(48.dp)
                             ) {
                                 Icon(
@@ -561,11 +674,11 @@ private fun ChatInputBar(
                 }
             }
         )
-        if (inputError || state.inputText.length >= 900) {
+        if (hasInputError || inputText.length >= 900) {
             Text(
-                text = stringResource(R.string.chat_character_count, state.inputText.length),
+                text = stringResource(R.string.chat_character_count, inputText.length),
                 style = MaterialTheme.typography.labelSmall,
-                color = if (inputError) {
+                color = if (hasInputError) {
                     MaterialTheme.colorScheme.error
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant

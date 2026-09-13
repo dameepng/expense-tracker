@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.coil.compose)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.markdown.renderer.m3)
 
     // Room
     implementation(libs.androidx.room.runtime)

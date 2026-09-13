@@ -110,7 +110,7 @@
     <string name="delete_wallet_warning">Semua transaksi di dompet ini akan ikut terhapus secara permanen. Tindakan ini tidak dapat dibatalkan.</string>
     <string name="delete_wallet_hint">Ketik "hapus dompet" untuk konfirmasi</string>
     <string name="delete_wallet_action">Hapus</string>
-    <string name="delete_wallet_error_last">Tidak bisa menghapus dompet terakhir</string>
+
     <string name="card_holder">CARD HOLDER</string>
     <string name="expires">EXPIRES</string>
     <string name="repeat_every_month">Ulangi Setiap Bulan</string>

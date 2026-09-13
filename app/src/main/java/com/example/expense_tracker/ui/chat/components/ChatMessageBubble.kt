@@ -83,11 +83,20 @@ internal fun ChatMessageBubble(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 SelectionContainer {
-                    Text(
-                        text = message.content,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    if (isUser) {
+                        // Bubble user menggunakan Text biasa (plain text) tanpa markdown parsing
+                        Text(
+                            text = message.content,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        // Bubble assistant dirender dengan parser markdown native Compose
+                        AssistantMarkdownText(
+                            markdown = message.content,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
                 status?.let {
                     Row(
