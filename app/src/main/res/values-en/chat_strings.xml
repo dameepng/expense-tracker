@@ -25,6 +25,7 @@
     <string name="chat_cancel_request">Cancel</string>
     <string name="chat_input_placeholder">Ask about your spending…</string>
     <string name="chat_character_count">%1$d/1000 characters</string>
+    <string name="chat_record_audio">Record audio</string>
     <string name="chat_send">Send question</string>
     <string name="chat_error_title">Question not answered</string>
     <string name="chat_error_configuration">The AI service key has not been configured.</string>

@@ -46,7 +46,7 @@ internal fun ChatMessageBubble(
     val containerColor = if (isUser) {
         Color(0xFF5965E8)
     } else {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)
+        MaterialTheme.colorScheme.surfaceContainerHigh
     }
     val contentColor = if (isUser) {
         Color.White

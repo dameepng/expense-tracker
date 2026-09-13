@@ -3,6 +3,7 @@ package com.example.expense_tracker.ui.chat
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,8 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,12 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.MicNone
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -45,6 +43,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -285,7 +285,7 @@ private fun ChatScopeDialog(onDismiss: () -> Unit) {
 @Composable
 private fun ChatNotice(text: String) {
     Surface(
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.74f),
+        color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(18.dp),
         shadowElevation = 2.dp,
@@ -337,7 +337,7 @@ private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
         examples.forEach { example ->
             Surface(
                 onClick = { onExampleClick(example) },
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.68f),
+                color = MaterialTheme.colorScheme.surfaceContainer,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 shape = RoundedCornerShape(20.dp),
                 shadowElevation = 2.dp,
@@ -440,142 +440,123 @@ private fun ChatInputBar(
     val keyboard = LocalSoftwareKeyboardController.current
     val inputError = state.error == ChatUiError.INVALID_INPUT ||
         state.error == ChatUiError.INPUT_LIMIT
-    val canReset = state.messages.isNotEmpty() || state.inputText.isNotEmpty()
+    val showSendAction = state.inputText.isNotEmpty()
 
     Surface(color = Color.Transparent) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .imePadding()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Surface(
-                onClick = onReset,
-                enabled = canReset,
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                shadowElevation = 5.dp
-            ) {
-                Box(
-                    modifier = Modifier.size(56.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+        TextField(
+            value = state.inputText,
+            onValueChange = onInputChange,
+            enabled = state.failedMessage == null,
+            placeholder = {
+                Text(text = stringResource(R.string.chat_input_placeholder))
+            },
+            leadingIcon = {
+                IconButton(onClick = onReset) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(R.string.chat_new_session),
-                        modifier = Modifier.size(25.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
-            }
-
-            Surface(
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.80f),
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                shape = RoundedCornerShape(29.dp),
-                shadowElevation = 5.dp,
-                modifier = Modifier.weight(1f)
-            ) {
-                Column(
-                    modifier = Modifier.padding(start = 17.dp, top = 4.dp, end = 5.dp, bottom = 4.dp)
+            },
+            trailingIcon = {
+                Row(
+                    modifier = Modifier.padding(end = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    Icon(
+                        imageVector = Icons.Outlined.MicNone,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Surface(
+                        shape = CircleShape,
+                        color = if (showSendAction && state.canSend) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHighest
+                        },
+                        contentColor = if (showSendAction && state.canSend) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     ) {
-                        BasicTextField(
-                            value = state.inputText,
-                            onValueChange = onInputChange,
-                            enabled = state.failedMessage == null,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurface
-                            ),
-                            minLines = 1,
-                            maxLines = 4,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.Sentences,
-                                imeAction = ImeAction.Send
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onSend = {
-                                    if (state.canSend) {
-                                        keyboard?.hide()
-                                        onSend()
-                                    }
-                                }
-                            ),
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    modifier = Modifier.heightIn(min = 46.dp),
-                                    contentAlignment = Alignment.CenterStart
-                                ) {
-                                    if (state.inputText.isEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.chat_input_placeholder),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .heightIn(min = 46.dp)
-                        )
-                        Icon(
-                            imageVector = Icons.Outlined.MicNone,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Surface(
+                        IconButton(
                             onClick = {
                                 keyboard?.hide()
                                 onSend()
                             },
-                            enabled = state.canSend,
-                            shape = CircleShape,
-                            color = if (state.canSend) {
-                                Color(0xFF202126)
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f)
-                            },
-                            contentColor = Color.White
+                            enabled = showSendAction && state.canSend,
+                            modifier = Modifier.size(48.dp)
                         ) {
-                            Box(
-                                modifier = Modifier.size(48.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.GraphicEq,
-                                    contentDescription = stringResource(R.string.chat_send),
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
+                            Icon(
+                                imageVector = if (showSendAction) {
+                                    Icons.Default.ArrowUpward
+                                } else {
+                                    Icons.Rounded.GraphicEq
+                                },
+                                contentDescription = stringResource(
+                                    if (showSendAction) {
+                                        R.string.chat_send
+                                    } else {
+                                        R.string.chat_record_audio
+                                    }
+                                ),
+                                modifier = Modifier.size(22.dp)
+                            )
                         }
                     }
-                    if (inputError || state.inputText.length >= 900) {
-                        Text(
-                            text = stringResource(
-                                R.string.chat_character_count,
-                                state.inputText.length
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (inputError) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            modifier = Modifier.padding(start = 2.dp, end = 8.dp, bottom = 5.dp)
-                        )
-                    }
                 }
-            }
-        }
+            },
+            supportingText = if (inputError || state.inputText.length >= 900) {
+                {
+                    Text(
+                        text = stringResource(
+                            R.string.chat_character_count,
+                            state.inputText.length
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (inputError) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
+            } else {
+                null
+            },
+            isError = inputError,
+            minLines = 1,
+            maxLines = 4,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Default
+            ),
+            shape = RoundedCornerShape(32.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                errorContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(32.dp)
+                )
+        )
     }
 }
 
