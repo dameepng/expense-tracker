@@ -442,7 +442,13 @@ private fun ChatInputBar(
         state.error == ChatUiError.INPUT_LIMIT
     val showSendAction = state.inputText.isNotEmpty()
 
-    Surface(color = Color.Transparent) {
+    Surface(
+        color = Color.Transparent,
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
         TextField(
             value = state.inputText,
             onValueChange = onInputChange,
@@ -462,7 +468,7 @@ private fun ChatInputBar(
             trailingIcon = {
                 Row(
                     modifier = Modifier.padding(end = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -549,8 +555,6 @@ private fun ChatInputBar(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
                 .border(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.outlineVariant,
