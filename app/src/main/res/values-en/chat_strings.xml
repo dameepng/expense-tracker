@@ -23,7 +23,7 @@
     <string name="chat_message_failed">Failed to send</string>
     <string name="chat_loading">The assistant is preparing an answer…</string>
     <string name="chat_cancel_request">Cancel</string>
-    <string name="chat_input_placeholder">Ask about your spending…</string>
+    <string name="chat_input_placeholder">Ask AI Asisst</string>
     <string name="chat_character_count">%1$d/1000 characters</string>
     <string name="chat_record_audio">Record audio</string>
     <string name="chat_send">Send question</string>

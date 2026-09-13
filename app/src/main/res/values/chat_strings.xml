@@ -23,7 +23,7 @@
     <string name="chat_message_failed">Gagal dikirim</string>
     <string name="chat_loading">Asisten sedang menyiapkan jawaban…</string>
     <string name="chat_cancel_request">Batalkan</string>
-    <string name="chat_input_placeholder">Tanyakan soal pengeluaran…</string>
+    <string name="chat_input_placeholder">Ask AI Asisst</string>
     <string name="chat_character_count">%1$d/1000 karakter</string>
     <string name="chat_record_audio">Rekam audio</string>
     <string name="chat_send">Kirim pertanyaan</string>

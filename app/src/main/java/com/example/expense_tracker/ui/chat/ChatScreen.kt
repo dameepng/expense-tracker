@@ -75,6 +75,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.ai.chat.ChatMessage
 import com.example.expense_tracker.data.ai.chat.ChatRole
@@ -448,6 +449,8 @@ private fun ChatInputBar(
     val inputError = state.error == ChatUiError.INVALID_INPUT ||
         state.error == ChatUiError.INPUT_LIMIT
     val showSendAction = state.inputText.isNotEmpty()
+    // 32sp line height + the field's 16dp top/bottom padding matches the 64dp actions.
+    val inputTextStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 32.sp)
     val keyboardVisible = WindowInsets.isImeVisible
     // Match the reference's expanded composer above the keyboard and inset idle composer.
     val horizontalSpacing = if (keyboardVisible) 12.dp else 32.dp
@@ -469,8 +472,14 @@ private fun ChatInputBar(
             value = state.inputText,
             onValueChange = onInputChange,
             enabled = state.failedMessage == null,
+            textStyle = inputTextStyle,
             placeholder = {
-                Text(text = stringResource(R.string.chat_input_placeholder))
+                Text(
+                    text = stringResource(R.string.chat_input_placeholder),
+                    style = inputTextStyle,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             },
             leadingIcon = {
                 IconButton(onClick = onReset) {
