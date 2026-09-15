@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -96,7 +97,8 @@ fun WalletListScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
+                .padding(top = paddingValues.calculateTopPadding()),
+            contentAlignment = Alignment.TopCenter
         ) {
             if (uiState.wallets.isEmpty() && !uiState.isLoading) {
                 Text(
@@ -107,7 +109,9 @@ fun WalletListScreen(
                 )
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 840.dp),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -144,13 +148,18 @@ fun WalletListScreen(
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 32.dp)
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.TopCenter
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 560.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 32.dp)
+                ) {
                 Text(
                     text = stringResource(R.string.add_new_wallet),
                     style = MaterialTheme.typography.titleLarge,
@@ -321,6 +330,7 @@ fun WalletListScreen(
                 }
             }
         }
+    }
     }
 
     walletToDelete?.let { wallet ->

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -348,15 +349,21 @@ fun InputScreen(
         onSaved()
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.TopCenter
     ) {
-        InputHeader(
-            inputTypeOption = state.inputTypeOption,
-            onNavigateBack = onNavigateBack
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 640.dp)
+        ) {
+            InputHeader(
+                inputTypeOption = state.inputTypeOption,
+                onNavigateBack = onNavigateBack
+            )
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -560,6 +567,7 @@ fun InputScreen(
             },
             modifier = Modifier.imePadding()
         )
+        }
         }
     }
 }

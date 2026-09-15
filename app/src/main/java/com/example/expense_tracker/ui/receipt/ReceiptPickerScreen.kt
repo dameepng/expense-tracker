@@ -8,11 +8,14 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -72,57 +75,70 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
     Scaffold(topBar = { TopAppBar(title = { Text("Foto struk") }, navigationIcon = {
         IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali") }
     }) }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            if (selectedUri == null) {
-                Text("Ambil atau pilih foto struk", style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                Button(
-                    onClick = { gallery.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Default.PhotoLibrary, null)
-                    Text("  Pilih dari galeri", style = MaterialTheme.typography.labelLarge)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 560.dp)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (selectedUri == null) {
+                    Text("Ambil atau pilih foto struk", style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    Button(
+                        onClick = { gallery.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Default.PhotoLibrary, null)
+                        Text("  Pilih dari galeri", style = MaterialTheme.typography.labelLarge)
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            cameraDenied = false
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                permission.launch(Manifest.permission.CAMERA)
+                            } else permission.launch(Manifest.permission.CAMERA)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Default.PhotoCamera, null)
+                        Text("  Ambil dengan kamera", style = MaterialTheme.typography.labelLarge)
+                    }
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                    ) {
+                        AsyncImage(model = selectedUri, contentDescription = "Preview foto struk", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth().height(320.dp))
+                    }
+                    Button(
+                        onClick = { selectedUri?.let(onScan) },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Scan Struk", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    }
+                    OutlinedButton(
+                        onClick = { selectedUri = null },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Default.Delete, null)
+                        Text("  Hapus / ganti foto", style = MaterialTheme.typography.labelLarge)
+                    }
                 }
-                OutlinedButton(
-                    onClick = {
-                        cameraDenied = false
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                            permission.launch(Manifest.permission.CAMERA)
-                        } else permission.launch(Manifest.permission.CAMERA)
-                    },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Default.PhotoCamera, null)
-                    Text("  Ambil dengan kamera", style = MaterialTheme.typography.labelLarge)
+                if (cameraDenied) {
+                    Text("Izin kamera ditolak. Aktifkan izin kamera di Settings untuk mengambil foto.", color = MaterialTheme.colorScheme.error)
+                    TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))) }) { Text("Buka Settings") }
                 }
-            } else {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-                ) {
-                    AsyncImage(model = selectedUri, contentDescription = "Preview foto struk", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth().height(320.dp))
-                }
-                Button(
-                    onClick = { selectedUri?.let(onScan) },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text("Scan Struk", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                }
-                OutlinedButton(
-                    onClick = { selectedUri = null },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Default.Delete, null)
-                    Text("  Hapus / ganti foto", style = MaterialTheme.typography.labelLarge)
-                }
-            }
-            if (cameraDenied) {
-                Text("Izin kamera ditolak. Aktifkan izin kamera di Settings untuk mengambil foto.", color = MaterialTheme.colorScheme.error)
-                TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))) }) { Text("Buka Settings") }
             }
         }
     }

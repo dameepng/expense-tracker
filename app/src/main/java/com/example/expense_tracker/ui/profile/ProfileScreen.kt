@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -148,12 +149,18 @@ fun ProfileScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding()),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            contentAlignment = Alignment.TopCenter
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 680.dp),
+                contentPadding = PaddingValues(bottom = 24.dp)
+            ) {
             item {
                 ProfileHeader(
                     name = uiState.userName,
@@ -285,6 +292,7 @@ fun ProfileScreen(
             }
         }
     }
+}
 }
 
 @Composable

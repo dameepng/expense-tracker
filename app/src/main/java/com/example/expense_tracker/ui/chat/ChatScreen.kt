@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -178,10 +179,13 @@ internal fun ChatScreenContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.TopCenter
     ) {
         Scaffold(
             modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 768.dp)
                 .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
             // WindowInsets(0): Matikan inset handling otomatis Scaffold.
             // Alasan: Jika Scaffold mengurus insets secara otomatis, bottomBar atau contentPadding
