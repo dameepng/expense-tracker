@@ -42,6 +42,7 @@
     <string name="privacy_p1">Kasflow respects your privacy. We are committed to protecting your personal information and your right to privacy.</string>
     <string name="privacy_h2">Data Collection</string>
     <string name="privacy_p2">Kasflow stores transactions, wallets, and settings locally on your device. Manual entry does not require sending data to an AI service. If you use AI entry, input is sent to Claude (Anthropic) as described in Optional AI processing.</string>
+    <string name="privacy_receipt_content">When you choose Receipt photo, the image and prompt along with available categories are sent to Claude (Anthropic) via the internet for processing. Scan results are only saved after you confirm; temporary images and data are retained in memory during processing and are not stored in Room. If scanning fails or is unreadable, you can proceed with manual entry or NL Input.</string>
     <string name="privacy_h3">Data Usage</string>
     <string name="privacy_p3">Local data powers expense charts, transaction lists, and account settings. AI processing runs only when you choose it, and the result is saved as a transaction only after your confirmation.</string>
     <string name="privacy_h4">Data Security</string>
