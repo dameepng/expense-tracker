@@ -248,22 +248,21 @@ fun BalanceCard(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = selectedWalletName.uppercase(),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color.White,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     
-                    Box {
+                    Box(contentAlignment = Alignment.Center) {
                         var expanded by remember { mutableStateOf(false) }
                         IconButton(
                             onClick = { expanded = true },
-                            modifier = Modifier
-                                .size(24.dp)
-                                .offset(x = 8.dp, y = (-8).dp)
+                            modifier = Modifier.size(24.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
