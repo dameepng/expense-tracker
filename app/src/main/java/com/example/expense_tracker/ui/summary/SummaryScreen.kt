@@ -17,6 +17,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import com.example.expense_tracker.ui.theme.spacing
+import com.example.expense_tracker.ui.theme.motionScheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -45,6 +46,7 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -155,6 +157,7 @@ fun BreakdownCardItem(
     isIncome: Boolean = false,
     onClick: () -> Unit = {}
 ) {
+    val spacing = MaterialTheme.spacing
     val icon = when (item.categoryId) {
         1L -> Icons.Default.Restaurant
         2L -> Icons.Default.DirectionsCar
@@ -171,72 +174,94 @@ fun BreakdownCardItem(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = categoryColor.copy(alpha = 0.06f) // Subtle tint
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         onClick = onClick
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(spacing.cardPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Color Accent Bar
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .height(40.dp)
-                    .background(categoryColor, RoundedCornerShape(2.dp))
-            )
-            
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Icon and Text Column
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            // Expressive Squircle Leading Category Icon
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = categoryColor.copy(alpha = 0.15f),
+                modifier = Modifier.size(44.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = item.categoryName,
                         tint = categoryColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = item.categoryName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
+                        modifier = Modifier.size(22.dp)
                     )
                 }
+            }
+            
+            Spacer(modifier = Modifier.width(spacing.space150))
+
+            // Center Content: Category Name, Progress Bar, and Percentage Pill
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(spacing.space75)
+                ) {
+                    Text(
+                        text = item.categoryName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = categoryColor.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            text = "${(item.percentage * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = categoryColor,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(spacing.space100))
                 
                 LinearProgressIndicator(
                     progress = { item.percentage },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(6.dp),
+                        .height(spacing.space75),
                     color = categoryColor,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     strokeCap = StrokeCap.Round
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(spacing.space150))
 
-            // Amount and Percentage Column
-            Column(horizontalAlignment = Alignment.End) {
+            // Trailing Content: Amount and Chevron
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = CurrencyFormatter.format(item.amount),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Text(
-                    text = "${(item.percentage * 100).toInt()}%",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Spacer(modifier = Modifier.width(spacing.space50))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
@@ -690,7 +715,13 @@ fun SummaryScreen(
                     BreakdownCardItem(
                         item = item, 
                         isIncome = isIncome, 
-                        modifier = Modifier.padding(horizontal = spacing.screenMargin, vertical = spacing.space75),
+                        modifier = Modifier
+                            .animateItem(
+                                fadeInSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                            )
+                            .padding(horizontal = spacing.screenMargin, vertical = spacing.space75),
                         onClick = {
                             val startDate = state.customStartDate
                             val endDate = state.customEndDate

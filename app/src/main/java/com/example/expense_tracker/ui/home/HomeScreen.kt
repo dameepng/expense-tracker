@@ -2,6 +2,7 @@ package com.example.expense_tracker.ui.home
 
 import com.example.expense_tracker.ui.components.TransactionListItem
 import com.example.expense_tracker.ui.theme.spacing
+import com.example.expense_tracker.ui.theme.motionScheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -649,9 +650,11 @@ fun HomeScreen(
             } else if (state.transactions.isEmpty()) {
                 EmptyState(periodLabel = state.periodLabel)
             } else {
+                val swipeShape = RoundedCornerShape(20.dp)
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize().padding(top = spacing.space100),
+                    verticalArrangement = Arrangement.spacedBy(spacing.space100),
                     contentPadding = PaddingValues(bottom = 96.dp)
                 ) {
                     items(
@@ -690,8 +693,9 @@ fun HomeScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(color)
-                                        .padding(horizontal = 20.dp),
+                                        .clip(swipeShape)
+                                        .background(color, swipeShape)
+                                        .padding(horizontal = 24.dp),
                                     contentAlignment = alignment
                                 ) {
                                     if (icon != null) {
@@ -703,13 +707,20 @@ fun HomeScreen(
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .animateItem(
+                                    fadeInSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                    fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                    placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                                )
+                                .fillMaxWidth()
+                                .clip(swipeShape)
                         ) {
                             TransactionListItem(
                                 transaction = expense,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.background)
+                                    .clip(swipeShape)
                                     .clickable {
                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         onNavigateToInput(expense.id)

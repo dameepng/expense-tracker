@@ -81,6 +81,7 @@ private val DarkColorScheme = darkColorScheme(
 fun Expense_trackerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true, // Menggunakan Dynamic Color default (opsi M3)
+    motionScheme: MotionScheme = MotionScheme.expressive(),
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -98,7 +99,10 @@ fun Expense_trackerTheme(
         colorScheme = colorScheme,
         typography = Typography
     ) {
-        CompositionLocalProvider(LocalSpacing provides spacing) {
+        CompositionLocalProvider(
+            LocalSpacing provides spacing,
+            LocalMotionScheme provides motionScheme
+        ) {
             content()
         }
     }

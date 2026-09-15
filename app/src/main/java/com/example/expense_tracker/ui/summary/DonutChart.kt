@@ -1,6 +1,7 @@
 package com.example.expense_tracker.ui.summary
 
-import androidx.compose.animation.core.FloatTweenSpec
+import androidx.compose.material3.MaterialTheme
+import com.example.expense_tracker.ui.theme.motionScheme
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -37,7 +38,7 @@ fun DonutChart(
 
     val animationProgress by animateFloatAsState(
         targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = FloatTweenSpec(duration = 1000),
+        animationSpec = MaterialTheme.motionScheme.slowSpatialSpec(),
         label = "DonutChartAnimation"
     )
 

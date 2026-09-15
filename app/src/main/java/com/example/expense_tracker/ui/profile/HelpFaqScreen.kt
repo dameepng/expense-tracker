@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import com.example.expense_tracker.ui.theme.spacing
+import com.example.expense_tracker.ui.theme.motionScheme
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -83,15 +87,16 @@ fun HelpFaqScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
+        val spacing = MaterialTheme.spacing
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp)
+            verticalArrangement = Arrangement.spacedBy(spacing.space100),
+            contentPadding = PaddingValues(horizontal = spacing.screenMargin, vertical = spacing.itemGap)
         ) {
             items(faqItems) { item ->
                 FaqCardItem(item)
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
@@ -100,15 +105,19 @@ fun HelpFaqScreen(
 @Composable
 fun FaqCardItem(item: FaqItem) {
     var expanded by remember { mutableStateOf(false) }
+    val spacing = MaterialTheme.spacing
+
+    val chevronRotation by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "faqChevronRotation"
+    )
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
+                animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
             ),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -120,7 +129,7 @@ fun FaqCardItem(item: FaqItem) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { expanded = !expanded }
-                .padding(16.dp)
+                .padding(spacing.cardPadding)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -133,13 +142,14 @@ fun FaqCardItem(item: FaqItem) {
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
-                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    imageVector = Icons.Default.ExpandMore,
                     contentDescription = if (expanded) "Collapse" else "Expand",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.graphicsLayer { rotationZ = chevronRotation }
                 )
             }
             if (expanded) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(spacing.space100))
                 Text(
                     text = stringResource(id = item.answerResId),
                     style = MaterialTheme.typography.bodyMedium,

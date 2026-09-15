@@ -2,11 +2,15 @@ package com.example.expense_tracker.ui.summary.categorydetail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.draw.clip
+import com.example.expense_tracker.ui.theme.spacing
+import com.example.expense_tracker.ui.theme.motionScheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -132,9 +136,12 @@ fun CategoryDetailScreen(
                     }
                 }
 
+                val spacing = MaterialTheme.spacing
+                val swipeShape = RoundedCornerShape(20.dp)
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 80.dp, top = 8.dp)
+                    verticalArrangement = Arrangement.spacedBy(spacing.space100),
+                    contentPadding = PaddingValues(bottom = 80.dp, top = spacing.space100, start = spacing.screenMargin, end = spacing.screenMargin)
                 ) {
                     items(
                         items = state.transactions,
@@ -172,8 +179,9 @@ fun CategoryDetailScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(color)
-                                        .padding(horizontal = 20.dp),
+                                        .clip(swipeShape)
+                                        .background(color, swipeShape)
+                                        .padding(horizontal = 24.dp),
                                     contentAlignment = alignment
                                 ) {
                                     if (icon != null) {
@@ -185,13 +193,20 @@ fun CategoryDetailScreen(
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .animateItem(
+                                    fadeInSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                    fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                    placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                                )
+                                .fillMaxWidth()
+                                .clip(swipeShape)
                         ) {
                             TransactionListItem(
                                 transaction = expense,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.background)
+                                    .clip(swipeShape)
                                     .clickable { onNavigateToInput(expense.id) }
                             )
                         }

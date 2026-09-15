@@ -39,8 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
@@ -430,21 +430,21 @@ fun SettingsItem(
     ) {
         // Leading Icon
         Surface(
-            modifier = Modifier.size(42.dp),
+            modifier = Modifier.size(44.dp),
             shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh
+            color = iconColor.copy(alpha = 0.12f)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
                 tint = iconColor,
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(11.dp)
                     .fillMaxSize()
             )
         }
         
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(spacing.space200))
         
         // Texts
         Column(
@@ -465,16 +465,17 @@ fun SettingsItem(
             }
         }
         
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(spacing.space100))
         
         // Trailing
         if (trailingComponent != null) {
             trailingComponent()
         } else {
             Icon(
-                imageVector = Icons.Default.ChevronRight,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Next",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                modifier = Modifier.size(20.dp)
             )
         }
     }

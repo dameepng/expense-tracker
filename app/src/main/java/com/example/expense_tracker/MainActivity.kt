@@ -22,6 +22,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.ui.unit.IntOffset
+import com.example.expense_tracker.ui.theme.motionScheme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -303,6 +306,11 @@ fun ExpenseTrackerApp(
                 }
             }
         ) { innerPadding ->
+        val motionScheme = MaterialTheme.motionScheme
+        val spatialSpec = motionScheme.defaultSpatialSpec<IntOffset>()
+        val effectsSpec = motionScheme.defaultEffectsSpec<Float>()
+        val fastEffectsSpec = motionScheme.fastEffectsSpec<Float>()
+
         NavHost(
             navController = navController,
             startDestination = NavRoutes.HOME,
@@ -313,50 +321,50 @@ fun ExpenseTrackerApp(
                 if (isReduceMotion) {
                     EnterTransition.None
                 } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                    fadeIn(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                    fadeIn(animationSpec = fastEffectsSpec)
                 } else {
                     slideIntoContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                        animationSpec = tween(300, easing = FastOutSlowInEasing)
-                    ) + fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                        animationSpec = spatialSpec
+                    ) + fadeIn(animationSpec = effectsSpec)
                 }
             },
             exitTransition = {
                 if (isReduceMotion) {
                     ExitTransition.None
                 } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                    fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                    fadeOut(animationSpec = fastEffectsSpec)
                 } else {
                     slideOutOfContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                        animationSpec = tween(300, easing = FastOutSlowInEasing),
+                        animationSpec = spatialSpec,
                         targetOffset = { fullWidth -> fullWidth / 3 }
-                    ) + fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                    ) + fadeOut(animationSpec = effectsSpec)
                 }
             },
             popEnterTransition = {
                 if (isReduceMotion) {
                     EnterTransition.None
                 } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                    fadeIn(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                    fadeIn(animationSpec = fastEffectsSpec)
                 } else {
                     slideIntoContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.End,
-                        animationSpec = tween(300, easing = FastOutSlowInEasing),
+                        animationSpec = spatialSpec,
                         initialOffset = { fullWidth -> -fullWidth / 3 }
-                    ) + fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                    ) + fadeIn(animationSpec = effectsSpec)
                 }
             },
             popExitTransition = {
                 if (isReduceMotion) {
                     ExitTransition.None
                 } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                    fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                    fadeOut(animationSpec = fastEffectsSpec)
                 } else {
                     slideOutOfContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.End,
-                        animationSpec = tween(300, easing = FastOutSlowInEasing)
-                    ) + fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                        animationSpec = spatialSpec
+                    ) + fadeOut(animationSpec = effectsSpec)
                 }
             }
         ) {

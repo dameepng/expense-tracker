@@ -3,6 +3,7 @@ package com.example.expense_tracker.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,10 +35,17 @@ import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.TimeFormatter
 import com.example.expense_tracker.ui.theme.spacing
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.ui.draw.clip
+
 @Composable
 fun TransactionListItem(
     transaction: ExpenseWithCategory,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
     val spacing = MaterialTheme.spacing
     val isIncome = transaction.type == com.example.expense_tracker.data.TransactionType.INCOME.name
@@ -69,81 +77,109 @@ fun TransactionListItem(
         }
     }
 
-    ListItem(
-        modifier = modifier.padding(vertical = spacing.space50),
-        headlineContent = {
-            Text(
-                text = transaction.categoryName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-        },
-        supportingContent = {
-            Column {
-                if (transaction.merchant.isNotBlank()) {
-                    Text(
-                        text = transaction.merchant,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
-                }
-                if (transaction.isRecurring) {
-                    Text(
-                        text = stringResource(R.string.ai_recurring),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+    val cardShape = RoundedCornerShape(20.dp)
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(cardShape),
+        shape = cardShape,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp
+    ) {
+        ListItem(
+            modifier = Modifier.padding(horizontal = spacing.space50, vertical = spacing.space25),
+            headlineContent = {
                 Text(
-                    text = TimeFormatter.formatTime(transaction.timestamp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
-                )
-            }
-        },
-        leadingContent = {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = iconBg,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Icon(
-                        imageVector = iconVector,
-                        contentDescription = transaction.categoryName,
-                        tint = iconTint,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-        },
-        trailingContent = {
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = amountPrefix + CurrencyFormatter.format(transaction.amount),
+                    text = transaction.categoryName,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = amountColor
+                    fontWeight = FontWeight.Bold
                 )
-                if (transaction.description.isNotBlank()) {
+            },
+            supportingContent = {
+                Column(modifier = Modifier.padding(top = spacing.space25)) {
+                    if (transaction.merchant.isNotBlank()) {
+                        Text(
+                            text = transaction.merchant,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
+                    if (transaction.isRecurring) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.ai_recurring),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
                     Text(
-                        text = transaction.description,
+                        text = TimeFormatter.formatTime(transaction.timestamp),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                     )
                 }
-            }
-        },
-        colors = ListItemDefaults.colors(
-            containerColor = Color.Transparent
+            },
+            leadingContent = {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = iconBg,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = iconVector,
+                            contentDescription = transaction.categoryName,
+                            tint = iconTint,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            },
+            trailingContent = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = amountPrefix + CurrencyFormatter.format(transaction.amount),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = amountColor
+                        )
+                        if (transaction.description.isNotBlank()) {
+                            Text(
+                                text = transaction.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(spacing.space50))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            },
+            colors = ListItemDefaults.colors(
+                containerColor = Color.Transparent
+            )
         )
-    )
+    }
 }
 
