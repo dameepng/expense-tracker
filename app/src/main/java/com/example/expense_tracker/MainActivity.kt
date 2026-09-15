@@ -18,12 +18,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.ui.unit.IntOffset
-import com.example.expense_tracker.ui.theme.motionScheme
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -306,10 +308,8 @@ fun ExpenseTrackerApp(
                 }
             }
         ) { innerPadding ->
-        val motionScheme = MaterialTheme.motionScheme
-        val spatialSpec = motionScheme.defaultSpatialSpec<IntOffset>()
-        val effectsSpec = motionScheme.defaultEffectsSpec<Float>()
-        val fastEffectsSpec = motionScheme.fastEffectsSpec<Float>()
+        val m3EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1.0f)
+        val m3EmphasizedAccelerate = CubicBezierEasing(0.3f, 0.0f, 0.8f, 0.15f)
 
         NavHost(
             navController = navController,
@@ -321,50 +321,72 @@ fun ExpenseTrackerApp(
                 if (isReduceMotion) {
                     EnterTransition.None
                 } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                    fadeIn(animationSpec = fastEffectsSpec)
+                    fadeIn(animationSpec = tween(220, easing = LinearEasing))
                 } else {
                     slideIntoContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                        animationSpec = spatialSpec
-                    ) + fadeIn(animationSpec = effectsSpec)
+                        animationSpec = tween(350, easing = m3EmphasizedDecelerate),
+                        initialOffset = { fullWidth -> (fullWidth * 0.30f).toInt() }
+                    ) + scaleIn(
+                        initialScale = 0.96f,
+                        animationSpec = tween(350, easing = m3EmphasizedDecelerate)
+                    ) + fadeIn(
+                        animationSpec = tween(250, easing = LinearEasing)
+                    )
                 }
             },
             exitTransition = {
                 if (isReduceMotion) {
                     ExitTransition.None
                 } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                    fadeOut(animationSpec = fastEffectsSpec)
+                    fadeOut(animationSpec = tween(180, easing = LinearEasing))
                 } else {
                     slideOutOfContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                        animationSpec = spatialSpec,
-                        targetOffset = { fullWidth -> fullWidth / 3 }
-                    ) + fadeOut(animationSpec = effectsSpec)
+                        animationSpec = tween(350, easing = m3EmphasizedDecelerate),
+                        targetOffset = { fullWidth -> (fullWidth * 0.30f).toInt() }
+                    ) + scaleOut(
+                        targetScale = 0.96f,
+                        animationSpec = tween(350, easing = m3EmphasizedDecelerate)
+                    ) + fadeOut(
+                        animationSpec = tween(200, easing = m3EmphasizedAccelerate)
+                    )
                 }
             },
             popEnterTransition = {
                 if (isReduceMotion) {
                     EnterTransition.None
                 } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                    fadeIn(animationSpec = fastEffectsSpec)
+                    fadeIn(animationSpec = tween(220, easing = LinearEasing))
                 } else {
                     slideIntoContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.End,
-                        animationSpec = spatialSpec,
-                        initialOffset = { fullWidth -> -fullWidth / 3 }
-                    ) + fadeIn(animationSpec = effectsSpec)
+                        animationSpec = tween(350, easing = m3EmphasizedDecelerate),
+                        initialOffset = { fullWidth -> (fullWidth * 0.30f).toInt() }
+                    ) + scaleIn(
+                        initialScale = 0.96f,
+                        animationSpec = tween(350, easing = m3EmphasizedDecelerate)
+                    ) + fadeIn(
+                        animationSpec = tween(250, easing = LinearEasing)
+                    )
                 }
             },
             popExitTransition = {
                 if (isReduceMotion) {
                     ExitTransition.None
                 } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                    fadeOut(animationSpec = fastEffectsSpec)
+                    fadeOut(animationSpec = tween(180, easing = LinearEasing))
                 } else {
                     slideOutOfContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.End,
-                        animationSpec = spatialSpec
-                    ) + fadeOut(animationSpec = effectsSpec)
+                        animationSpec = tween(350, easing = m3EmphasizedDecelerate),
+                        targetOffset = { fullWidth -> (fullWidth * 0.30f).toInt() }
+                    ) + scaleOut(
+                        targetScale = 0.96f,
+                        animationSpec = tween(350, easing = m3EmphasizedDecelerate)
+                    ) + fadeOut(
+                        animationSpec = tween(200, easing = m3EmphasizedAccelerate)
+                    )
                 }
             }
         ) {
