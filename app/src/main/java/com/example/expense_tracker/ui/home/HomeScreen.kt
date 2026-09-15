@@ -1,6 +1,7 @@
 package com.example.expense_tracker.ui.home
 
 import com.example.expense_tracker.ui.components.TransactionListItem
+import com.example.expense_tracker.ui.theme.spacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -223,19 +224,20 @@ fun BalanceCard(
         "•••• •••• •••• 4020"
     }
 
+    val spacing = MaterialTheme.spacing
     Surface(
         shape = RoundedCornerShape(24.dp),
         shadowElevation = 8.dp,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = spacing.screenMargin)
             .aspectRatio(1.8f)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(gradient)
-                .padding(24.dp)
+                .padding(spacing.cardPadding)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -365,11 +367,12 @@ fun IncomeExpenseSummary(
     totalExpense: Long,
     modifier: Modifier = Modifier
 ) {
+    val spacing = MaterialTheme.spacing
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = spacing.screenMargin),
+        horizontalArrangement = Arrangement.spacedBy(spacing.itemGap)
     ) {
         // Income Card
         Surface(
@@ -378,7 +381,7 @@ fun IncomeExpenseSummary(
             color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(spacing.cardPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
@@ -393,7 +396,7 @@ fun IncomeExpenseSummary(
                         modifier = Modifier.padding(10.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(spacing.space150))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.transaction_income),
@@ -418,7 +421,7 @@ fun IncomeExpenseSummary(
             color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(spacing.cardPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
@@ -433,7 +436,7 @@ fun IncomeExpenseSummary(
                         modifier = Modifier.padding(10.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(spacing.space150))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.transaction_expense),
@@ -574,6 +577,7 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
+        val spacing = MaterialTheme.spacing
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -586,7 +590,7 @@ fun HomeScreen(
                     .widthIn(max = 840.dp)
             ) {
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(spacing.sectionGap))
 
         // Balance Card
         BalanceCard(
@@ -597,7 +601,7 @@ fun HomeScreen(
             onWalletSelected = { viewModel.selectWallet(it) }
         )
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(spacing.sectionGap))
 
         // Income / Expense Summary
         IncomeExpenseSummary(
@@ -605,13 +609,13 @@ fun HomeScreen(
             totalExpense = state.totalExpense
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(spacing.sectionGap))
 
         // Transactions Section Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = spacing.screenMargin),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -647,7 +651,7 @@ fun HomeScreen(
             } else {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxSize().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxSize().padding(top = spacing.space100),
                     contentPadding = PaddingValues(bottom = 96.dp)
                 ) {
                     items(

@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.R
+import com.example.expense_tracker.ui.theme.spacing
 
 /**
  * M3 Expressive Navigation Rail untuk ukuran layar Medium (600dp - 839dp).
@@ -56,6 +57,7 @@ fun AppNavigationRail(
 ) {
     val haptic = LocalHapticFeedback.current
 
+    val spacing = MaterialTheme.spacing
     val itemColors = NavigationRailItemDefaults.colors(
         indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
         selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -68,7 +70,7 @@ fun AppNavigationRail(
         modifier = modifier.fillMaxHeight(),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         header = {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(spacing.space100))
             FloatingActionButton(
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -86,7 +88,7 @@ fun AppNavigationRail(
                     modifier = Modifier.size(28.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(spacing.space200))
         }
     ) {
         Column(
@@ -167,6 +169,7 @@ fun AppNavigationDrawerContent(
         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
+    val spacing = MaterialTheme.spacing
     PermanentDrawerSheet(
         modifier = modifier.width(280.dp),
         drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -174,14 +177,14 @@ fun AppNavigationDrawerContent(
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(horizontal = 16.dp, vertical = 24.dp)
+                .padding(horizontal = spacing.screenMargin, vertical = spacing.sectionGap)
                 .verticalScroll(rememberScrollState())
         ) {
             // App Brand Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                horizontalArrangement = Arrangement.spacedBy(spacing.space150),
+                modifier = Modifier.padding(horizontal = spacing.space150, vertical = spacing.space100)
             ) {
                 Box(
                     modifier = Modifier
@@ -211,7 +214,7 @@ fun AppNavigationDrawerContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(spacing.sectionGap))
 
             // Primary Hero Action Button (M3 Expressive)
             Button(
@@ -229,7 +232,7 @@ fun AppNavigationDrawerContent(
                     .height(52.dp)
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(22.dp))
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(spacing.space100))
                 Text(
                     text = stringResource(R.string.nav_add),
                     style = MaterialTheme.typography.labelLarge,
@@ -237,7 +240,7 @@ fun AppNavigationDrawerContent(
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(spacing.space350))
 
             // Navigation Destinations
             NavigationDrawerItem(
@@ -250,7 +253,7 @@ fun AppNavigationDrawerContent(
                 },
                 shape = RoundedCornerShape(16.dp),
                 colors = itemColors,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = spacing.space50)
             )
 
             NavigationDrawerItem(

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import com.example.expense_tracker.ui.theme.spacing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -94,6 +95,7 @@ fun WalletListScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
+        val spacing = MaterialTheme.spacing
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -112,8 +114,8 @@ fun WalletListScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .widthIn(max = 840.dp),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    contentPadding = PaddingValues(horizontal = spacing.screenMargin, vertical = spacing.sectionGap),
+                    verticalArrangement = Arrangement.spacedBy(spacing.sectionGap)
                 ) {
                     items(
                         items = uiState.wallets,
@@ -133,6 +135,7 @@ fun WalletListScreen(
     }
 
     if (showAddDialog) {
+        val spacing = MaterialTheme.spacing
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         var newWalletName by remember { mutableStateOf("") }
         var newCardNumber by remember { mutableStateOf("") }
@@ -157,14 +160,14 @@ fun WalletListScreen(
                         .fillMaxWidth()
                         .widthIn(max = 560.dp)
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 32.dp)
+                        .padding(horizontal = spacing.screenMargin)
+                        .padding(bottom = spacing.space400)
                 ) {
                 Text(
                     text = stringResource(R.string.add_new_wallet),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = spacing.space200)
                 )
 
                 OutlinedTextField(
@@ -176,7 +179,7 @@ fun WalletListScreen(
                     shape = RoundedCornerShape(16.dp)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(spacing.space150))
 
                 OutlinedTextField(
                     value = newCardNumber,
@@ -413,6 +416,7 @@ fun CreditCardItem(
 ) {
     val gradient = CardGradients.getGradient(wallet.color)
 
+    val spacing = MaterialTheme.spacing
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -425,7 +429,7 @@ fun CreditCardItem(
             modifier = Modifier
                 .fillMaxSize()
                 .background(gradient.brush)
-                .padding(20.dp)
+                .padding(spacing.cardPadding)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),

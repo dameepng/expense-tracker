@@ -32,12 +32,14 @@ import com.example.expense_tracker.data.ExpenseWithCategory
 import com.example.expense_tracker.R
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.TimeFormatter
+import com.example.expense_tracker.ui.theme.spacing
 
 @Composable
 fun TransactionListItem(
     transaction: ExpenseWithCategory,
     modifier: Modifier = Modifier
 ) {
+    val spacing = MaterialTheme.spacing
     val isIncome = transaction.type == com.example.expense_tracker.data.TransactionType.INCOME.name
     val amountPrefix = if (isIncome) "+" else "-"
     val amountColor = if (isIncome) Color(0xFF2E8B57) else MaterialTheme.colorScheme.error
@@ -68,7 +70,7 @@ fun TransactionListItem(
     }
 
     ListItem(
-        modifier = modifier.padding(vertical = 4.dp),
+        modifier = modifier.padding(vertical = spacing.space50),
         headlineContent = {
             Text(
                 text = transaction.categoryName,

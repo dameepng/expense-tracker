@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.data.ai.chat.ChatMessage
 import com.example.expense_tracker.data.ai.chat.ChatRole
+import com.example.expense_tracker.ui.theme.spacing
 
 internal enum class ChatBubbleStatus {
     SENDING,
@@ -58,6 +59,7 @@ internal fun ChatMessageBubble(
     } else {
         RoundedCornerShape(topStart = 6.dp, topEnd = 24.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
     }
+    val spacing = MaterialTheme.spacing
     val roleLabel = if (isUser) userLabel else assistantLabel
 
     Row(
@@ -79,9 +81,9 @@ internal fun ChatMessageBubble(
                 .clip(bubbleShape)
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 17.dp, vertical = 14.dp),
+                modifier = Modifier.padding(horizontal = spacing.space200, vertical = spacing.space150),
                 horizontalAlignment = alignment,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(spacing.space50)
             ) {
                 SelectionContainer {
                     if (isUser) {

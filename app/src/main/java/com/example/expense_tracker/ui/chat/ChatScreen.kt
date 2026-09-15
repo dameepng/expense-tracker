@@ -85,6 +85,7 @@ import com.example.expense_tracker.data.ai.chat.ChatRole
 import com.example.expense_tracker.ui.chat.components.ChatBubbleStatus
 import com.example.expense_tracker.ui.chat.components.ChatMessageBubble
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
+import com.example.expense_tracker.ui.theme.spacing
 
 @Composable
 fun ChatScreen(
@@ -294,6 +295,7 @@ private fun ChatMessagesList(
     val isReversed = messages.isNotEmpty()
     val messagesReversed = remember(messages) { messages.asReversed() }
 
+    val spacing = MaterialTheme.spacing
     LazyColumn(
         state = listState,
         reverseLayout = isReversed,
@@ -303,8 +305,8 @@ private fun ChatMessagesList(
             .padding(contentPadding)
             // consumeWindowInsets: Memberitahu Compose insets ini sudah dikonsumsi agar tidak dihitung ganda
             .consumeWindowInsets(contentPadding),
-        contentPadding = PaddingValues(horizontal = 17.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        contentPadding = PaddingValues(horizontal = spacing.screenMargin, vertical = spacing.itemGap),
+        verticalArrangement = Arrangement.spacedBy(spacing.itemGap)
     ) {
         if (isReversed) {
             // Karena reverseLayout = true, indeks 0 digambar di posisi visual paling bawah.
@@ -400,6 +402,7 @@ private fun ChatScopeDialog(onDismiss: () -> Unit) {
 
 @Composable
 private fun ChatNotice(text: String) {
+    val spacing = MaterialTheme.spacing
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -410,8 +413,8 @@ private fun ChatNotice(text: String) {
             .semantics { liveRegion = LiveRegionMode.Polite }
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(spacing.cardPadding),
+            horizontalArrangement = Arrangement.spacedBy(spacing.space125),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(20.dp))
@@ -422,6 +425,7 @@ private fun ChatNotice(text: String) {
 
 @Composable
 private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
+    val spacing = MaterialTheme.spacing
     val exFood = stringResource(R.string.chat_example_food_month)
     val exTop = stringResource(R.string.chat_example_top_category)
     val exComp = stringResource(R.string.chat_example_month_comparison)
@@ -430,7 +434,7 @@ private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
         listOf(exFood, exTop, exComp, exUnusual)
     }
     Column(
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(spacing.itemGap)
     ) {
         ChatMessageBubble(
             message = previewMessage(
@@ -449,7 +453,7 @@ private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
             text = stringResource(R.string.chat_empty_description),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = spacing.space50, vertical = spacing.space50)
         )
         examples.forEach { example ->
             Surface(
@@ -464,7 +468,7 @@ private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
                     text = example,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp)
+                    modifier = Modifier.padding(horizontal = spacing.space250, vertical = spacing.space150)
                 )
             }
         }
@@ -473,11 +477,12 @@ private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
 
 @Composable
 private fun ChatLoading(onCancel: () -> Unit) {
+    val spacing = MaterialTheme.spacing
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .semantics { liveRegion = LiveRegionMode.Polite },
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(spacing.space150),
         verticalAlignment = Alignment.CenterVertically
     ) {
         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -499,6 +504,7 @@ private fun ChatErrorCard(
     onRetry: () -> Unit,
     onDiscard: () -> Unit
 ) {
+    val spacing = MaterialTheme.spacing
     val message = stringResource(error.messageResource())
     Card(
         shape = RoundedCornerShape(20.dp),
@@ -511,11 +517,11 @@ private fun ChatErrorCard(
             .semantics { liveRegion = LiveRegionMode.Polite }
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(spacing.cardPadding),
+            verticalArrangement = Arrangement.spacedBy(spacing.space100)
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(spacing.space100),
                 verticalAlignment = Alignment.Top
             ) {
                 Icon(
@@ -564,6 +570,7 @@ private fun ChatInputBar(
     onSend: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val spacing = MaterialTheme.spacing
     val keyboard = LocalSoftwareKeyboardController.current
     val showSendAction = inputText.isNotEmpty()
 
@@ -585,8 +592,8 @@ private fun ChatInputBar(
             .fillMaxWidth()
             .imePadding()
             .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+            .padding(horizontal = spacing.space150, vertical = spacing.space100),
+        verticalArrangement = Arrangement.spacedBy(spacing.space50)
     ) {
         BasicTextField(
             value = inputText,
@@ -607,7 +614,7 @@ private fun ChatInputBar(
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh, inputShape)
                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, inputShape)
-                        .padding(start = 4.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+                        .padding(start = spacing.space50, end = spacing.space125, top = spacing.space100, bottom = spacing.space100),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onReset, modifier = Modifier.size(48.dp)) {
@@ -620,7 +627,7 @@ private fun ChatInputBar(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(horizontal = 8.dp),
+                            .padding(horizontal = spacing.space100),
                         contentAlignment = Alignment.CenterStart
                     ) {
                         if (inputText.isEmpty()) {
@@ -635,7 +642,7 @@ private fun ChatInputBar(
                         innerTextField()
                     }
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(spacing.space200),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import com.example.expense_tracker.ui.theme.spacing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -149,6 +150,7 @@ fun ProfileScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
+        val spacing = MaterialTheme.spacing
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -159,7 +161,7 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 680.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
+                contentPadding = PaddingValues(bottom = spacing.sectionGap)
             ) {
             item {
                 ProfileHeader(
@@ -167,7 +169,7 @@ fun ProfileScreen(
                     photoUri = uiState.userPhotoUri,
                     onEditClick = { showEditProfileDialog = true }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(spacing.itemGap))
             }
 
             item {
@@ -179,7 +181,7 @@ fun ProfileScreen(
                         onClick = onNavigateToChat
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(spacing.itemGap))
             }
 
             item {
@@ -203,7 +205,7 @@ fun ProfileScreen(
                         onClick = { showLanguageDialog = true }
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(spacing.itemGap))
             }
             
             item {
@@ -375,17 +377,18 @@ fun SettingsGroup(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    val spacing = MaterialTheme.spacing
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = spacing.screenMargin)
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp, start = 8.dp)
+            modifier = Modifier.padding(bottom = spacing.space100, start = spacing.space100)
         )
         
         Card(
@@ -414,6 +417,7 @@ fun SettingsItem(
     trailingComponent: (@Composable () -> Unit)? = null
 ) {
     val haptic = LocalHapticFeedback.current
+    val spacing = MaterialTheme.spacing
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -421,7 +425,7 @@ fun SettingsItem(
                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onClick()
             }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = spacing.cardPadding, vertical = spacing.itemGap),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Leading Icon

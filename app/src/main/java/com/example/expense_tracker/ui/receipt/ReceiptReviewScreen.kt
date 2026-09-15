@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.expense_tracker.ui.ai.TransactionDraft
+import com.example.expense_tracker.ui.theme.spacing
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +39,7 @@ fun ReceiptReviewScreen(
         }
     }
     BackHandler { viewModel.cancel(); onBack() }
+    val spacing = MaterialTheme.spacing
     Scaffold(
         topBar = {
             TopAppBar(
@@ -60,9 +62,9 @@ fun ReceiptReviewScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 640.dp)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = spacing.screenMargin, vertical = spacing.itemGap)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(spacing.sectionGap)
             ) {
             state.imageUri?.let {
                 Card(
@@ -89,9 +91,9 @@ fun ReceiptReviewScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
+                            .padding(spacing.cardPadding),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(spacing.space150)
                     ) {
                         CircularProgressIndicator()
                         Text(
@@ -114,7 +116,7 @@ fun ReceiptReviewScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(modifier = Modifier.padding(spacing.cardPadding), verticalArrangement = Arrangement.spacedBy(spacing.space100)) {
                         Text(
                             "Struk tidak terbaca atau format tidak sesuai.",
                             fontWeight = FontWeight.Bold,
@@ -140,8 +142,8 @@ fun ReceiptReviewScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(spacing.cardPadding),
+                        horizontalArrangement = Arrangement.spacedBy(spacing.space150),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.error)
@@ -173,7 +175,7 @@ fun ReceiptReviewScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                     ) {
-                        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Column(modifier = Modifier.padding(spacing.cardPadding), verticalArrangement = Arrangement.spacedBy(spacing.space75)) {
                             Text("Daftar Item (${state.items.size}):", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                             state.items.take(15).forEach { item ->
                                 Text("• $item", style = MaterialTheme.typography.bodySmall)
@@ -273,10 +275,11 @@ private fun DraftFields(
     )
 
     // Tanggal
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    val spacing = MaterialTheme.spacing
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.space50)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(spacing.space100),
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(

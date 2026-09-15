@@ -66,6 +66,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.R
+import com.example.expense_tracker.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,14 +115,15 @@ fun NaturalLanguageScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
+        val spacing = MaterialTheme.spacing
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(horizontal = spacing.screenMargin, vertical = spacing.itemGap),
+            verticalArrangement = Arrangement.spacedBy(spacing.sectionGap)
         ) {
             Text(
                 stringResource(R.string.ai_intro),
@@ -136,8 +138,8 @@ fun NaturalLanguageScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(spacing.cardPadding),
+                    verticalArrangement = Arrangement.spacedBy(spacing.space150)
                 ) {
                     OutlinedTextField(
                         value = state.inputText,
@@ -278,6 +280,7 @@ private fun TransactionPreview(
         withFrameNanos { }
         previewStart.bringIntoView()
     }
+    val spacing = MaterialTheme.spacing
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
@@ -285,8 +288,8 @@ private fun TransactionPreview(
         )
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(spacing.cardPadding),
+            verticalArrangement = Arrangement.spacedBy(spacing.itemGap)
         ) {
             Text(
                 stringResource(R.string.ai_preview_title),
@@ -484,6 +487,7 @@ private fun AiChoiceDropdown(
 
 @Composable
 private fun AiErrorCard(error: AiUiError, onRetryLoad: () -> Unit) {
+    val spacing = MaterialTheme.spacing
     val message = when (error) {
         AiUiError.CONFIGURATION -> R.string.ai_error_configuration
         AiUiError.NETWORK -> R.string.ai_error_network
@@ -508,8 +512,8 @@ private fun AiErrorCard(error: AiUiError, onRetryLoad: () -> Unit) {
             .semantics { liveRegion = LiveRegionMode.Polite }
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(spacing.cardPadding),
+            verticalArrangement = Arrangement.spacedBy(spacing.space100)
         ) {
             Text(stringResource(message), style = MaterialTheme.typography.bodyMedium)
             if (error == AiUiError.INITIALIZATION) {

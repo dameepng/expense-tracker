@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import com.example.expense_tracker.ui.theme.spacing
 import java.io.File
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -72,6 +73,7 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
             pendingCameraUri = uri; camera.launch(uri)
         } else cameraDenied = true
     }
+    val spacing = MaterialTheme.spacing
     Scaffold(topBar = { TopAppBar(title = { Text("Foto struk") }, navigationIcon = {
         IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali") }
     }) }) { padding ->
@@ -85,8 +87,8 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 560.dp)
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(spacing.screenMargin),
+                verticalArrangement = Arrangement.spacedBy(spacing.itemGap)
             ) {
                 if (selectedUri == null) {
                     Text("Ambil atau pilih foto struk", style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)

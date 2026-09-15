@@ -15,6 +15,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.material3.MaterialTheme
+import com.example.expense_tracker.ui.theme.spacing
+
 /**
  * Nilai spacing dan padding adaptif sesuai prinsip Material 3 Expressive Layout.
  * - Compact (<600dp): Smartphone portrait
@@ -29,31 +32,17 @@ data class AdaptiveSpacing(
 )
 
 /**
- * Menghitung spacing adaptif berdasarkan lebar layar saat ini.
+ * Menghitung spacing adaptif berdasarkan lebar layar saat ini melalui MaterialTheme.spacing.
  */
 @Composable
 fun rememberAdaptiveSpacing(): AdaptiveSpacing {
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp
-
-    return remember(screenWidth) {
-        when {
-            screenWidth < 600 -> AdaptiveSpacing(
-                horizontalPadding = 16.dp,
-                verticalPadding = 16.dp,
-                cardSpacing = 12.dp
-            )
-            screenWidth < 840 -> AdaptiveSpacing(
-                horizontalPadding = 24.dp,
-                verticalPadding = 20.dp,
-                cardSpacing = 16.dp
-            )
-            else -> AdaptiveSpacing(
-                horizontalPadding = 32.dp,
-                verticalPadding = 24.dp,
-                cardSpacing = 20.dp
-            )
-        }
+    val spacing = MaterialTheme.spacing
+    return remember(spacing) {
+        AdaptiveSpacing(
+            horizontalPadding = spacing.screenMargin,
+            verticalPadding = spacing.screenMargin,
+            cardSpacing = spacing.itemGap
+        )
     }
 }
 

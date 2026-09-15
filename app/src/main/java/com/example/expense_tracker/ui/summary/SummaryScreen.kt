@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import com.example.expense_tracker.ui.theme.spacing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -362,6 +363,7 @@ fun SummaryScreen(
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
+        val spacing = MaterialTheme.spacing
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -373,10 +375,10 @@ fun SummaryScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 840.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
+                contentPadding = PaddingValues(bottom = spacing.space200)
             ) {
             item(key = "hero_balance") {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.sectionGap))
 
                 // Hero Balance Card
                 HeroBalanceCard(
@@ -384,7 +386,7 @@ fun SummaryScreen(
                     percentageChange = state.balancePercentageChange
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.sectionGap))
             }
             
             item(key = "cash_flow") {
@@ -392,7 +394,7 @@ fun SummaryScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = spacing.screenMargin),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -402,7 +404,7 @@ fun SummaryScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(spacing.cardPadding)
                     ) {
                         // Title row
                         Row(
@@ -519,13 +521,13 @@ fun SummaryScreen(
             }
             
             item(key = "spending_category") {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(spacing.sectionGap))
 
                 // Spending By Category Card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = spacing.screenMargin),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -535,7 +537,7 @@ fun SummaryScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(spacing.cardPadding)
                     ) {
                         // Title row
                         Row(
@@ -680,7 +682,7 @@ fun SummaryScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.sectionGap))
             }
 
             if (!state.isLoading && state.items.isNotEmpty()) {
@@ -688,7 +690,7 @@ fun SummaryScreen(
                     BreakdownCardItem(
                         item = item, 
                         isIncome = isIncome, 
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = spacing.screenMargin, vertical = spacing.space75),
                         onClick = {
                             val startDate = state.customStartDate
                             val endDate = state.customEndDate

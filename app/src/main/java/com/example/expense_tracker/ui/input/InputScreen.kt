@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import com.example.expense_tracker.ui.theme.spacing
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -259,6 +260,7 @@ fun SaveButton(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val spacing = MaterialTheme.spacing
     Button(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -272,7 +274,7 @@ fun SaveButton(
         ),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 24.dp)
+            .padding(horizontal = spacing.screenMargin, vertical = spacing.screenMargin)
             .height(56.dp)
     ) {
         Icon(
@@ -349,6 +351,7 @@ fun InputScreen(
         onSaved()
     }
 
+    val spacing = MaterialTheme.spacing
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -365,7 +368,7 @@ fun InputScreen(
                 onNavigateBack = onNavigateBack
             )
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(spacing.sectionGap))
         
         if (state.wallets.isEmpty()) {
             Box(
@@ -376,7 +379,7 @@ fun InputScreen(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(24.dp)
+                    modifier = Modifier.padding(spacing.screenMargin)
                 ) {
                     Text(
                         text = "Tidak Ada Dompet",
@@ -384,14 +387,14 @@ fun InputScreen(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(spacing.space100))
                     Text(
                         text = "Tambahkan wallet terlebih dahulu untuk mencatat transaksi",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(spacing.sectionGap))
                     Button(
                         onClick = onNavigateToWallet,
                         shape = RoundedCornerShape(12.dp)
@@ -407,12 +410,12 @@ fun InputScreen(
             )
 
             if (state.inputMode == InputMode.TRANSACTION) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(spacing.itemGap))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        .padding(horizontal = spacing.screenMargin),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.itemGap)
                 ) {
                     Button(
                         onClick = onNavigateToAiInput,
@@ -460,7 +463,7 @@ fun InputScreen(
                 placeholder = { Text(stringResource(R.string.bill_name_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = spacing.screenMargin),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -470,7 +473,7 @@ fun InputScreen(
                 shape = RoundedCornerShape(16.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(spacing.itemGap))
 
             OutlinedTextField(
                 value = state.billReminderDueDay,
@@ -479,7 +482,7 @@ fun InputScreen(
                 placeholder = { Text(stringResource(R.string.due_date_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = spacing.screenMargin),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -489,12 +492,12 @@ fun InputScreen(
                 shape = RoundedCornerShape(16.dp)
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(spacing.itemGap))
             
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = spacing.screenMargin),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -524,7 +527,7 @@ fun InputScreen(
                 placeholder = { Text(stringResource(R.string.input_note_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = spacing.screenMargin),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -535,7 +538,7 @@ fun InputScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(spacing.itemGap))
 
         // Category grid
         CategoryGrid(
@@ -544,7 +547,7 @@ fun InputScreen(
             onCategorySelected = { viewModel.onCategorySelected(it) }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(spacing.itemGap))
 
         // Wallet picker
         WalletPicker(
@@ -553,7 +556,7 @@ fun InputScreen(
             onWalletSelected = { viewModel.onWalletSelected(it) }
         )
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(spacing.sectionGap))
         }
 
         // Save button
