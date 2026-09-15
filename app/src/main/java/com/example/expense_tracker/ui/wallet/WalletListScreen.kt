@@ -89,12 +89,14 @@ fun WalletListScreen(
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
         ) {
             if (uiState.wallets.isEmpty() && !uiState.isLoading) {
                 Text(
@@ -139,7 +141,8 @@ fun WalletListScreen(
 
         ModalBottomSheet(
             onDismissRequest = { showAddDialog = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Column(
                 modifier = Modifier
@@ -161,7 +164,7 @@ fun WalletListScreen(
                     label = { Text(stringResource(R.string.wallet_name_placeholder)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -173,7 +176,7 @@ fun WalletListScreen(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -184,7 +187,7 @@ fun WalletListScreen(
                     label = { Text(stringResource(R.string.card_holder_name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -214,7 +217,8 @@ fun WalletListScreen(
                         placeholder = { Text("MM") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.width(80.dp)
+                        modifier = Modifier.width(80.dp),
+                        shape = RoundedCornerShape(16.dp)
                     )
 
                     Text(
@@ -235,7 +239,8 @@ fun WalletListScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .width(80.dp)
-                            .focusRequester(yearFocusRequester)
+                            .focusRequester(yearFocusRequester),
+                        shape = RoundedCornerShape(16.dp)
                     )
                 }
 
@@ -308,7 +313,8 @@ fun WalletListScreen(
                             )
                             showAddDialog = false
                         },
-                        enabled = newWalletName.isNotBlank()
+                        enabled = newWalletName.isNotBlank(),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Text(stringResource(R.string.save))
                     }
@@ -360,7 +366,7 @@ fun WalletListScreen(
                         },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(16.dp)
                     )
                 }
             },
@@ -371,6 +377,7 @@ fun WalletListScreen(
                         walletToDelete = null
                     },
                     enabled = isConfirmed,
+                    shape = RoundedCornerShape(16.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
@@ -401,7 +408,7 @@ fun CreditCardItem(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1.8f),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box(

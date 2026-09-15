@@ -25,6 +25,7 @@ class ClaudeReceiptRepository internal constructor(
             return parser.parse(content, request.categories)
         } catch (failure: Exception) {
             if (failure is ReceiptParseException) throw failure
+            if (failure is ReceiptImageException) throw failure
             throw AiErrorMapper.toException(failure)
         }
     }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -129,7 +130,7 @@ fun NaturalLanguageScreen(
             )
 
             Card(
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 )
@@ -146,7 +147,7 @@ fun NaturalLanguageScreen(
                         placeholder = { Text(stringResource(R.string.ai_sentence_example)) },
                         minLines = 3,
                         maxLines = 6,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Sentences
                         ),
@@ -166,8 +167,8 @@ fun NaturalLanguageScreen(
                             viewModel.parse()
                         },
                         enabled = state.canParse,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth().height(52.dp)
                     ) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -176,18 +177,22 @@ fun NaturalLanguageScreen(
                             if (state.isParsing) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.dp
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             } else {
                                 Icon(Icons.Default.AutoAwesome, contentDescription = null)
                             }
-                            Text(stringResource(
-                                when {
-                                    state.isParsing -> R.string.ai_parsing
-                                    state.draft != null || state.error != null -> R.string.ai_parse_again
-                                    else -> R.string.ai_parse
-                                }
-                            ))
+                            Text(
+                                stringResource(
+                                    when {
+                                        state.isParsing -> R.string.ai_parsing
+                                        state.draft != null || state.error != null -> R.string.ai_parse_again
+                                        else -> R.string.ai_parse
+                                    }
+                                ),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                     if (state.isParsing) {
@@ -274,7 +279,7 @@ private fun TransactionPreview(
         previewStart.bringIntoView()
     }
     Card(
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
@@ -321,7 +326,7 @@ private fun TransactionPreview(
                 supportingText = { Text(stringResource(R.string.ai_amount_hint)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
             val categoryChoices = state.categories
@@ -348,7 +353,7 @@ private fun TransactionPreview(
                 label = { Text(stringResource(R.string.ai_merchant)) },
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -359,7 +364,7 @@ private fun TransactionPreview(
                 supportingText = { Text(stringResource(R.string.ai_date_hint)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -370,7 +375,7 @@ private fun TransactionPreview(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 minLines = 2,
                 maxLines = 5,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
             Row(
@@ -409,19 +414,22 @@ private fun TransactionPreview(
             Button(
                 onClick = onSave,
                 enabled = state.canSave,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (state.isSaving) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                     }
-                    Text(stringResource(
-                        if (state.isSaving) R.string.ai_saving else R.string.ai_confirm_save
-                    ))
+                    Text(
+                        stringResource(
+                            if (state.isSaving) R.string.ai_saving else R.string.ai_confirm_save
+                        ),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -452,7 +460,7 @@ private fun AiChoiceDropdown(
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded && selectionEnabled)
             },
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, selectionEnabled)
@@ -490,7 +498,7 @@ private fun AiErrorCard(error: AiUiError, onRetryLoad: () -> Unit) {
         AiUiError.SAVE -> R.string.ai_error_save
     }
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer

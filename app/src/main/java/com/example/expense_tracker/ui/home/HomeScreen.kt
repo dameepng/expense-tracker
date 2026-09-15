@@ -2,6 +2,7 @@ package com.example.expense_tracker.ui.home
 
 import com.example.expense_tracker.ui.components.TransactionListItem
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,8 +25,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.MoreVert
@@ -36,21 +40,28 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -86,6 +97,7 @@ import com.example.expense_tracker.R
 
 // ── Custom Header ───────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeaderSection(
     modifier: Modifier = Modifier,
@@ -94,81 +106,84 @@ fun HeaderSection(
     activeRemindersCount: Int = 0,
     onNavigateToReminder: () -> Unit = {}
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(48.dp)
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (!userPhotoUri.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = userPhotoUri,
-                        contentDescription = "Profil",
-                        modifier = Modifier.fillMaxSize().clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(38.dp)
+                ) {
+                    if (!userPhotoUri.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = userPhotoUri,
+                            contentDescription = "Profil",
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profil",
+                            modifier = Modifier.padding(8.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(verticalArrangement = Arrangement.Center) {
+                    Text(
+                        text = stringResource(R.string.welcome_back),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Text(
+                        text = userName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        },
+        actions = {
+            IconButton(onClick = onNavigateToReminder) {
+                if (activeRemindersCount > 0) {
+                    androidx.compose.material3.BadgedBox(
+                        badge = {
+                            androidx.compose.material3.Badge(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ) {
+                                Text(text = activeRemindersCount.toString())
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = stringResource(R.string.bill_reminder),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 } else {
                     Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profil",
-                        modifier = Modifier.padding(12.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = stringResource(R.string.welcome_back),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = userName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-        
-        IconButton(
-            onClick = onNavigateToReminder,
-            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-        ) {
-            if (activeRemindersCount > 0) {
-                androidx.compose.material3.BadgedBox(
-                    badge = {
-                        androidx.compose.material3.Badge(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        ) {
-                            Text(text = activeRemindersCount.toString())
-                        }
-                    }
-                ) {
-                    Icon(
                         imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notifications",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        contentDescription = stringResource(R.string.bill_reminder),
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notifications",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
-        }
-    }
+        },
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )
+    )
 }
 
 // ── Balance Card ───────────────────────────────────────────────────
@@ -358,24 +373,23 @@ fun IncomeExpenseSummary(
         // Income Card
         Surface(
             modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    shape = CircleShape,
+                    shape = RoundedCornerShape(14.dp),
                     color = Color(0xFFE8F5E9),
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(44.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.TrendingUp,
                         contentDescription = "Income",
-                        tint = Color(0xFF2E7D32),
-                        modifier = Modifier.padding(8.dp)
+                        tint = Color(0xFF1B5E20),
+                        modifier = Modifier.padding(10.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -387,7 +401,7 @@ fun IncomeExpenseSummary(
                     )
                     AutoResizeText(
                         text = CurrencyFormatter.format(totalIncome),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1
@@ -399,24 +413,23 @@ fun IncomeExpenseSummary(
         // Expense Card
         Surface(
             modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    shape = CircleShape,
+                    shape = RoundedCornerShape(14.dp),
                     color = MaterialTheme.colorScheme.errorContainer,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(44.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.TrendingDown,
                         contentDescription = "Expense",
                         tint = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(10.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -428,7 +441,7 @@ fun IncomeExpenseSummary(
                     )
                     AutoResizeText(
                         text = CurrencyFormatter.format(totalExpense),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1
@@ -454,17 +467,32 @@ fun EmptyState(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "📭",
-                fontSize = 48.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier.size(88.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Filled.Receipt,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.no_recent_transactions),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = periodLabel,
                 style = MaterialTheme.typography.bodyMedium,
@@ -484,6 +512,7 @@ fun HomeScreen(
     onNavigateToSummary: (Long?) -> Unit = {},
     onNavigateToReminder: () -> Unit = {},
     onNavigateToAiInput: () -> Unit = {},
+    onNavigateToReceipt: () -> Unit = {},
     onNavigateToChat: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -502,10 +531,12 @@ fun HomeScreen(
     val currentOnNavigateToInput by rememberUpdatedState(onNavigateToInput)
     val deletedMessage = stringResource(R.string.transaction_deleted)
     val cancelLabel = stringResource(R.string.cancel)
-    val onDismissTransaction = remember(viewModel, coroutineScope, snackbarHostState, deletedMessage, cancelLabel) {
+    val haptic = LocalHapticFeedback.current
+    val onDismissTransaction = remember(viewModel, coroutineScope, snackbarHostState, deletedMessage, cancelLabel, haptic) {
         { expense: ExpenseWithCategory, dismissValue: SwipeToDismissBoxValue ->
             when (dismissValue) {
                 SwipeToDismissBoxValue.EndToStart -> {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     viewModel.deleteExpense(expense)
                     coroutineScope.launch {
                         val result = snackbarHostState.showSnackbar(
@@ -520,6 +551,7 @@ fun HomeScreen(
                     true
                 }
                 SwipeToDismissBoxValue.StartToEnd -> {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     currentOnNavigateToInput(expense.id)
                     false
                 }
@@ -534,20 +566,7 @@ fun HomeScreen(
                 userName = state.userName,
                 userPhotoUri = state.userPhotoUri,
                 activeRemindersCount = state.activeRemindersCount,
-                onNavigateToReminder = onNavigateToReminder,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onNavigateToChat,
-                icon = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Chat,
-                        contentDescription = null
-                    )
-                },
-                text = { Text(stringResource(R.string.chat_home_fab)) }
+                onNavigateToReminder = onNavigateToReminder
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -560,17 +579,7 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
         
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = onNavigateToAiInput,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-        ) {
-            Icon(Icons.Default.Star, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.ai_open_input))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Balance Card
         BalanceCard(
@@ -589,7 +598,7 @@ fun HomeScreen(
             totalExpense = state.totalExpense
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Transactions Section Header
         Row(
@@ -605,12 +614,9 @@ fun HomeScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            Button(
+            FilledTonalButton(
                 onClick = { onNavigateToSummary(state.selectedWalletId) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
-                )
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
                     text = stringResource(R.string.view_all),
@@ -620,13 +626,10 @@ fun HomeScreen(
         }
 
         // Expense list or empty state
-        Surface(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(horizontal = 8.dp),
-            color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
         ) {
             if (state.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -676,8 +679,7 @@ fun HomeScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        .background(color, RoundedCornerShape(12.dp))
+                                        .background(color)
                                         .padding(horizontal = 20.dp),
                                     contentAlignment = alignment
                                 ) {
@@ -690,11 +692,17 @@ fun HomeScreen(
                                     }
                                 }
                             },
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             TransactionListItem(
                                 transaction = expense,
-                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onNavigateToInput(expense.id)
+                                    }
                             )
                         }
                     }
@@ -846,17 +854,15 @@ fun HomeScreenPreview_withData() {
                     )
                 }
             }
-            Surface(
-                modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 8.dp),
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f)
             ) {
                 LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
                     items(
                         items = fakeState.transactions,
                         key = { it.id }
                     ) { expense ->
-                        TransactionListItem(transaction = expense, modifier = Modifier.padding(horizontal = 8.dp))
+                        TransactionListItem(transaction = expense)
                     }
                 }
             }

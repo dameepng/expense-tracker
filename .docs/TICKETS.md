@@ -102,6 +102,15 @@ Keputusan MVP: satu gambar struk menghasilkan satu transaksi expense berdasarkan
 | 9 | [ISSUE-105: Entry point, navigasi, dan privacy](issues/ISSUE-105-receipt-navigation-privacy.md) | Receipt Scan dapat dibuka dari Home dan scope data dijelaskan | 100-104 | Planned |
 | 10 | [ISSUE-106: QA integrasi receipt scan](issues/ISSUE-106-receipt-integration-qa.md) | Bukti test otomatis/manual, regresi, dan dokumentasi | 097-105 | Planned |
 
+## Fase: UI/UX Polish Home dan Input
+
+**Status fase:** Planned — backlog desain dan implementasi; belum ada perubahan kode dari ticket ini.
+
+| Urutan | Ticket | Hasil yang bisa direview | Depends on | Status |
+|---|---|---|---|---|
+| 1 | [ISSUE-107: Hierarki aksi Dashboard/Home](issues/ISSUE-107-home-action-hierarchy-ui-polish.md) | Home memiliki entry point manual, AI input, receipt, dan Chat dengan hirarki visual yang jelas | 006, 019, 095, 105 | In Progress |
+| 2 | [ISSUE-108: UX screen Tambah Transaksi (+)](issues/ISSUE-108-add-transaction-input-screen-ux-redesign.md) | Form input fokus, ringkas, keyboard-friendly, dan CTA sticky | 018, 019, 032, 105, 107 | Planned |
+
 ### Workflow Receipt Scan
 
 1. Tunggu user menyetujui atau mengoreksi breakdown ini; belum boleh menulis kode implementasi.

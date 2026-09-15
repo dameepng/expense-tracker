@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +51,12 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
     var cameraDenied by remember { mutableStateOf(false) }
-    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) selectedUri = uri }
+    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            selectedUri = uri
+        }
+    }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
         val uri = pendingCameraUri
         if (saved && uri != null) selectedUri = uri else uri?.let { context.contentResolver.delete(it, null, null) }
@@ -67,20 +74,51 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
     }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (selectedUri == null) {
-                Text("Ambil atau pilih foto struk", style = MaterialTheme.typography.titleMedium)
-                Button(onClick = { gallery.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.PhotoLibrary, null); Text(" Pilih dari galeri")
+                Text("Ambil atau pilih foto struk", style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Button(
+                    onClick = { gallery.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Default.PhotoLibrary, null)
+                    Text("  Pilih dari galeri", style = MaterialTheme.typography.labelLarge)
                 }
-                OutlinedButton(onClick = {
-                    cameraDenied = false
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                        permission.launch(Manifest.permission.CAMERA)
-                    } else permission.launch(Manifest.permission.CAMERA)
-                }, Modifier.fillMaxWidth()) { Icon(Icons.Default.PhotoCamera, null); Text(" Ambil dengan kamera") }
+                OutlinedButton(
+                    onClick = {
+                        cameraDenied = false
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                            permission.launch(Manifest.permission.CAMERA)
+                        } else permission.launch(Manifest.permission.CAMERA)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Default.PhotoCamera, null)
+                    Text("  Ambil dengan kamera", style = MaterialTheme.typography.labelLarge)
+                }
             } else {
-                Card(Modifier.fillMaxWidth()) { AsyncImage(model = selectedUri, contentDescription = "Preview foto struk", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth().height(320.dp)) }
-                Button(onClick = { selectedUri?.let(onScan) }, Modifier.fillMaxWidth()) { Text("Scan") }
-                OutlinedButton(onClick = { selectedUri = null }, Modifier.fillMaxWidth()) { Icon(Icons.Default.Delete, null); Text(" Hapus / ganti foto") }
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    AsyncImage(model = selectedUri, contentDescription = "Preview foto struk", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth().height(320.dp))
+                }
+                Button(
+                    onClick = { selectedUri?.let(onScan) },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Scan Struk", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                }
+                OutlinedButton(
+                    onClick = { selectedUri = null },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Default.Delete, null)
+                    Text("  Hapus / ganti foto", style = MaterialTheme.typography.labelLarge)
+                }
             }
             if (cameraDenied) {
                 Text("Izin kamera ditolak. Aktifkan izin kamera di Settings untuk mengambil foto.", color = MaterialTheme.colorScheme.error)

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
@@ -20,7 +21,12 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +43,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import com.example.expense_tracker.R
 import androidx.compose.runtime.collectAsState
@@ -160,7 +168,7 @@ fun AmountInput(
                         style = MaterialTheme.typography.displayLarge.copy(
                             fontSize = dynamicFontSize
                         ),
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         color = textColor,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
@@ -184,6 +192,7 @@ fun CategoryGrid(
     onCategorySelected: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     Column(modifier = modifier.padding(horizontal = 24.dp)) {
         Text(
             text = stringResource(R.string.input_choose_category),
@@ -207,7 +216,19 @@ fun CategoryGrid(
                         val isSelected = category.id == selectedId
                         FilterChip(
                             selected = isSelected,
-                            onClick = { onCategorySelected(category.id) },
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onCategorySelected(category.id)
+                            },
+                            leadingIcon = if (isSelected) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Filled.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    )
+                                }
+                            } else null,
                             label = { 
                                 Text(
                                     text = category.name,
@@ -233,12 +254,17 @@ fun CategoryGrid(
 fun SaveButton(
     enabled: Boolean,
     onClick: () -> Unit,
+    label: String = stringResource(R.string.save),
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     Button(
-        onClick = onClick,
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            onClick()
+        },
         enabled = enabled,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -254,7 +280,7 @@ fun SaveButton(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = stringResource(R.string.save),
+            text = label,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -270,6 +296,7 @@ fun InputTypeSegmentedButton(
     onOptionSelected: (InputTypeOption) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     SingleChoiceSegmentedButtonRow(
         modifier = modifier
             .fillMaxWidth()
@@ -283,24 +310,17 @@ fun InputTypeSegmentedButton(
                 InputTypeOption.BILL_REMINDER -> stringResource(R.string.bill_reminder)
             }
             
-            val colors = when (option) {
-                InputTypeOption.INCOME -> SegmentedButtonDefaults.colors(
-                    activeContainerColor = Color(0xFFE8F5E9),
-                    activeContentColor = Color(0xFF2E7D32)
-                )
-                InputTypeOption.EXPENSE -> SegmentedButtonDefaults.colors(
-                    activeContainerColor = MaterialTheme.colorScheme.errorContainer,
-                    activeContentColor = MaterialTheme.colorScheme.onErrorContainer
-                )
-                InputTypeOption.BILL_REMINDER -> SegmentedButtonDefaults.colors(
-                    activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
+            val colors = SegmentedButtonDefaults.colors(
+                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
             
             SegmentedButton(
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                onClick = { onOptionSelected(option) },
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onOptionSelected(option)
+                },
                 selected = selectedOption == option,
                 colors = colors
             ) {
@@ -317,7 +337,9 @@ fun InputScreen(
     viewModel: InputViewModel,
     onSaved: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    onNavigateToWallet: () -> Unit = {}
+    onNavigateToWallet: () -> Unit = {},
+    onNavigateToAiInput: () -> Unit = {},
+    onNavigateToReceipt: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -376,6 +398,41 @@ fun InputScreen(
                 selectedOption = state.inputTypeOption,
                 onOptionSelected = { viewModel.onInputTypeSelected(it) }
             )
+
+            if (state.inputMode == InputMode.TRANSACTION) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        onClick = onNavigateToAiInput,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.home_ai_action), maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                    }
+                    OutlinedButton(
+                        onClick = onNavigateToReceipt,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp)
+                    ) {
+                        Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.home_receipt_action), maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
             
             Column(
                 modifier = Modifier
@@ -403,7 +460,7 @@ fun InputScreen(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -422,7 +479,7 @@ fun InputScreen(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp)
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -467,18 +524,9 @@ fun InputScreen(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp)
             )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Wallet picker
-        WalletPicker(
-            wallets = state.wallets,
-            selectedId = state.selectedWalletId,
-            onWalletSelected = { viewModel.onWalletSelected(it) }
-        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -488,6 +536,15 @@ fun InputScreen(
             selectedId = state.selectedCategoryId,
             onCategorySelected = { viewModel.onCategorySelected(it) }
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Wallet picker
+        WalletPicker(
+            wallets = state.wallets,
+            selectedId = state.selectedWalletId,
+            onWalletSelected = { viewModel.onWalletSelected(it) }
+        )
         
         Spacer(modifier = Modifier.height(24.dp))
         }
@@ -495,7 +552,13 @@ fun InputScreen(
         // Save button
         SaveButton(
             enabled = state.isSaveEnabled,
-            onClick = { viewModel.onSave() }
+            onClick = { viewModel.onSave() },
+            label = when (state.inputTypeOption) {
+                InputTypeOption.INCOME -> stringResource(R.string.input_save_income)
+                InputTypeOption.BILL_REMINDER -> stringResource(R.string.input_save_bill)
+                InputTypeOption.EXPENSE -> stringResource(R.string.input_save_expense)
+            },
+            modifier = Modifier.imePadding()
         )
         }
     }
@@ -572,6 +635,7 @@ fun WalletPicker(
     modifier: Modifier = Modifier
 ) {
     if (wallets.size <= 1) return
+    val haptic = LocalHapticFeedback.current
 
     Column(modifier = modifier.padding(horizontal = 24.dp)) {
         Text(
@@ -589,12 +653,24 @@ fun WalletPicker(
                 val isSelected = wallet.id == selectedId
                 FilterChip(
                     selected = isSelected,
-                    onClick = { onWalletSelected(wallet.id) },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onWalletSelected(wallet.id)
+                    },
+                    leadingIcon = if (isSelected) {
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(FilterChipDefaults.IconSize)
+                            )
+                        }
+                    } else null,
                     label = { 
                         Text(
                             text = wallet.name,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                        )
+                        ) 
                     },
                     shape = RoundedCornerShape(16.dp),
                     colors = FilterChipDefaults.filterChipColors(
@@ -606,3 +682,4 @@ fun WalletPicker(
         }
     }
 }
+

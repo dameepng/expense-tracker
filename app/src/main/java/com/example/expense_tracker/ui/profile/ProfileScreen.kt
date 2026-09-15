@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Download
@@ -61,6 +62,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import com.example.expense_tracker.R
 
@@ -70,7 +73,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     modifier: Modifier = Modifier,
     onNavigateToHelpFaq: () -> Unit = {},
-    onNavigateToPrivacyPolicy: () -> Unit = {}
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onNavigateToChat: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -140,12 +144,14 @@ fun ProfileScreen(
                 title = { Text(stringResource(R.string.nav_profile), fontWeight = FontWeight.Bold) },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(top = paddingValues.calculateTopPadding()),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             item {
@@ -156,7 +162,19 @@ fun ProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
-            
+
+            item {
+                SettingsGroup(title = stringResource(R.string.profile_ai_features)) {
+                    SettingsItem(
+                        icon = Icons.AutoMirrored.Filled.Chat,
+                        title = stringResource(R.string.home_chat_action),
+                        subtitle = stringResource(R.string.profile_chat_ai_desc),
+                        onClick = onNavigateToChat
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             item {
                 SettingsGroup(title = stringResource(R.string.profile_preferences)) {
                     SettingsItem(
@@ -236,7 +254,7 @@ fun ProfileScreen(
             }
             
             item {
-                SettingsGroup(title = "Bantuan & Informasi") {
+                SettingsGroup(title = stringResource(R.string.profile_help_info)) {
                     SettingsItem(
                         icon = Icons.Default.Info,
                         title = stringResource(R.string.faq_title),
@@ -364,9 +382,9 @@ fun SettingsGroup(
         
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
@@ -387,25 +405,29 @@ fun SettingsItem(
     onClick: () -> Unit,
     trailingComponent: (@Composable () -> Unit)? = null
 ) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            }
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Leading Icon
         Surface(
-            modifier = Modifier.size(40.dp),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.background
+            modifier = Modifier.size(42.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
                 tint = iconColor,
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(10.dp)
                     .fillMaxSize()
             )
         }
@@ -590,7 +612,8 @@ fun EditProfileDialog(
                     onValueChange = { name = it },
                     label = { Text("Nama") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
                 )
             }
         },

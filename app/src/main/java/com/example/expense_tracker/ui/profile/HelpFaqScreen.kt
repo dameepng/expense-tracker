@@ -110,9 +110,9 @@ fun FaqCardItem(item: FaqItem) {
                     stiffness = Spring.StiffnessMedium
                 )
             ),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {

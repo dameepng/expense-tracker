@@ -23,6 +23,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -166,9 +167,9 @@ fun BreakdownCardItem(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = categoryColor.copy(alpha = 0.05f) // Subtle tint
+            containerColor = categoryColor.copy(alpha = 0.06f) // Subtle tint
         ),
         onClick = onClick
     ) {
@@ -251,20 +252,35 @@ fun SummaryEmptyState(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = if (isIncome) "💰" else "📊",
-                fontSize = 48.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier.size(88.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (isIncome) Icons.Default.AccountBalanceWallet else Icons.Default.Receipt,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = if (isIncome) stringResource(R.string.no_income_data) else stringResource(R.string.no_expense_data),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
 }
+
 
 // ── Summary Screen ─────────────────────────────────────────────────
 
@@ -369,17 +385,12 @@ fun SummaryScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .then(
-                            if (MaterialTheme.colorScheme.background.luminance() > 0.5f)
-                                Modifier.shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color(0x33000000))
-                            else Modifier
-                        ),
-                    shape = RoundedCornerShape(16.dp),
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) 2.dp else 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -419,7 +430,7 @@ fun SummaryScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(heroBackground, RoundedCornerShape(12.dp))
+                                .background(heroBackground, RoundedCornerShape(16.dp))
                                 .padding(vertical = 16.dp, horizontal = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -507,17 +518,12 @@ fun SummaryScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .then(
-                            if (MaterialTheme.colorScheme.background.luminance() > 0.5f)
-                                Modifier.shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color(0x33000000))
-                            else Modifier
-                        ),
-                    shape = RoundedCornerShape(16.dp),
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) 2.dp else 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(
                         modifier = Modifier

@@ -34,9 +34,11 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.text.NumberFormat
 import java.util.Locale
@@ -96,7 +98,7 @@ fun ReminderListScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(vertical = 8.dp)
-                                    .background(Color.Red, shape = MaterialTheme.shapes.medium)
+                                    .background(Color.Red, shape = RoundedCornerShape(20.dp))
                                     .padding(end = 16.dp),
                                 contentAlignment = Alignment.CenterEnd
                             ) {
@@ -132,7 +134,11 @@ fun ReminderItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -141,7 +147,7 @@ fun ReminderItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = item.reminder.name, style = MaterialTheme.typography.titleMedium)
+                Text(text = item.reminder.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
                     text = "Due: Day ${item.reminder.dueDay} • ${item.walletName}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -152,19 +158,19 @@ fun ReminderItemCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.Surface(
                         color = if (item.reminder.isRepeat) 
                             MaterialTheme.colorScheme.primaryContainer 
                         else 
                             MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.small
+                        shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
                             text = if (item.reminder.isRepeat) "Berulang Bulanan" else "Sekali Bayar",
                             style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             color = if (item.reminder.isRepeat) 
                                 MaterialTheme.colorScheme.onPrimaryContainer 
                             else 
@@ -178,12 +184,12 @@ fun ReminderItemCard(
                                 Color(0xFFE8F5E9) 
                             else 
                                 MaterialTheme.colorScheme.surfaceVariant,
-                            shape = MaterialTheme.shapes.small
+                            shape = RoundedCornerShape(10.dp)
                         ) {
                             Text(
                                 text = if (item.reminder.isRepeat) "✓ Sudah Dibayar" else "✓ Lunas",
                                 style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 color = if (item.reminder.isRepeat) 
                                     Color(0xFF2E7D32) 
                                 else 
@@ -197,14 +203,16 @@ fun ReminderItemCard(
                 Text(
                     text = currencyFormat.format(item.reminder.amount),
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error
                 )
-                Spacer(modifier = Modifier.padding(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Button(
                     onClick = { onClickMarkAsPaid() },
                     enabled = !item.isPaid,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                    modifier = Modifier.height(32.dp)
+                    shape = RoundedCornerShape(14.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                    modifier = Modifier.height(36.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
@@ -212,7 +220,7 @@ fun ReminderItemCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.padding(2.dp))
-                    Text(if (item.isPaid) (if (item.reminder.isRepeat) "Dibayar" else "Lunas") else "Bayar", style = MaterialTheme.typography.labelSmall)
+                    Text(if (item.isPaid) (if (item.reminder.isRepeat) "Dibayar" else "Lunas") else "Bayar", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }
             }
         }

@@ -5,6 +5,9 @@
     <string name="nav_summary">Summary</string>
     <string name="nav_profile">Profile</string>
     <string name="profile_preferences">Preferences</string>
+    <string name="profile_ai_features">AI Features</string>
+    <string name="profile_chat_ai_desc">Consult expense &amp; financial summary</string>
+    <string name="profile_help_info">Help &amp; Information</string>
     <string name="profile_theme">App Theme</string>
     <string name="profile_currency">Main Currency</string>
     <string name="profile_language">Language</string>
@@ -78,12 +81,18 @@
     <string name="recent_transactions">Recent Transactions</string>
     <string name="view_all">View All</string>
     <string name="no_recent_transactions">No recent transactions</string>
+    <string name="home_ai_action">Add with AI</string>
+    <string name="home_receipt_action">Scan receipt</string>
+    <string name="home_chat_action">Ask AI</string>
     <string name="transaction_deleted">Transaction deleted</string>
 
     <!-- Input -->
     <string name="input_add_income">Add Income</string>
     <string name="input_add_expense">Add Expense</string>
     <string name="input_add_bill">Add Bill</string>
+    <string name="input_save_income">Save income</string>
+    <string name="input_save_expense">Save expense</string>
+    <string name="input_save_bill">Save reminder</string>
     <string name="input_note">Short Description (Optional)</string>
     <string name="input_note_placeholder">e.g. Fried Rice, Gas, Netflix</string>
     <string name="input_choose_category">Choose Category</string>

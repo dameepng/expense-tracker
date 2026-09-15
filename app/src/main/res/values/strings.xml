@@ -5,6 +5,9 @@
     <string name="nav_summary">Ringkasan</string>
     <string name="nav_profile">Profil</string>
     <string name="profile_preferences">Preferensi</string>
+    <string name="profile_ai_features">Fitur AI</string>
+    <string name="profile_chat_ai_desc">Konsultasi ringkasan pengeluaran &amp; keuangan</string>
+    <string name="profile_help_info">Bantuan &amp; Informasi</string>
     <string name="profile_theme">Tema Aplikasi</string>
     <string name="profile_currency">Mata Uang Utama</string>
     <string name="profile_language">Bahasa</string>
@@ -39,6 +42,7 @@
     <string name="privacy_p1">Kasflow menghargai privasi Anda. Kami berkomitmen untuk melindungi informasi pribadi Anda dan hak privasi Anda.</string>
     <string name="privacy_h2">Data yang Dikumpulkan</string>
     <string name="privacy_p2">Data transaksi, dompet, dan pengaturan Kasflow disimpan secara lokal di perangkat Anda. Pencatatan manual tidak memerlukan pengiriman data ke layanan AI. Jika Anda menggunakan Catat dengan AI, data input dikirim ke Claude (Anthropic) sebagaimana dijelaskan di bagian Pemrosesan AI opsional.</string>
+    <string name="privacy_receipt_content">Saat Anda memilih Foto struk, gambar dan prompt beserta kategori yang tersedia dikirim ke Claude (Anthropic) melalui internet untuk diproses. Hasil scan hanya disimpan setelah Anda mengonfirmasi; gambar dan data sementara dipertahankan di memori selama proses dan tidak disimpan ke Room. Jika scan gagal atau tidak terbaca, Anda dapat melanjutkan dengan input manual atau NL Input.</string>
     <string name="privacy_h3">Penggunaan Data</string>
     <string name="privacy_p3">Data lokal digunakan untuk menampilkan grafik pengeluaran, daftar transaksi, dan pengaturan akun. Pemrosesan AI hanya berjalan saat Anda memilihnya, dan hasilnya baru disimpan sebagai transaksi setelah Anda mengonfirmasi.</string>
     <string name="privacy_h4">Keamanan Data</string>
@@ -78,12 +82,18 @@
     <string name="recent_transactions">Transaksi Terakhir</string>
     <string name="view_all">Lihat Semua</string>
     <string name="no_recent_transactions">Belum ada transaksi terbaru</string>
+    <string name="home_ai_action">Catat dengan AI</string>
+    <string name="home_receipt_action">Pindai struk</string>
+    <string name="home_chat_action">Tanya AI</string>
     <string name="transaction_deleted">Transaksi dihapus</string>
 
     <!-- Input -->
     <string name="input_add_income">Tambah Pemasukan</string>
     <string name="input_add_expense">Tambah Pengeluaran</string>
     <string name="input_add_bill">Tambah Tagihan</string>
+    <string name="input_save_income">Simpan pemasukan</string>
+    <string name="input_save_expense">Simpan pengeluaran</string>
+    <string name="input_save_bill">Simpan pengingat</string>
     <string name="input_note">Deskripsi Singkat (opsional)</string>
     <string name="input_note_placeholder">Misal: Nasi Goreng, Bensin, Netflix</string>
     <string name="input_choose_category">Pilih Kategori</string>

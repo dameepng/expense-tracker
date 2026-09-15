@@ -399,18 +399,18 @@ private fun ChatNotice(text: String) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        shape = RoundedCornerShape(18.dp),
-        shadowElevation = 2.dp,
+        shape = RoundedCornerShape(20.dp),
+        tonalElevation = 1.dp,
         modifier = Modifier
             .fillMaxWidth()
             .semantics { liveRegion = LiveRegionMode.Polite }
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(20.dp))
             Text(text = text, style = MaterialTheme.typography.bodySmall)
         }
     }
@@ -450,16 +450,17 @@ private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
         examples.forEach { example ->
             Surface(
                 onClick = { onExampleClick(example) },
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 shape = RoundedCornerShape(20.dp),
-                shadowElevation = 2.dp,
+                tonalElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = example,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 17.dp, vertical = 13.dp)
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp)
                 )
             }
         }
@@ -496,6 +497,7 @@ private fun ChatErrorCard(
 ) {
     val message = stringResource(error.messageResource())
     Card(
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -534,8 +536,11 @@ private fun ChatErrorCard(
                     TextButton(onClick = onDiscard) {
                         Text(stringResource(R.string.chat_discard_failed))
                     }
-                    Button(onClick = onRetry) {
-                        Text(stringResource(R.string.chat_retry))
+                    Button(
+                        onClick = onRetry,
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text(stringResource(R.string.chat_retry), fontWeight = FontWeight.Bold)
                     }
                 }
             }

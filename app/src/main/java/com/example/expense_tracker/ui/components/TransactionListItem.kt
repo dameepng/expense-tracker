@@ -5,9 +5,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -35,6 +42,31 @@ fun TransactionListItem(
     val amountPrefix = if (isIncome) "+" else "-"
     val amountColor = if (isIncome) Color(0xFF2E8B57) else MaterialTheme.colorScheme.error
 
+    val iconBg = if (isIncome) {
+        Color(0xFFE8F5E9)
+    } else {
+        com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt()).copy(alpha = 0.15f)
+    }
+    val iconTint = if (isIncome) {
+        Color(0xFF1B5E20)
+    } else {
+        com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt())
+    }
+
+    val iconVector = if (isIncome) {
+        Icons.AutoMirrored.Filled.TrendingUp
+    } else {
+        when (transaction.categoryId) {
+            1L -> Icons.Default.Restaurant
+            2L -> Icons.Default.DirectionsCar
+            3L -> Icons.Default.ShoppingCart
+            4L -> Icons.Default.Movie
+            5L -> Icons.Default.Receipt
+            6L -> Icons.Default.LocalHospital
+            else -> Icons.Default.MoreHoriz
+        }
+    }
+
     ListItem(
         modifier = modifier.padding(vertical = 4.dp),
         headlineContent = {
@@ -58,46 +90,33 @@ fun TransactionListItem(
                     Text(
                         text = stringResource(R.string.ai_recurring),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
                 Text(
                     text = TimeFormatter.formatTime(transaction.timestamp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
             }
         },
         leadingContent = {
-            if (isIncome) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFFE8F5E9),
-                    modifier = Modifier.size(48.dp)
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = iconBg,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.TrendingUp,
-                        contentDescription = "Income",
-                        tint = Color(0xFF2E7D32),
-                        modifier = Modifier.padding(12.dp)
+                        imageVector = iconVector,
+                        contentDescription = transaction.categoryName,
+                        tint = iconTint,
+                        modifier = Modifier.size(24.dp)
                     )
-                }
-            } else {
-                Surface(
-                    shape = CircleShape,
-                    color = com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt()).copy(alpha = 0.15f),
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt()),
-                            modifier = Modifier.size(16.dp)
-                        ) {}
-                    }
                 }
             }
         },
@@ -125,3 +144,4 @@ fun TransactionListItem(
         )
     )
 }
+

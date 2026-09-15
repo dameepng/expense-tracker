@@ -50,7 +50,7 @@ fun HeroBalanceCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(
             modifier = Modifier
@@ -94,7 +94,7 @@ fun HeroBalanceCard(
                     text = if (isBalanceVisible) CurrencyFormatter.format(totalBalance) else "Rp •••••••",
                     color = Color.White,
                     style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.ExtraBold
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -127,7 +127,7 @@ fun HeroBalanceCard(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .size(48.dp)
-                    .background(Color.White.copy(alpha = 0.1f), CircleShape),
+                    .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

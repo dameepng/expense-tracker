@@ -1,9 +1,11 @@
 package com.example.expense_tracker.ui.summary.categorydetail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -170,8 +172,7 @@ fun CategoryDetailScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        .background(color, RoundedCornerShape(12.dp))
+                                        .background(color)
                                         .padding(horizontal = 20.dp),
                                     contentAlignment = alignment
                                 ) {
@@ -184,11 +185,14 @@ fun CategoryDetailScreen(
                                     }
                                 }
                             },
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             TransactionListItem(
                                 transaction = expense,
-                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .clickable { onNavigateToInput(expense.id) }
                             )
                         }
                     }

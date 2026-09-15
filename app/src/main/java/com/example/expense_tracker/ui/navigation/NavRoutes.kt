@@ -3,6 +3,8 @@ package com.example.expense_tracker.ui.navigation
 object NavRoutes {
     const val HOME = "home"
     const val AI_INPUT = "ai_input"
+    const val RECEIPT_PICKER = "receipt_picker"
+    const val RECEIPT_REVIEW = "receipt_review"
     const val CHAT = "chat"
     const val INPUT = "input?expenseId={expenseId}"
     const val SUMMARY = "summary"
@@ -12,7 +14,7 @@ object NavRoutes {
     const val HELP_FAQ = "help_faq"
     const val PRIVACY_POLICY = "privacy_policy"
 
-    private val routesWithoutBottomBar = setOf(AI_INPUT, CHAT)
+    private val routesWithoutBottomBar = setOf(INPUT, AI_INPUT, CHAT, RECEIPT_PICKER, RECEIPT_REVIEW)
 
     fun shouldShowBottomBar(route: String?): Boolean = route !in routesWithoutBottomBar
 

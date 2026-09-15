@@ -44,19 +44,19 @@ internal fun ChatMessageBubble(
     val alignment = if (isUser) Alignment.End else Alignment.Start
     val arrangement = if (isUser) Arrangement.End else Arrangement.Start
     val containerColor = if (isUser) {
-        Color(0xFF5965E8)
+        MaterialTheme.colorScheme.primary
     } else {
         MaterialTheme.colorScheme.surfaceContainerHigh
     }
     val contentColor = if (isUser) {
-        Color.White
+        MaterialTheme.colorScheme.onPrimary
     } else {
         MaterialTheme.colorScheme.onSurface
     }
     val bubbleShape = if (isUser) {
-        RoundedCornerShape(topStart = 22.dp, topEnd = 5.dp, bottomStart = 22.dp, bottomEnd = 22.dp)
+        RoundedCornerShape(topStart = 24.dp, topEnd = 6.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
     } else {
-        RoundedCornerShape(topStart = 5.dp, topEnd = 22.dp, bottomStart = 22.dp, bottomEnd = 22.dp)
+        RoundedCornerShape(topStart = 6.dp, topEnd = 24.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
     }
     val roleLabel = if (isUser) userLabel else assistantLabel
 
@@ -72,7 +72,8 @@ internal fun ChatMessageBubble(
             color = containerColor,
             contentColor = contentColor,
             shape = bubbleShape,
-            shadowElevation = if (isUser) 0.dp else 5.dp,
+            border = if (isUser) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            shadowElevation = 0.dp,
             modifier = Modifier
                 .fillMaxWidth(if (isUser) 0.82f else 0.88f)
                 .clip(bubbleShape)

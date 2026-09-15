@@ -45,6 +45,23 @@ val OnSurfaceVariantLight = Color(0xFF44474F)
 val OnSurfaceVariantDark = Color(0xFFC4C6D0)
 val OutlineLight = Color(0xFF74777F)
 val OutlineDark = Color(0xFF8E9099)
+val OutlineVariantLight = Color(0xFFC4C6D0)
+val OutlineVariantDark = Color(0xFF44474F)
+val ScrimLight = Color(0xFF000000)
+val ScrimDark = Color(0xFF000000)
+
+// M3 Surface Containers
+val SurfaceContainerLowestLight = Color(0xFFFFFFFF)
+val SurfaceContainerLowLight = Color(0xFFF7F2FA)
+val SurfaceContainerLight = Color(0xFFF3EDF7)
+val SurfaceContainerHighLight = Color(0xFFECE6F0)
+val SurfaceContainerHighestLight = Color(0xFFE6E0E9)
+
+val SurfaceContainerLowestDark = Color(0xFF0F0D13)
+val SurfaceContainerLowDark = Color(0xFF1D1B20)
+val SurfaceContainerDark = Color(0xFF211F26)
+val SurfaceContainerHighDark = Color(0xFF2B2930)
+val SurfaceContainerHighestDark = Color(0xFF36343B)
 
 // Error
 val ErrorLight = Color(0xFFBA1A1A)

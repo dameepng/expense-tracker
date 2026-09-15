@@ -1,21 +1,27 @@
 package com.example.expense_tracker
 
 import android.Manifest
+import android.content.Context
 import android.content.res.Configuration
+import android.database.ContentObserver
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +43,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.first
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -221,6 +230,17 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
     val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(app))
     val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(app))
     val reminderListViewModel: com.example.expense_tracker.ui.reminder.ReminderListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory(app))
+    val receiptViewModel: com.example.expense_tracker.ui.receipt.ReceiptScanViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel(
+            factory = com.example.expense_tracker.ui.receipt.ReceiptScanViewModelFactory.create(
+                repository = AiDependencies.shared.createReceiptRepository(
+                    com.example.expense_tracker.data.ai.receipt.ReceiptImageProcessor(app.contentResolver)
+                ),
+                draftRepository = com.example.expense_tracker.data.ai.RoomTransactionDraftRepository(
+                    AppDatabase.getInstance(app)
+                )
+            )
+        )
     
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -237,6 +257,8 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val isReduceMotion = rememberIsReduceMotion()
 
     Scaffold(
         contentWindowInsets = if (currentRoute == NavRoutes.CHAT) {
@@ -263,22 +285,62 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = NavRoutes.HOME, // We could make this dynamic based on preferences later, but HOME is fine for now
+            startDestination = NavRoutes.HOME,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            enterTransition = { slideInHorizontally(animationSpec = tween(200, easing = FastOutSlowInEasing), initialOffsetX = { fullWidth -> fullWidth / 3 }) + fadeIn(animationSpec = tween(200)) },
-            exitTransition = { slideOutHorizontally(animationSpec = tween(200, easing = FastOutSlowInEasing), targetOffsetX = { fullWidth -> -fullWidth / 3 }) + fadeOut(animationSpec = tween(200)) },
-            popEnterTransition = { slideInHorizontally(animationSpec = tween(200, easing = FastOutSlowInEasing), initialOffsetX = { fullWidth -> -fullWidth / 3 }) + fadeIn(animationSpec = tween(200)) },
-            popExitTransition = { slideOutHorizontally(animationSpec = tween(200, easing = FastOutSlowInEasing), targetOffsetX = { fullWidth -> fullWidth / 3 }) + fadeOut(animationSpec = tween(200)) }
+            enterTransition = {
+                if (isReduceMotion) {
+                    EnterTransition.None
+                } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
+                    fadeIn(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                } else {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                        animationSpec = tween(300, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                }
+            },
+            exitTransition = {
+                if (isReduceMotion) {
+                    ExitTransition.None
+                } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
+                    fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                } else {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                        animationSpec = tween(300, easing = FastOutSlowInEasing),
+                        targetOffset = { fullWidth -> fullWidth / 3 }
+                    ) + fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                }
+            },
+            popEnterTransition = {
+                if (isReduceMotion) {
+                    EnterTransition.None
+                } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
+                    fadeIn(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                } else {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.End,
+                        animationSpec = tween(300, easing = FastOutSlowInEasing),
+                        initialOffset = { fullWidth -> -fullWidth / 3 }
+                    ) + fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                }
+            },
+            popExitTransition = {
+                if (isReduceMotion) {
+                    ExitTransition.None
+                } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
+                    fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                } else {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.End,
+                        animationSpec = tween(300, easing = FastOutSlowInEasing)
+                    ) + fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                }
+            }
         ) {
-            composable(
-                route = NavRoutes.ONBOARDING,
-                enterTransition = { fadeIn(animationSpec = tween(150)) },
-                exitTransition = { fadeOut(animationSpec = tween(150)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
-                popExitTransition = { fadeOut(animationSpec = tween(150)) }
-            ) {
+            composable(route = NavRoutes.ONBOARDING) {
                 com.example.expense_tracker.ui.onboarding.OnboardingScreen(
                     onNavigateToHome = {
                         navController.navigate(NavRoutes.HOME) {
@@ -288,13 +350,7 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
                 )
             }
             
-            composable(
-                route = NavRoutes.HOME,
-                enterTransition = { fadeIn(animationSpec = tween(150)) },
-                exitTransition = { fadeOut(animationSpec = tween(150)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
-                popExitTransition = { fadeOut(animationSpec = tween(150)) }
-            ) { backStackEntry ->
+            composable(route = NavRoutes.HOME) { backStackEntry ->
                 val shouldRefresh by backStackEntry.savedStateHandle.getStateFlow("refresh_home", false).collectAsState()
                 LaunchedEffect(shouldRefresh) {
                     if (shouldRefresh) {
@@ -316,7 +372,13 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
                             ?.let { it["summary_wallet_id"] = walletId }
                     },
                     onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) },
-                    onNavigateToAiInput = { navController.navigate(NavRoutes.AI_INPUT) },
+                    onNavigateToAiInput = { if (navController.currentDestination?.route != NavRoutes.AI_INPUT) navController.navigate(NavRoutes.AI_INPUT) },
+                    onNavigateToReceipt = {
+                        receiptViewModel.reset()
+                        if (navController.currentDestination?.route != NavRoutes.RECEIPT_PICKER) {
+                            navController.navigate(NavRoutes.RECEIPT_PICKER) { launchSingleTop = true }
+                        }
+                    },
                     onNavigateToChat = {
                         if (navController.currentDestination?.route != NavRoutes.CHAT) {
                             navController.navigate(NavRoutes.CHAT) {
@@ -336,6 +398,35 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
                     viewModel = aiViewModel,
                     onBack = { navController.popBackStack() },
                     onSaved = { navController.popBackStack() }
+                )
+            }
+
+            composable(NavRoutes.RECEIPT_PICKER) {
+                com.example.expense_tracker.ui.receipt.ReceiptPickerScreen(
+                    onBack = {
+                        receiptViewModel.reset()
+                        navController.popBackStack()
+                    },
+                    onScan = { uri ->
+                        receiptViewModel.selectImage(uri)
+                        receiptViewModel.startScan()
+                        navController.navigate(NavRoutes.RECEIPT_REVIEW) { launchSingleTop = true }
+                    }
+                )
+            }
+
+            composable(NavRoutes.RECEIPT_REVIEW) {
+                com.example.expense_tracker.ui.receipt.ReceiptReviewScreen(
+                    viewModel = receiptViewModel,
+                    onBack = {
+                        receiptViewModel.reset()
+                        navController.popBackStack()
+                    },
+                    onManualInput = { navController.navigate(NavRoutes.AI_INPUT) { launchSingleTop = true } },
+                    onSaved = {
+                        receiptViewModel.reset()
+                        navController.popBackStack(NavRoutes.HOME, inclusive = false)
+                    }
                 )
             }
 
@@ -383,17 +474,22 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
                         navController.navigate(NavRoutes.WALLET) {
                             popUpTo(NavRoutes.INPUT) { inclusive = true }
                         }
+                    },
+                    onNavigateToAiInput = {
+                        if (navController.currentDestination?.route != NavRoutes.AI_INPUT) {
+                            navController.navigate(NavRoutes.AI_INPUT)
+                        }
+                    },
+                    onNavigateToReceipt = {
+                        receiptViewModel.reset()
+                        if (navController.currentDestination?.route != NavRoutes.RECEIPT_PICKER) {
+                            navController.navigate(NavRoutes.RECEIPT_PICKER) { launchSingleTop = true }
+                        }
                     }
                 )
             }
 
-            composable(
-                route = NavRoutes.SUMMARY,
-                enterTransition = { fadeIn(animationSpec = tween(150)) },
-                exitTransition = { fadeOut(animationSpec = tween(150)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
-                popExitTransition = { fadeOut(animationSpec = tween(150)) }
-            ) { backStackEntry ->
+            composable(route = NavRoutes.SUMMARY) { backStackEntry ->
                 val walletId = backStackEntry.savedStateHandle.get<Long?>("summary_wallet_id")
                 if (walletId != null) {
                     summaryViewModel.onWalletSelected(walletId)
@@ -417,11 +513,7 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
                     navArgument("walletId") { type = NavType.StringType; nullable = true },
                     navArgument("startTime") { type = NavType.StringType },
                     navArgument("endTime") { type = NavType.StringType }
-                ),
-                enterTransition = { fadeIn(animationSpec = tween(150)) },
-                exitTransition = { fadeOut(animationSpec = tween(150)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
-                popExitTransition = { fadeOut(animationSpec = tween(150)) }
+                )
             ) { backStackEntry ->
                 val viewModel: com.example.expense_tracker.ui.summary.categorydetail.CategoryDetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                     factory = com.example.expense_tracker.ui.summary.categorydetail.CategoryDetailViewModelFactory(app)
@@ -433,13 +525,7 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
                 )
             }
             
-            composable(
-                route = NavRoutes.WALLET,
-                enterTransition = { fadeIn(animationSpec = tween(150)) },
-                exitTransition = { fadeOut(animationSpec = tween(150)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
-                popExitTransition = { fadeOut(animationSpec = tween(150)) }
-            ) {
+            composable(route = NavRoutes.WALLET) {
                 com.example.expense_tracker.ui.wallet.WalletListScreen(
                     viewModel = walletViewModel,
                     onSelectWallet = { walletId ->
@@ -454,17 +540,18 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
                 )
             }
 
-            composable(
-                route = NavRoutes.PROFILE,
-                enterTransition = { fadeIn(animationSpec = tween(150)) },
-                exitTransition = { fadeOut(animationSpec = tween(150)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(150)) },
-                popExitTransition = { fadeOut(animationSpec = tween(150)) }
-            ) {
+            composable(route = NavRoutes.PROFILE) {
                 com.example.expense_tracker.ui.profile.ProfileScreen(
                     viewModel = profileViewModel,
                     onNavigateToHelpFaq = { navController.navigate(NavRoutes.HELP_FAQ) },
-                    onNavigateToPrivacyPolicy = { navController.navigate(NavRoutes.PRIVACY_POLICY) }
+                    onNavigateToPrivacyPolicy = { navController.navigate(NavRoutes.PRIVACY_POLICY) },
+                    onNavigateToChat = {
+                        if (navController.currentDestination?.route != NavRoutes.CHAT) {
+                            navController.navigate(NavRoutes.CHAT) {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
                 )
             }
             
@@ -493,3 +580,57 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
 @Composable
 private fun applicationContext() =
     LocalContext.current.applicationContext as android.app.Application
+
+private val bottomNavTabs = setOf(
+    NavRoutes.HOME,
+    NavRoutes.WALLET,
+    NavRoutes.SUMMARY,
+    NavRoutes.PROFILE
+)
+
+private fun isBottomNavPeer(fromRoute: String?, toRoute: String?): Boolean {
+    val from = fromRoute?.substringBefore('?')
+    val to = toRoute?.substringBefore('?')
+    return from in bottomNavTabs && to in bottomNavTabs
+}
+
+@Composable
+private fun rememberIsReduceMotion(): Boolean {
+    val context = LocalContext.current
+    var isReduceMotion by remember {
+        mutableStateOf(checkReduceMotion(context))
+    }
+    DisposableEffect(context) {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                isReduceMotion = checkReduceMotion(context)
+            }
+        }
+        val uri1 = Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE)
+        val uri2 = Settings.Global.getUriFor(Settings.Global.TRANSITION_ANIMATION_SCALE)
+        context.contentResolver.registerContentObserver(uri1, false, observer)
+        context.contentResolver.registerContentObserver(uri2, false, observer)
+        onDispose {
+            context.contentResolver.unregisterContentObserver(observer)
+        }
+    }
+    return isReduceMotion
+}
+
+private fun checkReduceMotion(context: Context): Boolean {
+    return try {
+        val animatorScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
+        )
+        val transitionScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.TRANSITION_ANIMATION_SCALE,
+            1f
+        )
+        animatorScale == 0f || transitionScale == 0f
+    } catch (_: Exception) {
+        false
+    }
+}
