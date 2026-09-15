@@ -25,6 +25,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,9 +36,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import com.example.expense_tracker.ui.navigation.AppNavigationDrawerContent
+import com.example.expense_tracker.ui.navigation.AppNavigationRail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -89,12 +96,15 @@ import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 import com.example.expense_tracker.utils.AuthManager
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val windowSizeClass = calculateWindowSizeClass(this)
+            val widthSizeClass = windowSizeClass.widthSizeClass
             val context = LocalContext.current
             val userPrefsRepo = remember(context) {
                 com.example.expense_tracker.data.UserPreferencesRepositoryImpl(context.dataStore)
@@ -211,7 +221,10 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    ExpenseTrackerApp(userPreferencesRepository = userPrefsRepo)
+                    ExpenseTrackerApp(
+                        userPreferencesRepository = userPrefsRepo,
+                        widthSizeClass = widthSizeClass
+                    )
                 }
             }
         }
@@ -220,7 +233,10 @@ class MainActivity : AppCompatActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
+fun ExpenseTrackerApp(
+    userPreferencesRepository: UserPreferencesRepository,
+    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact
+) {
     val context = LocalContext.current
     val app = context.applicationContext as android.app.Application
     
@@ -259,30 +275,34 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
     val currentRoute = navBackStackEntry?.destination?.route
 
     val isReduceMotion = rememberIsReduceMotion()
-
-    Scaffold(
-        contentWindowInsets = if (currentRoute == NavRoutes.CHAT) {
-            WindowInsets(0, 0, 0, 0)
+    val showNavigation = NavRoutes.shouldShowBottomBar(currentRoute)
+    val onNavigateTo: (String) -> Unit = { route ->
+        if (route == currentRoute || (route.startsWith("input") && currentRoute != null && currentRoute.startsWith("input"))) {
+            // no-op
         } else {
-            ScaffoldDefaults.contentWindowInsets
-        },
-        bottomBar = {
-            if (NavRoutes.shouldShowBottomBar(currentRoute)) {
-                com.example.expense_tracker.ui.navigation.BottomNavBar(
-                    currentRoute = currentRoute,
-                    onNavigate = { route ->
-                        if (route == currentRoute || (route.startsWith("input") && currentRoute != null && currentRoute.startsWith("input"))) {
-                            return@BottomNavBar
-                        }
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
-                    }
-                )
+            navController.navigate(route) {
+                popUpTo(navController.graph.startDestinationId)
+                launchSingleTop = true
             }
         }
-    ) { innerPadding ->
+    }
+
+    val contentScaffold = @Composable {
+        Scaffold(
+            contentWindowInsets = if (currentRoute == NavRoutes.CHAT) {
+                WindowInsets(0, 0, 0, 0)
+            } else {
+                ScaffoldDefaults.contentWindowInsets
+            },
+            bottomBar = {
+                if (showNavigation && widthSizeClass == WindowWidthSizeClass.Compact) {
+                    com.example.expense_tracker.ui.navigation.BottomNavBar(
+                        currentRoute = currentRoute,
+                        onNavigate = onNavigateTo
+                    )
+                }
+            }
+        ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = NavRoutes.HOME,
@@ -574,6 +594,32 @@ fun ExpenseTrackerApp(userPreferencesRepository: UserPreferencesRepository) {
                 )
             }
         }
+    }
+}
+
+    if (showNavigation && widthSizeClass == WindowWidthSizeClass.Expanded) {
+        PermanentNavigationDrawer(
+            drawerContent = {
+                AppNavigationDrawerContent(
+                    currentRoute = currentRoute,
+                    onNavigate = onNavigateTo
+                )
+            }
+        ) {
+            contentScaffold()
+        }
+    } else if (showNavigation && widthSizeClass == WindowWidthSizeClass.Medium) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            AppNavigationRail(
+                currentRoute = currentRoute,
+                onNavigate = onNavigateTo
+            )
+            Box(modifier = Modifier.weight(1f)) {
+                contentScaffold()
+            }
+        }
+    } else {
+        contentScaffold()
     }
 }
 
