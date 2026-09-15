@@ -653,9 +653,14 @@ fun HomeScreen(
                 val swipeShape = RoundedCornerShape(20.dp)
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxSize().padding(top = spacing.space100),
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(spacing.space100),
-                    contentPadding = PaddingValues(bottom = 96.dp)
+                    contentPadding = PaddingValues(
+                        top = spacing.space100,
+                        bottom = 96.dp,
+                        start = spacing.screenMargin,
+                        end = spacing.screenMargin
+                    )
                 ) {
                     items(
                         items = state.transactions,
