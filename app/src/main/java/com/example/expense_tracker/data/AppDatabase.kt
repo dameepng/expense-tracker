@@ -8,9 +8,12 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration
 
+import com.example.expense_tracker.data.nfc.NfcCardDao
+import com.example.expense_tracker.data.nfc.NfcCardEntity
+
 @Database(
-    entities = [Expense::class, Category::class, Wallet::class, BillReminder::class],
-    version = 12,
+    entities = [Expense::class, Category::class, Wallet::class, BillReminder::class, NfcCardEntity::class],
+    version = 13,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -18,6 +21,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
     abstract fun walletDao(): WalletDao
     abstract fun billReminderDao(): BillReminderDao
+    abstract fun nfcCardDao(): NfcCardDao
 
     companion object {
 
@@ -32,7 +36,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "expense_tracker.db"
                 )
                     .addCallback(SeedCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
                     .build()
                     .also { INSTANCE = it }
             }
@@ -141,6 +145,21 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE expenses ADD COLUMN merchant TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE expenses ADD COLUMN isRecurring INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS nfc_cards (
+                        cardNumber TEXT PRIMARY KEY NOT NULL,
+                        cardType TEXT NOT NULL,
+                        balance INTEGER NOT NULL,
+                        lastScannedAt INTEGER NOT NULL,
+                        linkedWalletId INTEGER,
+                        cardLabel TEXT NOT NULL DEFAULT ''
+                    )
+                """.trimIndent())
             }
         }
     }

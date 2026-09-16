@@ -2,6 +2,7 @@ package com.example.expense_tracker
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.database.ContentObserver
 import android.os.Build
@@ -242,6 +243,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -286,6 +292,17 @@ fun ExpenseTrackerApp(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val activity = context as? android.app.Activity
+    LaunchedEffect(activity?.intent?.getStringExtra("EXTRA_NAV_ROUTE")) {
+        val targetRoute = activity?.intent?.getStringExtra("EXTRA_NAV_ROUTE")
+        if (targetRoute != null) {
+            navController.navigate(targetRoute) {
+                launchSingleTop = true
+            }
+            activity.intent?.removeExtra("EXTRA_NAV_ROUTE")
+        }
+    }
 
     val isReduceMotion = rememberIsReduceMotion()
     val showNavigation = NavRoutes.shouldShowBottomBar(currentRoute)
@@ -559,6 +576,10 @@ fun ExpenseTrackerApp(
                                 launchSingleTop = true
                             }
                         }
+                    },
+                    onNavigateToNfcScan = {
+                        val nfcIntent = Intent(context, com.example.expense_tracker.ui.nfc.NfcQuickScanActivity::class.java)
+                        context.startActivity(nfcIntent)
                     }
                 )
             }

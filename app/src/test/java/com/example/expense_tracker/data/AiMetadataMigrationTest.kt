@@ -52,11 +52,11 @@ class AiMetadataMigrationTest {
         }
 
         val migrated = Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
-            .addMigrations(AppDatabase.MIGRATION_11_12)
+            .addMigrations(AppDatabase.MIGRATION_11_12, AppDatabase.MIGRATION_12_13)
             .allowMainThreadQueries()
             .build()
         try {
-            // Opening through Room also validates the complete migrated schema against version 12.
+            // Opening through Room also validates the complete migrated schema against version 13.
             assertEquals(
                 Expense(
                     id = 42,
@@ -88,7 +88,7 @@ class AiMetadataMigrationTest {
                 ),
                 migrated.billReminderDao().getReminderById(9)
             )
-            assertEquals(12, migrated.openHelper.writableDatabase.version)
+            assertEquals(13, migrated.openHelper.writableDatabase.version)
         } finally {
             migrated.close()
             context.deleteDatabase(databaseName)

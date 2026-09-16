@@ -1,0 +1,268 @@
+package com.example.expense_tracker.ui.nfc
+
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.nfc.NfcAdapter
+import android.nfc.Tag
+import android.nfc.tech.IsoDep
+import android.os.Build
+import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.lifecycleScope
+import com.example.expense_tracker.BuildConfig
+import com.example.expense_tracker.MainActivity
+import com.example.expense_tracker.data.AppDatabase
+import com.example.expense_tracker.data.nfc.EmoneyIsoDepParser
+import com.example.expense_tracker.data.nfc.NfcCardEntity
+import com.example.expense_tracker.data.nfc.NfcCardResult
+import com.example.expense_tracker.data.nfc.NfcCardType
+import com.example.expense_tracker.ui.navigation.NavRoutes
+import com.example.expense_tracker.ui.theme.Expense_trackerTheme
+import com.example.expense_tracker.widget.EmoneyWidgetProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class NfcQuickScanActivity : ComponentActivity() {
+
+    private var nfcAdapter: NfcAdapter? = null
+    private var scanState by mutableStateOf<NfcScanState>(NfcScanState.Scanning)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+
+        if (nfcAdapter == null) {
+            scanState = NfcScanState.Error("Perangkat ini tidak memiliki sensor NFC hardware.")
+        } else if (!nfcAdapter!!.isEnabled) {
+            scanState = NfcScanState.Error("NFC belum diaktifkan. Silakan aktifkan NFC di Pengaturan HP Anda.")
+        }
+
+        // Handle initial intent if launched via NFC tech discovered
+        intent?.let { handleNfcIntent(it) }
+
+        setContent {
+            Expense_trackerTheme {
+                val coroutineScope = rememberCoroutineScope()
+                // Dimmed translucent overlay background
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.55f))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { finishWithFade() }
+                        ),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    NfcQuickScanSheet(
+                        state = scanState,
+                        onDismiss = { finishWithFade() },
+                        onRecordExpense = { card ->
+                            navigateToMainWithCard(card)
+                        },
+                        onRetry = {
+                            scanState = NfcScanState.Scanning
+                        },
+                        onSimulateScan = if (BuildConfig.DEBUG || nfcAdapter == null) {
+                            { type ->
+                                coroutineScope.launch {
+                                    simulateScan(type)
+                                }
+                            }
+                        } else null,
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {} // Consume click so it doesn't dismiss
+                            )
+                            .navigationBarsPadding()
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        enableNfcReaderMode()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        disableNfcReaderMode()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNfcIntent(intent)
+    }
+
+    private fun enableNfcReaderMode() {
+        val adapter = nfcAdapter ?: return
+        if (!adapter.isEnabled) return
+
+        val flags = NfcAdapter.FLAG_READER_NFC_A or
+                NfcAdapter.FLAG_READER_NFC_B or
+                NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK
+
+        val options = Bundle().apply {
+            putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250)
+        }
+
+        adapter.enableReaderMode(
+            this,
+            { tag -> processTag(tag) },
+            flags,
+            options
+        )
+    }
+
+    private fun disableNfcReaderMode() {
+        nfcAdapter?.disableReaderMode(this)
+    }
+
+    private fun handleNfcIntent(intent: Intent) {
+        val action = intent.action ?: return
+        if (action == NfcAdapter.ACTION_TECH_DISCOVERED || action == NfcAdapter.ACTION_TAG_DISCOVERED) {
+            val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+            }
+            if (tag != null) {
+                processTag(tag)
+            }
+        }
+    }
+
+    private fun processTag(tag: Tag) {
+        val isoDep = IsoDep.get(tag)
+        if (isoDep == null) {
+            val techList = tag.techList.joinToString(", ") { it.substringAfterLast('.') }
+            lifecycleScope.launch(Dispatchers.Main) {
+                scanState = NfcScanState.Error("Kartu terdeteksi ($techList) tetapi tidak mendukung protokol ISO-DEP. Pastikan kartu TapCash/e-Money Anda menggunakan chip standar modern.")
+            }
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = EmoneyIsoDepParser.readCard(isoDep, tag.id)
+            withContext(Dispatchers.Main) {
+                result.fold(
+                    onSuccess = { cardResult ->
+                        triggerHapticFeedback()
+                        saveCardAndNotifyWidget(cardResult)
+                        scanState = NfcScanState.Success(cardResult)
+                    },
+                    onFailure = { error ->
+                        scanState = NfcScanState.Error(
+                            error.message ?: "Gagal membaca kartu. Pastikan posisi kartu pas di belakang HP."
+                        )
+                    }
+                )
+            }
+        }
+    }
+
+    private suspend fun simulateScan(type: NfcCardType) {
+        val simulatedCard = when (type) {
+            NfcCardType.MANDIRI_EMONEY -> NfcCardResult(
+                cardNumber = "6032918239014812",
+                balance = 74_500L,
+                cardType = NfcCardType.MANDIRI_EMONEY
+            )
+            NfcCardType.BNI_TAPCASH -> NfcCardResult(
+                cardNumber = "7546029381729401",
+                balance = 125_000L,
+                cardType = NfcCardType.BNI_TAPCASH
+            )
+            else -> NfcCardResult(
+                cardNumber = "9988776655443322",
+                balance = 50_000L,
+                cardType = NfcCardType.UNKNOWN
+            )
+        }
+        triggerHapticFeedback()
+        saveCardAndNotifyWidget(simulatedCard)
+        scanState = NfcScanState.Success(simulatedCard)
+    }
+
+    private fun saveCardAndNotifyWidget(card: NfcCardResult) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val db = AppDatabase.getInstance(applicationContext)
+                val entity = NfcCardEntity(
+                    cardNumber = card.cardNumber,
+                    cardType = card.cardType.name,
+                    balance = card.balance,
+                    lastScannedAt = card.scannedAt
+                )
+                db.nfcCardDao().upsertCard(entity)
+                EmoneyWidgetProvider.updateAllWidgets(applicationContext)
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun triggerHapticFeedback() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                vibratorManager?.defaultVibrator?.vibrate(
+                    VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                @Suppress("DEPRECATION")
+                vibrator?.vibrate(100)
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun navigateToMainWithCard(card: NfcCardResult) {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("EXTRA_NAV_ROUTE", NavRoutes.inputRoute(null))
+            putExtra("EXTRA_CARD_NOTE", "${card.cardType.displayName} (${card.formattedCardNumber()})")
+        }
+        startActivity(intent)
+        finishWithFade()
+    }
+
+    private fun finishWithFade() {
+        finish()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
+    }
+}

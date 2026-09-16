@@ -127,4 +127,19 @@
     <string name="expires">EXPIRES</string>
     <string name="repeat_every_month">Ulangi Setiap Bulan</string>
     <string name="bill_auto_repeat_desc">Tagihan otomatis muncul bulan depan</string>
+
+    <!-- NFC & Widget -->
+    <string name="widget_emoney_name">Saldo E-Money</string>
+    <string name="widget_emoney_description">Lihat saldo e-money terakhir dan tap untuk scan kartu instan</string>
+    <string name="nfc_scan_title">Scan Kartu E-Money</string>
+    <string name="nfc_scan_prompt">Tempelkan kartu di belakang HP</string>
+    <string name="nfc_scan_scanning">Membaca data kartu...</string>
+    <string name="nfc_tap_to_scan">Tap untuk Scan</string>
+    <string name="nfc_last_scanned">Terakhir scan: %1$s</string>
+    <string name="nfc_record_expense">Catat Pengeluaran</string>
+    <string name="nfc_no_card_scanned">Belum ada kartu di-scan</string>
+    <string name="nfc_not_supported">Perangkat ini tidak memiliki sensor NFC</string>
+    <string name="nfc_disabled">NFC belum aktif. Silakan aktifkan di Pengaturan.</string>
+    <string name="nfc_card_read_failed">Gagal membaca kartu. Pastikan kartu tidak digerakkan saat menempel.</string>
+    <string name="nfc_card_unsupported">Kartu belum didukung. Saat ini mendukung Mandiri e-Money &amp; BNI TapCash.</string>
 </resources>

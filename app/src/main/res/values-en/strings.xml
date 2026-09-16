@@ -127,4 +127,19 @@
     <string name="expires">EXPIRES</string>
     <string name="repeat_every_month">Repeat Every Month</string>
     <string name="bill_auto_repeat_desc">Bill will automatically appear next month</string>
+
+    <!-- NFC & Widget -->
+    <string name="widget_emoney_name">E-Money Balance</string>
+    <string name="widget_emoney_description">View last known e-money balance and tap for instant card scan</string>
+    <string name="nfc_scan_title">Scan E-Money Card</string>
+    <string name="nfc_scan_prompt">Hold card against the back of your phone</string>
+    <string name="nfc_scan_scanning">Reading card data...</string>
+    <string name="nfc_tap_to_scan">Tap to Scan</string>
+    <string name="nfc_last_scanned">Last scanned: %1$s</string>
+    <string name="nfc_record_expense">Record Expense</string>
+    <string name="nfc_no_card_scanned">No card scanned yet</string>
+    <string name="nfc_not_supported">This device does not have an NFC sensor</string>
+    <string name="nfc_disabled">NFC is disabled. Please turn it on in Settings.</string>
+    <string name="nfc_card_read_failed">Failed to read card. Keep the card steady against the device.</string>
+    <string name="nfc_card_unsupported">Card is not yet supported. Currently supports Mandiri e-Money &amp; BNI TapCash.</string>
 </resources>

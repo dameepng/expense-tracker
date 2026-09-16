@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.AlertDialog
@@ -80,7 +81,8 @@ fun ProfileScreen(
     onNavigateToPrivacyPolicy: () -> Unit = {},
     onNavigateToChat: () -> Unit = {},
     onNavigateToAiInput: () -> Unit = {},
-    onNavigateToReceipt: () -> Unit = {}
+    onNavigateToReceipt: () -> Unit = {},
+    onNavigateToNfcScan: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -195,6 +197,12 @@ fun ProfileScreen(
                         title = stringResource(R.string.home_receipt_action),
                         subtitle = stringResource(R.string.profile_receipt_desc),
                         onClick = onNavigateToReceipt
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.Nfc,
+                        title = stringResource(R.string.nfc_scan_title),
+                        subtitle = "Cek saldo Mandiri e-Money & BNI TapCash",
+                        onClick = onNavigateToNfcScan
                     )
                 }
                 Spacer(modifier = Modifier.height(spacing.itemGap))
