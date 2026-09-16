@@ -22,14 +22,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
@@ -63,9 +58,7 @@ fun InputScreen(
     viewModel: InputViewModel,
     onSaved: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    onNavigateToWallet: () -> Unit = {},
-    onNavigateToAiInput: () -> Unit = {},
-    onNavigateToReceipt: () -> Unit = {}
+    onNavigateToWallet: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -146,41 +139,6 @@ fun InputScreen(
                     selectedOption = state.inputTypeOption,
                     onOptionSelected = viewModel::onInputTypeSelected
                 )
-
-                if (state.inputMode == InputMode.TRANSACTION) {
-                    Spacer(modifier = Modifier.height(spacing.itemGap))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = spacing.screenMargin),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.itemGap)
-                    ) {
-                        Button(
-                            onClick = onNavigateToAiInput,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        ) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.home_ai_action), maxLines = 1, style = MaterialTheme.typography.labelMedium)
-                        }
-                        OutlinedButton(
-                            onClick = onNavigateToReceipt,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp)
-                        ) {
-                            Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.home_receipt_action), maxLines = 1, style = MaterialTheme.typography.labelMedium)
-                        }
-                    }
-                }
 
                 Column(
                     modifier = Modifier

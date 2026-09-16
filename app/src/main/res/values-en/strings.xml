@@ -7,6 +7,8 @@
     <string name="profile_preferences">Preferences</string>
     <string name="profile_ai_features">AI Features</string>
     <string name="profile_chat_ai_desc">Consult expense &amp; financial summary</string>
+    <string name="profile_ai_input_desc">Add transactions using natural language text</string>
+    <string name="profile_receipt_desc">Scan and extract transactions from receipt photos</string>
     <string name="profile_help_info">Help &amp; Information</string>
     <string name="profile_theme">App Theme</string>
     <string name="profile_currency">Main Currency</string>

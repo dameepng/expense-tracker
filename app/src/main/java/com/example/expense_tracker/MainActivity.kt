@@ -474,17 +474,6 @@ fun ExpenseTrackerApp(
                         navController.navigate(NavRoutes.WALLET) {
                             popUpTo(NavRoutes.INPUT) { inclusive = true }
                         }
-                    },
-                    onNavigateToAiInput = {
-                        if (navController.currentDestination?.route != NavRoutes.AI_INPUT) {
-                            navController.navigate(NavRoutes.AI_INPUT)
-                        }
-                    },
-                    onNavigateToReceipt = {
-                        receiptViewModel.reset()
-                        if (navController.currentDestination?.route != NavRoutes.RECEIPT_PICKER) {
-                            navController.navigate(NavRoutes.RECEIPT_PICKER) { launchSingleTop = true }
-                        }
                     }
                 )
             }
@@ -552,6 +541,21 @@ fun ExpenseTrackerApp(
                     onNavigateToChat = {
                         if (navController.currentDestination?.route != NavRoutes.CHAT) {
                             navController.navigate(NavRoutes.CHAT) {
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    onNavigateToAiInput = {
+                        if (navController.currentDestination?.route != NavRoutes.AI_INPUT) {
+                            navController.navigate(NavRoutes.AI_INPUT) {
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    onNavigateToReceipt = {
+                        receiptViewModel.reset()
+                        if (navController.currentDestination?.route != NavRoutes.RECEIPT_PICKER) {
+                            navController.navigate(NavRoutes.RECEIPT_PICKER) {
                                 launchSingleTop = true
                             }
                         }

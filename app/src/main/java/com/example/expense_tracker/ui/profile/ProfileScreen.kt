@@ -41,11 +41,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -76,7 +78,9 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     onNavigateToHelpFaq: () -> Unit = {},
     onNavigateToPrivacyPolicy: () -> Unit = {},
-    onNavigateToChat: () -> Unit = {}
+    onNavigateToChat: () -> Unit = {},
+    onNavigateToAiInput: () -> Unit = {},
+    onNavigateToReceipt: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -179,6 +183,18 @@ fun ProfileScreen(
                         title = stringResource(R.string.home_chat_action),
                         subtitle = stringResource(R.string.profile_chat_ai_desc),
                         onClick = onNavigateToChat
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.AutoAwesome,
+                        title = stringResource(R.string.home_ai_action),
+                        subtitle = stringResource(R.string.profile_ai_input_desc),
+                        onClick = onNavigateToAiInput
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.PhotoCamera,
+                        title = stringResource(R.string.home_receipt_action),
+                        subtitle = stringResource(R.string.profile_receipt_desc),
+                        onClick = onNavigateToReceipt
                     )
                 }
                 Spacer(modifier = Modifier.height(spacing.itemGap))
