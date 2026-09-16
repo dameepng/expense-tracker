@@ -50,6 +50,17 @@ object NavMotion {
     }
 
     /**
+     * Determines whether a route is the InputScreen (transaction input form).
+     * Navigating to/from InputScreen is made instant (EnterTransition.None / ExitTransition.None)
+     * to eliminate frame drops during first-render composable tree inflation.
+     */
+    fun isInputRoute(route: String?): Boolean {
+        if (route == null) return false
+        val base = route.substringBefore('?').substringBefore('/')
+        return base == "input"
+    }
+
+    /**
      * Standard M3 Enter Transition for forward navigation and top-level switches.
      */
     fun enterTransition(
@@ -60,6 +71,10 @@ object NavMotion {
 
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
+
+        if (isInputRoute(toRoute) || isInputRoute(fromRoute)) {
+            return EnterTransition.None
+        }
 
         return if (isTopLevelSwitch(fromRoute, toRoute)) {
             // M3 Fade Through pattern for top-level tabs
@@ -106,6 +121,10 @@ object NavMotion {
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
 
+        if (isInputRoute(toRoute) || isInputRoute(fromRoute)) {
+            return ExitTransition.None
+        }
+
         return if (isTopLevelSwitch(fromRoute, toRoute)) {
             // M3 Fade Through: Outgoing top-level tab fades out quickly
             fadeOut(
@@ -143,6 +162,10 @@ object NavMotion {
 
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
+
+        if (isInputRoute(toRoute) || isInputRoute(fromRoute)) {
+            return EnterTransition.None
+        }
 
         return if (isTopLevelSwitch(fromRoute, toRoute)) {
             fadeIn(
@@ -188,6 +211,10 @@ object NavMotion {
 
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
+
+        if (isInputRoute(toRoute) || isInputRoute(fromRoute)) {
+            return ExitTransition.None
+        }
 
         return if (isTopLevelSwitch(fromRoute, toRoute)) {
             fadeOut(

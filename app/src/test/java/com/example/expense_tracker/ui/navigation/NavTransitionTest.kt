@@ -99,5 +99,17 @@ class NavTransitionTest {
         assertNotNull(com.example.expense_tracker.ui.theme.MaterialMotionTokens.EmphasizedDecelerate)
         assertNotNull(com.example.expense_tracker.ui.theme.MaterialMotionTokens.EmphasizedAccelerate)
     }
+
+    @Test
+    fun `isInputRoute identifies input routes correctly and excludes other routes`() {
+        assertTrue(NavMotion.isInputRoute("input"))
+        assertTrue(NavMotion.isInputRoute("input?expenseId=123"))
+        assertTrue(NavMotion.isInputRoute(NavRoutes.INPUT))
+
+        assertFalse(NavMotion.isInputRoute(NavRoutes.HOME))
+        assertFalse(NavMotion.isInputRoute(NavRoutes.AI_INPUT))
+        assertFalse(NavMotion.isInputRoute(NavRoutes.RECEIPT_PICKER))
+        assertFalse(NavMotion.isInputRoute(null))
+    }
 }
 
