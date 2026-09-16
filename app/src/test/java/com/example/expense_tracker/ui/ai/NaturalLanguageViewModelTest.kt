@@ -61,9 +61,10 @@ class NaturalLanguageViewModelTest {
         vm.parse()
         assertTrue(vm.uiState.value.isParsing)
         dispatcher.scheduler.runCurrent()
-        assertEquals(LocalDate.of(2026, 9, 10), request!!.referenceDate)
-        assertEquals(clock.zone, request!!.zoneId)
-        assertEquals(repo.categoryFlow.value, request!!.categories)
+        val req = request!!
+        assertEquals(LocalDate.of(2026, 9, 10), req.referenceDate)
+        assertEquals(clock.zone, req.zoneId)
+        assertEquals(repo.categoryFlow.value, req.categories)
         assertEquals("25000", vm.uiState.value.draft!!.amountText)
         assertTrue(vm.uiState.value.canSave)
         assertTrue(repo.saved.isEmpty())

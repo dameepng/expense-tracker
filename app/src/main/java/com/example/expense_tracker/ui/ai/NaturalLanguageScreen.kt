@@ -248,7 +248,7 @@ fun NaturalLanguageScreen(
                 }
             }
 
-            if (state.error != AiUiError.INITIALIZATION) {
+            if (!state.isInitializing && state.error != AiUiError.INITIALIZATION) {
                 if (state.wallets.isEmpty()) {
                     Text(
                         stringResource(R.string.ai_no_wallets),
