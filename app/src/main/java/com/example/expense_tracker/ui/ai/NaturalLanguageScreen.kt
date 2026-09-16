@@ -22,6 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Button
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -44,6 +46,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import com.example.expense_tracker.data.TransactionType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -78,27 +82,51 @@ fun NaturalLanguageScreen(
     val state by viewModel.uiState.collectAsState()
     val currentOnSaved by rememberUpdatedState(onSaved)
     val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val editingEnabled = !state.isParsing && !state.isSaving && !state.saved
+
+    val handleBack = {
+        keyboard?.hide()
+        focusManager.clearFocus()
+        viewModel.cancelParsing()
+        onBack()
+    }
 
     LaunchedEffect(state.saved) {
         if (state.saved) currentOnSaved()
     }
-    // Keep the form in place while the confirmed transaction is being committed.
-    BackHandler(enabled = state.isSaving) {}
+    // Only intercept back gesture when saving to prevent corrupting state/accidental back during persistence
+    BackHandler(enabled = state.isSaving) {
+        // Prevent back during save
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.cancelParsing()
+            keyboard?.hide()
+            focusManager.clearFocus()
+        }
+    }
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
-                    Text(stringResource(R.string.ai_title), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.ai_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 navigationIcon = {
                     IconButton(
                         enabled = !state.isSaving,
-                        onClick = {
-                            viewModel.cancelParsing()
-                            onBack()
-                        }
+                        onClick = handleBack
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -107,9 +135,13 @@ fun NaturalLanguageScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
                 ),
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                scrollBehavior = scrollBehavior
             )
         },
         containerColor = MaterialTheme.colorScheme.background,

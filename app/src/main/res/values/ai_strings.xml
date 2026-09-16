@@ -40,4 +40,7 @@
     <string name="ai_retry_load">Muat ulang</string>
     <string name="privacy_ai_title">Pemrosesan AI opsional</string>
     <string name="privacy_ai_content">Fitur AI bersifat opsional dan membutuhkan internet. Catat dengan AI mengirim kalimat yang Anda ketik, daftar kategori, serta tanggal dan zona waktu perangkat ke Claude (Anthropic). AI Chat mengirim pertanyaan yang Anda ketik, maksimal enam pasangan percakapan selesai terbaru, serta ringkasan agregat pengeluaran semua wallet untuk minggu berjalan, bulan berjalan, dan bulan sebelumnya. Ringkasan mencakup total dan kategori serta metadata waktu, zona waktu, dan mata uang; daftar transaksi mentah, detail merchant atau catatan, dan metadata kartu dompet tidak ditambahkan ke permintaan chat. History chat hanya disimpan selama layar chat masih berada pada navigasi aktif dan tidak disimpan ke database. Periksa hasil AI sebelum menggunakannya. Input manual tetap tersedia tanpa pemrosesan AI.</string>
+    <string name="receipt_picker_title">Foto Struk</string>
+    <string name="receipt_review_title">Review Struk</string>
 </resources>
+

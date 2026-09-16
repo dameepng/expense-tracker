@@ -2,7 +2,6 @@ package com.example.expense_tracker.ui.navigation
 
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.ui.unit.IntOffset
-import com.example.expense_tracker.isBottomNavPeer
 import com.example.expense_tracker.ui.theme.ExpressiveMotionTokens
 import com.example.expense_tracker.ui.theme.MotionScheme
 import org.junit.Assert.assertEquals
@@ -14,7 +13,7 @@ import org.junit.Test
 class NavTransitionTest {
 
     @Test
-    fun `isBottomNavPeer returns true between all bottom navigation tabs`() {
+    fun `isTopLevelSwitch returns true between all bottom navigation tabs`() {
         val tabs = listOf(
             NavRoutes.HOME,
             NavRoutes.WALLET,
@@ -25,45 +24,45 @@ class NavTransitionTest {
         for (from in tabs) {
             for (to in tabs) {
                 assertTrue(
-                    "Expected isBottomNavPeer to be true from $from to $to",
-                    isBottomNavPeer(from, to)
+                    "Expected isTopLevelSwitch to be true from $from to $to",
+                    NavMotion.isTopLevelSwitch(from, to)
                 )
             }
         }
     }
 
     @Test
-    fun `isBottomNavPeer handles routes with query arguments correctly`() {
+    fun `isTopLevelSwitch handles routes with query arguments correctly`() {
         assertTrue(
-            isBottomNavPeer("summary?walletId=1", NavRoutes.HOME)
+            NavMotion.isTopLevelSwitch("summary?walletId=1", NavRoutes.HOME)
         )
         assertTrue(
-            isBottomNavPeer(NavRoutes.PROFILE, "wallet?filter=all")
+            NavMotion.isTopLevelSwitch(NavRoutes.PROFILE, "wallet?filter=all")
         )
     }
 
     @Test
-    fun `isBottomNavPeer returns false when navigating to or from hierarchical screens`() {
+    fun `isTopLevelSwitch returns false when navigating to or from hierarchical screens`() {
         // Navigating forward from Home to detail/form screens
-        assertFalse(isBottomNavPeer(NavRoutes.HOME, NavRoutes.INPUT))
-        assertFalse(isBottomNavPeer(NavRoutes.HOME, NavRoutes.CHAT))
-        assertFalse(isBottomNavPeer(NavRoutes.HOME, NavRoutes.AI_INPUT))
-        assertFalse(isBottomNavPeer(NavRoutes.HOME, NavRoutes.RECEIPT_PICKER))
-        assertFalse(isBottomNavPeer(NavRoutes.HOME, NavRoutes.REMINDER_LIST))
-        assertFalse(isBottomNavPeer(NavRoutes.SUMMARY, NavRoutes.CATEGORY_DETAIL))
-        assertFalse(isBottomNavPeer(NavRoutes.PROFILE, NavRoutes.HELP_FAQ))
-        assertFalse(isBottomNavPeer(NavRoutes.PROFILE, NavRoutes.PRIVACY_POLICY))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.HOME, NavRoutes.INPUT))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.HOME, NavRoutes.CHAT))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.HOME, NavRoutes.AI_INPUT))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.HOME, NavRoutes.RECEIPT_PICKER))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.HOME, NavRoutes.REMINDER_LIST))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.SUMMARY, NavRoutes.CATEGORY_DETAIL))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.PROFILE, NavRoutes.HELP_FAQ))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.PROFILE, NavRoutes.PRIVACY_POLICY))
 
         // Navigating backward (pop) from detail/form screens to Home
-        assertFalse(isBottomNavPeer(NavRoutes.INPUT, NavRoutes.HOME))
-        assertFalse(isBottomNavPeer(NavRoutes.CHAT, NavRoutes.HOME))
-        assertFalse(isBottomNavPeer(NavRoutes.CATEGORY_DETAIL, NavRoutes.SUMMARY))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.INPUT, NavRoutes.HOME))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.CHAT, NavRoutes.HOME))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.CATEGORY_DETAIL, NavRoutes.SUMMARY))
 
         // Null and invalid routes
-        assertFalse(isBottomNavPeer(null, NavRoutes.HOME))
-        assertFalse(isBottomNavPeer(NavRoutes.HOME, null))
-        assertFalse(isBottomNavPeer(null, null))
-        assertFalse(isBottomNavPeer("unknown_screen", NavRoutes.HOME))
+        assertFalse(NavMotion.isTopLevelSwitch(null, NavRoutes.HOME))
+        assertFalse(NavMotion.isTopLevelSwitch(NavRoutes.HOME, null))
+        assertFalse(NavMotion.isTopLevelSwitch(null, null))
+        assertFalse(NavMotion.isTopLevelSwitch("unknown_screen", NavRoutes.HOME))
     }
 
     @Test
@@ -99,33 +98,6 @@ class NavTransitionTest {
         assertNotNull(com.example.expense_tracker.ui.theme.MaterialMotionTokens.Emphasized)
         assertNotNull(com.example.expense_tracker.ui.theme.MaterialMotionTokens.EmphasizedDecelerate)
         assertNotNull(com.example.expense_tracker.ui.theme.MaterialMotionTokens.EmphasizedAccelerate)
-    }
-
-    @Test
-    fun `isAiRoute returns true for all AI features on both enter and exit`() {
-        val aiRoutes = listOf(
-            NavRoutes.AI_INPUT,
-            NavRoutes.RECEIPT_PICKER,
-            NavRoutes.RECEIPT_REVIEW,
-            NavRoutes.CHAT
-        )
-
-        for (aiRoute in aiRoutes) {
-            // Navigating from Home to AI screen (enter)
-            assertTrue("Expected isAiRoute to be true from HOME to $aiRoute", com.example.expense_tracker.isAiRoute(NavRoutes.HOME, aiRoute))
-            // Navigating from AI screen to Home (exit / pop)
-            assertTrue("Expected isAiRoute to be true from $aiRoute to HOME", com.example.expense_tracker.isAiRoute(aiRoute, NavRoutes.HOME))
-            // Between AI screens (e.g. RECEIPT_PICKER -> RECEIPT_REVIEW -> AI_INPUT)
-            assertTrue("Expected isAiRoute to be true between AI screens", com.example.expense_tracker.isAiRoute(NavRoutes.RECEIPT_PICKER, NavRoutes.RECEIPT_REVIEW))
-            assertTrue("Expected isAiRoute to be true between AI screens", com.example.expense_tracker.isAiRoute(NavRoutes.RECEIPT_REVIEW, NavRoutes.AI_INPUT))
-        }
-
-        // Non-AI routes should return false
-        assertFalse(com.example.expense_tracker.isAiRoute(NavRoutes.HOME, NavRoutes.INPUT))
-        assertFalse(com.example.expense_tracker.isAiRoute(NavRoutes.HOME, NavRoutes.SUMMARY))
-        assertFalse(com.example.expense_tracker.isAiRoute(NavRoutes.SUMMARY, NavRoutes.WALLET))
-        assertFalse(com.example.expense_tracker.isAiRoute(null, NavRoutes.HOME))
-        assertFalse(com.example.expense_tracker.isAiRoute(null, null))
     }
 }
 

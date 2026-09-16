@@ -17,7 +17,8 @@ object NavRoutes {
     const val REMINDER_LIST = "reminder_list"
     const val CATEGORY_DETAIL = "category_detail/{categoryId}?walletId={walletId}&startTime={startTime}&endTime={endTime}"
 
-    private val routesWithBottomBar = setOf(HOME, SUMMARY, WALLET, PROFILE)
+    val topLevelTabs = setOf(HOME, WALLET, SUMMARY, PROFILE)
+    private val routesWithBottomBar = topLevelTabs
 
     fun shouldShowBottomBar(route: String?): Boolean {
         if (route == null) return true

@@ -17,13 +17,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import com.example.expense_tracker.ui.navigation.LocalNavAnimatedVisibilityScope
+import com.example.expense_tracker.ui.navigation.LocalSharedTransitionScope
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.expense_tracker.ui.ai.TransactionDraft
 import com.example.expense_tracker.ui.theme.spacing
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
+import com.example.expense_tracker.R
 import java.time.LocalDate
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun ReceiptReviewScreen(
     viewModel: ReceiptScanViewModel,
@@ -38,19 +44,69 @@ fun ReceiptReviewScreen(
             viewModel.startScan()
         }
     }
-    BackHandler { viewModel.cancel(); onBack() }
-    val spacing = MaterialTheme.spacing
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Review Struk") },
-                navigationIcon = {
-                    IconButton(onClick = { viewModel.cancel(); onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
-                    }
-                }
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    val handleBack = {
+        keyboard?.hide()
+        focusManager.clearFocus()
+        viewModel.cancel()
+        onBack()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.cancel()
+        }
+    }
+
+    val sharedTransitionScope = LocalSharedTransitionScope.current
+    val animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+    val sharedImageModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+        with(sharedTransitionScope) {
+            Modifier.sharedElement(
+                sharedContentState = rememberSharedContentState(key = "receipt_image"),
+                animatedVisibilityScope = animatedVisibilityScope
             )
         }
+    } else {
+        Modifier
+    }
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val spacing = MaterialTheme.spacing
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.receipt_review_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = handleBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                scrollBehavior = scrollBehavior
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
         Box(
             modifier = Modifier
@@ -70,7 +126,9 @@ fun ReceiptReviewScreen(
                 Card(
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(sharedImageModifier)
                 ) {
                     AsyncImage(
                         model = it,

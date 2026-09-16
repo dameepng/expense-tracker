@@ -67,6 +67,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.expense_tracker.ui.navigation.NavMotion
+import com.example.expense_tracker.ui.navigation.LocalSharedTransitionScope
+import com.example.expense_tracker.ui.navigation.LocalNavAnimatedVisibilityScope
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -296,96 +302,27 @@ fun ExpenseTrackerApp(
 
     val contentScaffold = @Composable {
         Scaffold(
-            contentWindowInsets = if (currentRoute == NavRoutes.CHAT) {
-                WindowInsets(0, 0, 0, 0)
-            } else {
-                ScaffoldDefaults.contentWindowInsets
-            }
+            contentWindowInsets = ScaffoldDefaults.contentWindowInsets
         ) { innerPadding ->
-        // M3 Suggested Easing & Duration:
-        // - Enter transition: Long duration 500ms with Emphasized Decelerate (full slide from edge + continuous fade in)
-        // - Exit transition: Short duration 200ms with Emphasized Accelerate (25% parallax slide + fade out)
-        val enterSpec = tween<IntOffset>(
-            durationMillis = MaterialMotionTokens.DurationLong2, // 500ms
-            easing = MaterialMotionTokens.EmphasizedDecelerate
-        )
-        val enterFadeSpec = tween<Float>(
-            durationMillis = 300,
-            easing = LinearEasing
-        )
-        val exitSpec = tween<IntOffset>(
-            durationMillis = MaterialMotionTokens.DurationShort4, // 200ms
-            easing = MaterialMotionTokens.EmphasizedAccelerate
-        )
-        val exitFadeSpec = tween<Float>(
-            durationMillis = MaterialMotionTokens.DurationShort4, // 200ms
-            easing = MaterialMotionTokens.EmphasizedAccelerate
-        )
-        val peerCrossfadeSpec = tween<Float>(
-            durationMillis = MaterialMotionTokens.DurationMedium1, // 250ms
-            easing = LinearEasing
-        )
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
-            NavHost(
-                navController = navController,
-                startDestination = NavRoutes.HOME,
-                modifier = Modifier.fillMaxSize(),
-                enterTransition = {
-                    if (isReduceMotion || isAiRoute(initialState.destination.route, targetState.destination.route)) {
-                        EnterTransition.None
-                    } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                        fadeIn(animationSpec = peerCrossfadeSpec)
-                    } else {
-                        slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                            animationSpec = enterSpec
-                        ) + fadeIn(animationSpec = enterFadeSpec)
-                    }
-                },
-                exitTransition = {
-                    if (isReduceMotion || isAiRoute(initialState.destination.route, targetState.destination.route)) {
-                        ExitTransition.None
-                    } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                        fadeOut(animationSpec = peerCrossfadeSpec)
-                    } else {
-                        slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                            animationSpec = exitSpec,
-                            targetOffset = { fullWidth -> (fullWidth * 0.25f).toInt() }
-                        ) + fadeOut(animationSpec = exitFadeSpec)
-                    }
-                },
-                popEnterTransition = {
-                    if (isReduceMotion || isAiRoute(initialState.destination.route, targetState.destination.route)) {
-                        EnterTransition.None
-                    } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                        fadeIn(animationSpec = peerCrossfadeSpec)
-                    } else {
-                        slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.End,
-                            animationSpec = enterSpec,
-                            initialOffset = { fullWidth -> (fullWidth * 0.25f).toInt() }
-                        ) + fadeIn(animationSpec = enterFadeSpec)
-                    }
-                },
-                popExitTransition = {
-                    if (isReduceMotion || isAiRoute(initialState.destination.route, targetState.destination.route)) {
-                        ExitTransition.None
-                    } else if (isBottomNavPeer(initialState.destination.route, targetState.destination.route)) {
-                        fadeOut(animationSpec = peerCrossfadeSpec)
-                    } else {
-                        slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.End,
-                            animationSpec = exitSpec
-                        ) + fadeOut(animationSpec = exitFadeSpec)
-                    }
-                }
-            ) {
+            @OptIn(ExperimentalSharedTransitionApi::class)
+            SharedTransitionLayout {
+                CompositionLocalProvider(
+                    LocalSharedTransitionScope provides this
+                ) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = NavRoutes.HOME,
+                        modifier = Modifier.fillMaxSize(),
+                        enterTransition = { NavMotion.enterTransition(this, isReduceMotion) },
+                        exitTransition = { NavMotion.exitTransition(this, isReduceMotion) },
+                        popEnterTransition = { NavMotion.popEnterTransition(this, isReduceMotion) },
+                        popExitTransition = { NavMotion.popExitTransition(this, isReduceMotion) }
+                    ) {
             composable(route = NavRoutes.ONBOARDING) {
                 com.example.expense_tracker.ui.onboarding.OnboardingScreen(
                     onNavigateToHome = {
@@ -435,14 +372,7 @@ fun ExpenseTrackerApp(
                 )
             }
 
-            composable(
-                route = NavRoutes.AI_INPUT,
-                // AI screens: no enter/exit motion — rely on in-screen loading states instead
-                enterTransition = { EnterTransition.None },
-                exitTransition = { ExitTransition.None },
-                popEnterTransition = { EnterTransition.None },
-                popExitTransition = { ExitTransition.None }
-            ) { backStackEntry ->
+            composable(route = NavRoutes.AI_INPUT) { backStackEntry ->
                 val aiViewModel: com.example.expense_tracker.ui.ai.NaturalLanguageViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(
                         viewModelStoreOwner = backStackEntry,
@@ -457,54 +387,44 @@ fun ExpenseTrackerApp(
                 )
             }
 
-            composable(
-                route = NavRoutes.RECEIPT_PICKER,
-                enterTransition = { EnterTransition.None },
-                exitTransition = { ExitTransition.None },
-                popEnterTransition = { EnterTransition.None },
-                popExitTransition = { ExitTransition.None }
-            ) {
-                com.example.expense_tracker.ui.receipt.ReceiptPickerScreen(
-                    onBack = {
-                        receiptViewModel.reset()
-                        navController.popBackStack()
-                    },
-                    onScan = { uri ->
-                        receiptViewModel.selectImage(uri)
-                        receiptViewModel.startScan()
-                        navController.navigate(NavRoutes.RECEIPT_REVIEW) { launchSingleTop = true }
-                    }
-                )
+            composable(route = NavRoutes.RECEIPT_PICKER) {
+                CompositionLocalProvider(
+                    LocalNavAnimatedVisibilityScope provides this@composable
+                ) {
+                    com.example.expense_tracker.ui.receipt.ReceiptPickerScreen(
+                        onBack = {
+                            receiptViewModel.reset()
+                            navController.popBackStack()
+                        },
+                        onScan = { uri ->
+                            receiptViewModel.selectImage(uri)
+                            receiptViewModel.startScan()
+                            navController.navigate(NavRoutes.RECEIPT_REVIEW) { launchSingleTop = true }
+                        }
+                    )
+                }
             }
 
-            composable(
-                route = NavRoutes.RECEIPT_REVIEW,
-                enterTransition = { EnterTransition.None },
-                exitTransition = { ExitTransition.None },
-                popEnterTransition = { EnterTransition.None },
-                popExitTransition = { ExitTransition.None }
-            ) {
-                com.example.expense_tracker.ui.receipt.ReceiptReviewScreen(
-                    viewModel = receiptViewModel,
-                    onBack = {
-                        receiptViewModel.reset()
-                        navController.popBackStack()
-                    },
-                    onManualInput = { navController.navigate(NavRoutes.AI_INPUT) { launchSingleTop = true } },
-                    onSaved = {
-                        receiptViewModel.reset()
-                        navController.popBackStack(NavRoutes.HOME, inclusive = false)
-                    }
-                )
+            composable(route = NavRoutes.RECEIPT_REVIEW) {
+                CompositionLocalProvider(
+                    LocalNavAnimatedVisibilityScope provides this@composable
+                ) {
+                    com.example.expense_tracker.ui.receipt.ReceiptReviewScreen(
+                        viewModel = receiptViewModel,
+                        onBack = {
+                            receiptViewModel.reset()
+                            navController.popBackStack()
+                        },
+                        onManualInput = { navController.navigate(NavRoutes.AI_INPUT) { launchSingleTop = true } },
+                        onSaved = {
+                            receiptViewModel.reset()
+                            navController.popBackStack(NavRoutes.HOME, inclusive = false)
+                        }
+                    )
+                }
             }
 
-            composable(
-                route = NavRoutes.CHAT,
-                enterTransition = { EnterTransition.None },
-                exitTransition = { ExitTransition.None },
-                popEnterTransition = { EnterTransition.None },
-                popExitTransition = { ExitTransition.None }
-            ) { backStackEntry ->
+            composable(route = NavRoutes.CHAT) { backStackEntry ->
                 val viewModelFactory = remember(backStackEntry, userPreferencesRepository) {
                     val database = AppDatabase.getInstance(app)
                     val contextSource = ChatContextProvider(
@@ -532,39 +452,7 @@ fun ExpenseTrackerApp(
                 arguments = listOf(navArgument("expenseId") {
                     type = NavType.StringType
                     nullable = true
-                }),
-                // Cold-start optimization: fade-only transitions for heavy screens.
-                // slideIntoContainer requires per-frame position recalculation while
-                // the composable tree is being built for the first time, causing
-                // frame drops. Fade is GPU-composited (alpha only) and avoids this.
-                enterTransition = {
-                    if (isReduceMotion) EnterTransition.None
-                    else fadeIn(animationSpec = tween(
-                        durationMillis = MaterialMotionTokens.DurationLong2,
-                        easing = MaterialMotionTokens.EmphasizedDecelerate
-                    ))
-                },
-                exitTransition = {
-                    if (isReduceMotion) ExitTransition.None
-                    else fadeOut(animationSpec = tween(
-                        durationMillis = MaterialMotionTokens.DurationShort4,
-                        easing = MaterialMotionTokens.EmphasizedAccelerate
-                    ))
-                },
-                popEnterTransition = {
-                    if (isReduceMotion) EnterTransition.None
-                    else fadeIn(animationSpec = tween(
-                        durationMillis = MaterialMotionTokens.DurationLong2,
-                        easing = MaterialMotionTokens.EmphasizedDecelerate
-                    ))
-                },
-                popExitTransition = {
-                    if (isReduceMotion) ExitTransition.None
-                    else fadeOut(animationSpec = tween(
-                        durationMillis = MaterialMotionTokens.DurationShort4,
-                        easing = MaterialMotionTokens.EmphasizedAccelerate
-                    ))
-                }
+                })
             ) { backStackEntry ->
                 val expenseId = backStackEntry.arguments?.getString("expenseId")?.toLongOrNull()
                 val factory = remember(expenseId) {
@@ -689,7 +577,10 @@ fun ExpenseTrackerApp(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
-        }
+                    }
+                }
+            }
+
 
         if (widthSizeClass == WindowWidthSizeClass.Compact) {
             AnimatedVisibility(
@@ -749,32 +640,6 @@ fun ExpenseTrackerApp(
 @Composable
 private fun applicationContext() =
     LocalContext.current.applicationContext as android.app.Application
-
-internal val bottomNavTabs = setOf(
-    NavRoutes.HOME,
-    NavRoutes.WALLET,
-    NavRoutes.SUMMARY,
-    NavRoutes.PROFILE
-)
-
-internal fun isBottomNavPeer(fromRoute: String?, toRoute: String?): Boolean {
-    val from = fromRoute?.substringBefore('?')
-    val to = toRoute?.substringBefore('?')
-    return from in bottomNavTabs && to in bottomNavTabs
-}
-
-private val aiFeatureRoutes = setOf(
-    NavRoutes.AI_INPUT,
-    NavRoutes.RECEIPT_PICKER,
-    NavRoutes.RECEIPT_REVIEW,
-    NavRoutes.CHAT
-)
-
-internal fun isAiRoute(fromRoute: String?, toRoute: String?): Boolean {
-    val from = fromRoute?.substringBefore('?')
-    val to = toRoute?.substringBefore('?')
-    return from in aiFeatureRoutes || to in aiFeatureRoutes
-}
 
 @Composable
 private fun rememberIsReduceMotion(): Boolean {

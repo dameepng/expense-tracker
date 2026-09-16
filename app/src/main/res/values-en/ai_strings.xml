@@ -40,4 +40,6 @@
     <string name="ai_retry_load">Reload</string>
     <string name="privacy_ai_title">Optional AI processing</string>
     <string name="privacy_ai_content">AI features are optional and require an internet connection. Add with AI sends your typed sentence, category list, and device date and time zone to Claude (Anthropic). AI Chat sends your typed question, up to six latest completed conversation pairs, and aggregate spending summaries for all wallets covering the current week, current month, and previous month. The summary includes totals and categories plus time, time zone, and currency metadata; raw transactions, merchant or note details, and wallet card metadata are not added to chat requests. Chat history is kept only while the chat navigation entry remains active and is not stored in the database. Review AI results before using them. Manual entry remains available without AI processing.</string>
+    <string name="receipt_picker_title">Receipt Photo</string>
+    <string name="receipt_review_title">Review Receipt</string>
 </resources>

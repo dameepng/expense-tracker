@@ -1,5 +1,8 @@
 package com.example.expense_tracker.ui.input
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +35,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -69,6 +73,21 @@ fun InputScreen(
         onSaved()
     }
 
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val handleBack = {
+        keyboard?.hide()
+        focusManager.clearFocus()
+        onNavigateBack()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            keyboard?.hide()
+            focusManager.clearFocus()
+        }
+    }
+
     val spacing = MaterialTheme.spacing
     Box(
         modifier = Modifier
@@ -83,10 +102,10 @@ fun InputScreen(
         ) {
             InputHeader(
                 inputTypeOption = state.inputTypeOption,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = handleBack
             )
 
-            Spacer(modifier = Modifier.height(spacing.sectionGap))
+            Spacer(modifier = Modifier.height(spacing.itemGap))
 
             // Only show empty wallet state if loading is finished AND wallets are truly empty
             if (!state.isLoading && state.wallets.isEmpty()) {
