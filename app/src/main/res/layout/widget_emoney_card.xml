@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Header Row -->
+    <!-- Top Header Row: Icon Badge + Card Title + Contactless Waves -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,88 +16,111 @@
 
         <ImageView
             android:id="@+id/widget_icon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_widget_icon_badge"
             android:contentDescription="@string/widget_emoney_name"
-            android:src="@drawable/ic_nfc_scan" />
+            android:padding="7dp"
+            android:src="@drawable/ic_widget_card_badge" />
 
         <TextView
             android:id="@+id/widget_card_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/widget_emoney_name"
-            android:textColor="#94A3B8"
-            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/widget_card_number"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="•••• ••••"
-            android:textColor="#64748B"
-            android:textSize="11sp" />
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_widget_contactless" />
     </LinearLayout>
 
-    <!-- Balance Section -->
-    <TextView
-        android:id="@+id/widget_balance_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Saldo Kartu"
-        android:textColor="#94A3B8"
-        android:textSize="11sp" />
-
-    <TextView
-        android:id="@+id/widget_balance_amount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="Rp 0"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp"
-        android:textStyle="bold" />
-
-    <!-- Spacer -->
+    <!-- Flexible vertical space between top and content -->
     <FrameLayout
+        android:id="@+id/widget_spacer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- Bottom Footer Row -->
+    <!-- Content Row: Balance Info & Circular Scan Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/widget_last_scanned"
+        <!-- Left: Saldo & Last Scanned -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/nfc_no_card_scanned"
-            android:textColor="#64748B"
-            android:textSize="10sp" />
+            android:orientation="vertical">
 
-        <TextView
+            <TextView
+                android:id="@+id/widget_balance_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/widget_balance_label"
+                android:textColor="#94A3B8"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/widget_balance_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/widget_default_balance"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <!-- Last Scanned Row -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_widget_clock" />
+
+                <TextView
+                    android:id="@+id/widget_last_scanned"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/nfc_no_card_scanned"
+                    android:textColor="#64748B"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Right: Circular Scan Button -->
+        <ImageView
             android:id="@+id/widget_btn_scan"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_widget_button"
-            android:paddingStart="12dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="6dp"
-            android:text="@string/nfc_tap_to_scan"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_widget_scan_circle"
+            android:contentDescription="@string/nfc_tap_to_scan"
+            android:padding="14dp"
+            android:src="@drawable/ic_widget_viewfinder" />
     </LinearLayout>
 
 </LinearLayout>

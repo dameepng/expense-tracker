@@ -131,6 +131,8 @@
     <!-- NFC & Widget -->
     <string name="widget_emoney_name">E-Money Balance</string>
     <string name="widget_emoney_description">View last known e-money balance and tap for instant card scan</string>
+    <string name="widget_balance_label">Card Balance</string>
+    <string name="widget_default_balance">Rp 0</string>
     <string name="nfc_scan_title">Scan E-Money Card</string>
     <string name="nfc_scan_prompt">Hold card against the back of your phone</string>
     <string name="nfc_scan_scanning">Reading card data...</string>

@@ -76,22 +76,12 @@ class EmoneyWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widget_card_title, cardType.displayName)
             views.setTextViewText(R.id.widget_balance_amount, CurrencyFormatter.format(card.balance))
 
-            // Mask card number
-            val clean = card.cardNumber.replace("\\s".toRegex(), "")
-            val masked = if (clean.length >= 8) {
-                "•••• " + clean.takeLast(4)
-            } else {
-                "•••• ••••"
-            }
-            views.setTextViewText(R.id.widget_card_number, masked)
-
             // Format last scanned time
             val timeStr = SimpleDateFormat("dd MMM, HH:mm", Locale.forLanguageTag("id-ID")).format(Date(card.lastScannedAt))
             views.setTextViewText(R.id.widget_last_scanned, context.getString(R.string.nfc_last_scanned, timeStr))
         } else {
             views.setTextViewText(R.id.widget_card_title, context.getString(R.string.widget_emoney_name))
-            views.setTextViewText(R.id.widget_balance_amount, "Rp 0")
-            views.setTextViewText(R.id.widget_card_number, "•••• ••••")
+            views.setTextViewText(R.id.widget_balance_amount, context.getString(R.string.widget_default_balance))
             views.setTextViewText(R.id.widget_last_scanned, context.getString(R.string.nfc_no_card_scanned))
         }
 

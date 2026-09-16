@@ -131,6 +131,8 @@
     <!-- NFC & Widget -->
     <string name="widget_emoney_name">Saldo E-Money</string>
     <string name="widget_emoney_description">Lihat saldo e-money terakhir dan tap untuk scan kartu instan</string>
+    <string name="widget_balance_label">Saldo Kartu</string>
+    <string name="widget_default_balance">Rp 0</string>
     <string name="nfc_scan_title">Scan Kartu E-Money</string>
     <string name="nfc_scan_prompt">Tempelkan kartu di belakang HP</string>
     <string name="nfc_scan_scanning">Membaca data kartu...</string>
