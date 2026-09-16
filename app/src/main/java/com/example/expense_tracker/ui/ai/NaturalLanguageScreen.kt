@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -65,6 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.CircularProgressIndicator
 import com.example.expense_tracker.R
 import com.example.expense_tracker.ui.theme.spacing
 
@@ -216,15 +216,7 @@ fun NaturalLanguageScreen(
                 }
             }
 
-            if (state.isInitializing) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    Text(stringResource(R.string.ai_loading_choices))
-                }
-            } else if (state.error != AiUiError.INITIALIZATION) {
+            if (state.error != AiUiError.INITIALIZATION) {
                 if (state.wallets.isEmpty()) {
                     Text(
                         stringResource(R.string.ai_no_wallets),
@@ -425,7 +417,11 @@ private fun TransactionPreview(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (state.isSaving) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                     Text(
                         stringResource(

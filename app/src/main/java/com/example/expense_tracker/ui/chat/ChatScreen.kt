@@ -485,7 +485,11 @@ private fun ChatLoading(onCancel: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(spacing.space150),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+        CircularProgressIndicator(
+            modifier = Modifier.size(20.dp),
+            strokeWidth = 2.dp,
+            color = MaterialTheme.colorScheme.primary
+        )
         Text(
             text = stringResource(R.string.chat_loading),
             style = MaterialTheme.typography.bodyMedium,

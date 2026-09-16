@@ -3,6 +3,8 @@ package com.example.expense_tracker.ui.input
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,46 +29,55 @@ class InputViewModel(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            val wallets = withContext(ioDispatcher) {
-                walletRepository.getAllWallets().first()
-            }
-            var loadedAmount = ""
-            var loadedDescription = ""
-            var loadedCategoryId: Long? = null
-            var loadedWalletId: Long? = if (wallets.size == 1) wallets.first().id else null
-            var loadedTransactionType = com.example.expense_tracker.data.TransactionType.EXPENSE
-
-            if (expenseId != null) {
-                val expense = withContext(ioDispatcher) {
-                    repository.getExpenseById(expenseId)
-                }
-                if (expense != null) {
-                    loadedAmount = expense.amount.toString()
-                    loadedDescription = expense.description
-                    loadedCategoryId = expense.categoryId
-                    loadedTransactionType = try {
-                        com.example.expense_tracker.data.TransactionType.valueOf(expense.type)
-                    } catch (e: IllegalArgumentException) {
-                        com.example.expense_tracker.data.TransactionType.EXPENSE
+            try {
+                coroutineScope {
+                    val walletsDeferred = async(ioDispatcher) {
+                        walletRepository.getAllWallets().first()
                     }
-                    loadedWalletId = expense.walletId
+                    val expenseDeferred = if (expenseId != null) {
+                        async(ioDispatcher) { repository.getExpenseById(expenseId) }
+                    } else null
+
+                    val wallets = walletsDeferred.await()
+                    val expense = expenseDeferred?.await()
+
+                    var loadedAmount = ""
+                    var loadedDescription = ""
+                    var loadedCategoryId: Long? = null
+                    var loadedWalletId: Long? = if (wallets.size == 1) wallets.first().id else null
+                    var loadedTransactionType = com.example.expense_tracker.data.TransactionType.EXPENSE
+
+                    if (expense != null) {
+                        loadedAmount = expense.amount.toString()
+                        loadedDescription = expense.description
+                        loadedCategoryId = expense.categoryId
+                        loadedTransactionType = try {
+                            com.example.expense_tracker.data.TransactionType.valueOf(expense.type)
+                        } catch (e: IllegalArgumentException) {
+                            com.example.expense_tracker.data.TransactionType.EXPENSE
+                        }
+                        loadedWalletId = expense.walletId
+                    }
+
+                    val categories = withContext(ioDispatcher) {
+                        repository.getCategoriesByType(loadedTransactionType.name).first()
+                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        categories = categories,
+                        wallets = wallets,
+                        amountText = loadedAmount,
+                        description = loadedDescription,
+                        selectedCategoryId = loadedCategoryId,
+                        selectedWalletId = loadedWalletId,
+                        transactionType = loadedTransactionType,
+                        isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null
+                    )
                 }
+            } catch (_: Exception) {
+                _uiState.value = _uiState.value.copy(isLoading = false)
             }
-
-            val categories = withContext(ioDispatcher) {
-                repository.getCategoriesByType(loadedTransactionType.name).first()
-            }
-
-            _uiState.value = _uiState.value.copy(
-                categories = categories,
-                wallets = wallets,
-                amountText = loadedAmount,
-                description = loadedDescription,
-                selectedCategoryId = loadedCategoryId,
-                selectedWalletId = loadedWalletId,
-                transactionType = loadedTransactionType,
-                isSaveEnabled = loadedAmount.isNotEmpty() && loadedCategoryId != null
-            )
         }
     }
 
@@ -198,6 +209,7 @@ class InputViewModel(
 
             // Reset form for next input
             _uiState.value = InputUiState(
+                isLoading = false,
                 categories = _uiState.value.categories,
                 wallets = state.wallets,
                 transactionType = state.transactionType,

@@ -114,7 +114,12 @@ fun WalletListScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .widthIn(max = 840.dp),
-                    contentPadding = PaddingValues(horizontal = spacing.screenMargin, vertical = spacing.sectionGap),
+                    contentPadding = PaddingValues(
+                        start = spacing.screenMargin,
+                        end = spacing.screenMargin,
+                        top = spacing.sectionGap,
+                        bottom = 96.dp
+                    ),
                     verticalArrangement = Arrangement.spacedBy(spacing.sectionGap)
                 ) {
                     items(

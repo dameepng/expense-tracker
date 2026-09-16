@@ -1,5 +1,6 @@
 package com.example.expense_tracker.ui.theme
 
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.spring
 import androidx.compose.material3.MaterialTheme
@@ -189,3 +190,39 @@ val MaterialTheme.motionScheme: MotionScheme
     @Composable
     @ReadOnlyComposable
     get() = LocalMotionScheme.current
+
+/**
+ * Official Material 3 Easing & Duration Motion Tokens.
+ *
+ * Suggested easing and duration pairs:
+ * - Enter the screen: Emphasized decelerate (400ms - 500ms)
+ * - Exit the screen: Emphasized accelerate (200ms)
+ * - Begin and end on screen: Emphasized (500ms)
+ *
+ * Reference: https://m3.material.io/styles/motion/easing-and-duration/applying-easing-and-duration
+ */
+object MaterialMotionTokens {
+    // Easing curves
+    val Emphasized = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
+    val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1.0f)
+    val EmphasizedAccelerate = CubicBezierEasing(0.3f, 0.0f, 0.8f, 0.15f)
+
+    val Standard = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
+    val StandardDecelerate = CubicBezierEasing(0.0f, 0.0f, 0.0f, 1.0f)
+    val StandardAccelerate = CubicBezierEasing(0.3f, 0.0f, 1.0f, 1.0f)
+
+    // Duration tokens (milliseconds)
+    const val DurationShort1 = 50
+    const val DurationShort2 = 100
+    const val DurationShort3 = 150
+    const val DurationShort4 = 200
+    const val DurationMedium1 = 250
+    const val DurationMedium2 = 300
+    const val DurationMedium3 = 350
+    const val DurationMedium4 = 400
+    const val DurationLong1 = 450
+    const val DurationLong2 = 500
+    const val DurationLong3 = 550
+    const val DurationLong4 = 600
+}
+

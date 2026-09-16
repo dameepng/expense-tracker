@@ -14,17 +14,21 @@ object NavRoutes {
     const val HELP_FAQ = "help_faq"
     const val PRIVACY_POLICY = "privacy_policy"
 
-    private val routesWithoutBottomBar = setOf(INPUT, AI_INPUT, CHAT, RECEIPT_PICKER, RECEIPT_REVIEW)
+    const val REMINDER_LIST = "reminder_list"
+    const val CATEGORY_DETAIL = "category_detail/{categoryId}?walletId={walletId}&startTime={startTime}&endTime={endTime}"
 
-    fun shouldShowBottomBar(route: String?): Boolean = route !in routesWithoutBottomBar
+    private val routesWithBottomBar = setOf(HOME, SUMMARY, WALLET, PROFILE)
+
+    fun shouldShowBottomBar(route: String?): Boolean {
+        if (route == null) return true
+        val baseRoute = route.substringBefore('?').substringBefore('/')
+        return baseRoute in routesWithBottomBar
+    }
 
     fun inputRoute(expenseId: Long? = null): String {
         return if (expenseId != null) "input?expenseId=$expenseId" else "input"
     }
 
-    const val REMINDER_LIST = "reminder_list"
-    
-    const val CATEGORY_DETAIL = "category_detail/{categoryId}?walletId={walletId}&startTime={startTime}&endTime={endTime}"
     fun categoryDetailRoute(categoryId: Long, walletId: Long?, startTime: Long, endTime: Long): String {
         val walletParam = if (walletId != null) "&walletId=$walletId" else ""
         return "category_detail/$categoryId?startTime=$startTime&endTime=$endTime$walletParam"

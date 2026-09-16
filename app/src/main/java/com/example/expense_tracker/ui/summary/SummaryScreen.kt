@@ -400,7 +400,7 @@ fun SummaryScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 840.dp),
-                contentPadding = PaddingValues(bottom = spacing.space200)
+                contentPadding = PaddingValues(bottom = 96.dp)
             ) {
             item(key = "hero_balance") {
                 Spacer(modifier = Modifier.height(spacing.sectionGap))

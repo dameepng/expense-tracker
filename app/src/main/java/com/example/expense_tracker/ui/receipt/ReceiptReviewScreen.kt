@@ -194,7 +194,11 @@ fun ReceiptReviewScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     if (state.isSaving) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                         Spacer(Modifier.width(8.dp))
                         Text("Menyimpan…", fontWeight = FontWeight.Bold)
                     } else {
