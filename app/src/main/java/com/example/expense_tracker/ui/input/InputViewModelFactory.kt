@@ -7,7 +7,12 @@ import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.RoomInputRepository
 
 object InputViewModelFactory {
-    fun create(application: Application, expenseId: Long? = null): ViewModelProvider.Factory {
+    fun create(
+        application: Application,
+        expenseId: Long? = null,
+        initialDescription: String? = null,
+        initialAmount: String? = null
+    ): ViewModelProvider.Factory {
         return object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -16,7 +21,14 @@ object InputViewModelFactory {
                     val repository = RoomInputRepository(db.expenseDao())
                     val walletRepository = com.example.expense_tracker.data.RoomWalletRepository(db.walletDao())
                     val billReminderRepository = com.example.expense_tracker.data.RoomBillReminderRepository(db.billReminderDao())
-                    return InputViewModel(repository, walletRepository, billReminderRepository, expenseId = expenseId) as T
+                    return InputViewModel(
+                        repository,
+                        walletRepository,
+                        billReminderRepository,
+                        expenseId = expenseId,
+                        initialDescription = initialDescription,
+                        initialAmount = initialAmount
+                    ) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
             }

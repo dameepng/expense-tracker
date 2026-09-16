@@ -142,4 +142,12 @@
     <string name="nfc_disabled">NFC belum aktif. Silakan aktifkan di Pengaturan.</string>
     <string name="nfc_card_read_failed">Gagal membaca kartu. Pastikan kartu tidak digerakkan saat menempel.</string>
     <string name="nfc_card_unsupported">Kartu belum didukung. Saat ini mendukung Mandiri e-Money &amp; BNI TapCash.</string>
+    <string name="nfc_view_history">Lihat Riwayat Transaksi</string>
+    <string name="nfc_history_title">Riwayat Transaksi Kartu</string>
+    <string name="nfc_history_subtitle">Data mutasi langsung dari chip kartu</string>
+    <string name="nfc_history_empty_title">Riwayat Belum Tersedia di Chip</string>
+    <string name="nfc_history_empty_desc">Chip kartu ini memproteksi log transaksi (memerlukan enkripsi khusus bank). Sebagian kartu (seperti Mandiri e-Money) menyediakan data log transaksi publik, sementara varian tertentu BNI TapCash &amp; BCA Flazz hanya membuka data saldo.</string>
+    <string name="nfc_record_this">Catat</string>
+    <string name="nfc_transaction_payment">Pembayaran / Mutasi</string>
+    <string name="nfc_transaction_topup">Top Up Saldo</string>
 </resources>

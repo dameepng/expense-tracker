@@ -142,4 +142,12 @@
     <string name="nfc_disabled">NFC is disabled. Please turn it on in Settings.</string>
     <string name="nfc_card_read_failed">Failed to read card. Keep the card steady against the device.</string>
     <string name="nfc_card_unsupported">Card is not yet supported. Currently supports Mandiri e-Money &amp; BNI TapCash.</string>
+    <string name="nfc_view_history">View Transaction History</string>
+    <string name="nfc_history_title">Card Transaction History</string>
+    <string name="nfc_history_subtitle">Transaction data directly from card chip</string>
+    <string name="nfc_history_empty_title">History Not Available on Chip</string>
+    <string name="nfc_history_empty_desc">This card chip protects transaction logs with bank encryption. Some cards (like Mandiri e-Money) expose public transaction logs, while certain BNI TapCash &amp; BCA Flazz variants only expose balance data.</string>
+    <string name="nfc_record_this">Record</string>
+    <string name="nfc_transaction_payment">Payment / Transaction</string>
+    <string name="nfc_transaction_topup">Top Up Balance</string>
 </resources>

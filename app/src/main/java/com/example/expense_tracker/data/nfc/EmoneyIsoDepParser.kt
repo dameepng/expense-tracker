@@ -23,6 +23,8 @@ object EmoneyIsoDepParser {
     private val APDU_SELECT_TAPCASH_AID_2 = hexToBytes("00A4040008A000424E49999999")
     // TapCash DESFire Read Purse Data (balance & card number in one payload)
     private val APDU_READ_TAPCASH_DATA = hexToBytes("9032030000")
+    // TapCash DESFire Read Cyclic Records File 0x04 (Transaction Log)
+    private val APDU_READ_TAPCASH_RECORDS = hexToBytes("90BB040000000000")
     // Fallback ISO 7816 Read Record
     private val APDU_READ_TAPCASH_BALANCE_FALLBACK = hexToBytes("00B2010C00")
 
@@ -158,9 +160,19 @@ object EmoneyIsoDepParser {
                 val balance = parseTapCashBalanceDesfire(dataResp)
                 val cardNumber = parseTapCashCardNumber(dataResp) ?: formatUidAsCardNumber(uidHex, "7546")
 
-                // Extract last transaction if present in payload (bytes 42..45)
+                // Extract transactions from cyclic file 0x04 or payload fallback
                 val transactions = mutableListOf<NfcCardTransaction>()
-                if (dataResp.size >= 46) {
+                try {
+                    val recordResp = isoDep.transceive(APDU_READ_TAPCASH_RECORDS)
+                    if (isSuccess(recordResp) && recordResp.size >= 18) {
+                        val parsed = parseTapCashRecords(recordResp)
+                        if (parsed.isNotEmpty()) {
+                            transactions.addAll(parsed)
+                        }
+                    }
+                } catch (_: Exception) {}
+
+                if (transactions.isEmpty() && dataResp.size >= 46) {
                     val txAmount = readUint32BigEndian(dataResp, 42)
                     if (txAmount in 1..10_000_000L) {
                         transactions.add(
@@ -168,7 +180,8 @@ object EmoneyIsoDepParser {
                                 id = 1L,
                                 amount = txAmount,
                                 type = "EXPENSE",
-                                timestamp = System.currentTimeMillis() - 3600_000L
+                                timestamp = System.currentTimeMillis() - 3600_000L,
+                                terminalId = "Mutasi Terakhir"
                             )
                         )
                     }
@@ -318,15 +331,51 @@ object EmoneyIsoDepParser {
         val amount = readUint32BigEndian(response, 0)
         if (amount <= 0 || amount > 10_000_000L) return null
 
-        val terminalId = if (dataLen >= 12) bytesToHex(response.copyOfRange(4, 8)) else null
+        val typeByte = if (dataLen >= 9) response[8].toInt() and 0xFF else 0x01
+        val txType = if (typeByte in listOf(0x03, 0x04, 0x07)) "INCOME" else "EXPENSE"
+        val terminalHex = if (dataLen >= 12) bytesToHex(response.copyOfRange(4, 8)) else null
+        val terminalName = when {
+            terminalHex == null -> if (txType == "INCOME") "Top Up Saldo" else "Pembayaran E-Money"
+            txType == "INCOME" -> "Top Up ($terminalHex)"
+            else -> "Pembayaran ($terminalHex)"
+        }
 
         return NfcCardTransaction(
             id = id,
             amount = amount,
-            type = "EXPENSE",
-            timestamp = System.currentTimeMillis() - (id * 3600_000L), // Relative fallback timestamp
-            terminalId = terminalId
+            type = txType,
+            timestamp = System.currentTimeMillis() - (id * 3600_000L),
+            terminalId = terminalName
         )
+    }
+
+    /**
+     * Parses BNI TapCash cyclic records if file 0x04 is accessible.
+     */
+    fun parseTapCashRecords(response: ByteArray): List<NfcCardTransaction> {
+        val records = mutableListOf<NfcCardTransaction>()
+        if (response.size < 18) return records
+        val data = response.copyOfRange(0, response.size - 2)
+        val recordSize = if (data.size % 32 == 0) 32 else if (data.size % 16 == 0) 16 else 0
+        if (recordSize > 0) {
+            val numRecords = (data.size / recordSize).coerceAtMost(10)
+            for (i in 0 until numRecords) {
+                val offset = i * recordSize
+                val amount = readUint32LittleEndian(data, offset)
+                if (amount in 1..10_000_000L) {
+                    records.add(
+                        NfcCardTransaction(
+                            id = (i + 1).toLong(),
+                            amount = amount,
+                            type = "EXPENSE",
+                            timestamp = System.currentTimeMillis() - (i * 3600_000L),
+                            terminalId = "Mutasi TapCash #${i + 1}"
+                        )
+                    )
+                }
+            }
+        }
+        return records
     }
 
     private fun readUint32BigEndian(data: ByteArray, offset: Int): Long {

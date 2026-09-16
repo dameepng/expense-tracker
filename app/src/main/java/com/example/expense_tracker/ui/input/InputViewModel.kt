@@ -17,7 +17,9 @@ class InputViewModel(
     private val walletRepository: com.example.expense_tracker.data.WalletRepository,
     private val billReminderRepository: com.example.expense_tracker.data.BillReminderRepository,
     private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
-    private val expenseId: Long? = null
+    private val expenseId: Long? = null,
+    private val initialDescription: String? = null,
+    private val initialAmount: String? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InputUiState())
@@ -41,10 +43,18 @@ class InputViewModel(
                     val wallets = walletsDeferred.await()
                     val expense = expenseDeferred?.await()
 
-                    var loadedAmount = ""
-                    var loadedDescription = ""
+                    var loadedAmount = initialAmount ?: ""
+                    var loadedDescription = initialDescription ?: ""
                     var loadedCategoryId: Long? = null
-                    var loadedWalletId: Long? = if (wallets.size == 1) wallets.first().id else null
+                    var loadedWalletId: Long? = if (wallets.size == 1) {
+                        wallets.first().id
+                    } else if (initialDescription != null) {
+                        wallets.firstOrNull { wallet ->
+                            initialDescription.contains(wallet.name, ignoreCase = true) ||
+                            (wallet.name.contains("TapCash", ignoreCase = true) && initialDescription.contains("TapCash", ignoreCase = true)) ||
+                            (wallet.name.contains("e-Money", ignoreCase = true) && initialDescription.contains("e-Money", ignoreCase = true))
+                        }?.id ?: wallets.firstOrNull()?.id
+                    } else null
                     var loadedTransactionType = com.example.expense_tracker.data.TransactionType.EXPENSE
 
                     if (expense != null) {

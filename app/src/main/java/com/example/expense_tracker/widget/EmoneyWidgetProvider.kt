@@ -30,16 +30,21 @@ class EmoneyWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
+        val pendingResult = goAsync()
         scope.launch {
-            val latestCard = try {
-                AppDatabase.getInstance(context).nfcCardDao().getLatestCard()
-            } catch (_: Exception) {
-                null
-            }
+            try {
+                val latestCard = try {
+                    AppDatabase.getInstance(context).nfcCardDao().getLatestCard()
+                } catch (_: Exception) {
+                    null
+                }
 
-            for (appWidgetId in appWidgetIds) {
-                val views = buildRemoteViews(context, latestCard)
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+                for (appWidgetId in appWidgetIds) {
+                    val views = buildRemoteViews(context, latestCard)
+                    appWidgetManager.updateAppWidget(appWidgetId, views)
+                }
+            } finally {
+                pendingResult.finish()
             }
         }
     }
@@ -81,7 +86,7 @@ class EmoneyWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widget_card_number, masked)
 
             // Format last scanned time
-            val timeStr = SimpleDateFormat("dd MMM, HH:mm", Locale("id", "ID")).format(Date(card.lastScannedAt))
+            val timeStr = SimpleDateFormat("dd MMM, HH:mm", Locale.forLanguageTag("id-ID")).format(Date(card.lastScannedAt))
             views.setTextViewText(R.id.widget_last_scanned, context.getString(R.string.nfc_last_scanned, timeStr))
         } else {
             views.setTextViewText(R.id.widget_card_title, context.getString(R.string.widget_emoney_name))

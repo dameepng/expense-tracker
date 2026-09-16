@@ -30,13 +30,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
 import com.example.expense_tracker.BuildConfig
-import com.example.expense_tracker.MainActivity
 import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.nfc.EmoneyIsoDepParser
 import com.example.expense_tracker.data.nfc.NfcCardEntity
 import com.example.expense_tracker.data.nfc.NfcCardResult
+import com.example.expense_tracker.data.nfc.NfcCardTransaction
 import com.example.expense_tracker.data.nfc.NfcCardType
-import com.example.expense_tracker.ui.navigation.NavRoutes
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 import com.example.expense_tracker.widget.EmoneyWidgetProvider
 import kotlinx.coroutines.Dispatchers
@@ -81,9 +80,6 @@ class NfcQuickScanActivity : ComponentActivity() {
                     NfcQuickScanSheet(
                         state = scanState,
                         onDismiss = { finishWithFade() },
-                        onRecordExpense = { card ->
-                            navigateToMainWithCard(card)
-                        },
                         onRetry = {
                             scanState = NfcScanState.Scanning
                         },
@@ -196,17 +192,29 @@ class NfcQuickScanActivity : ComponentActivity() {
             NfcCardType.MANDIRI_EMONEY -> NfcCardResult(
                 cardNumber = "6032918239014812",
                 balance = 74_500L,
-                cardType = NfcCardType.MANDIRI_EMONEY
+                cardType = NfcCardType.MANDIRI_EMONEY,
+                transactions = listOf(
+                    NfcCardTransaction(1, 15_000, "EXPENSE", System.currentTimeMillis() - 7200_000L, "Gerbang Tol Cilandak Utama"),
+                    NfcCardTransaction(2, 50_000, "INCOME", System.currentTimeMillis() - 86400_000L, "Top Up Livin' by Mandiri"),
+                    NfcCardTransaction(3, 3_500, "EXPENSE", System.currentTimeMillis() - 86400_000L * 2, "TransJakarta Koridor 1"),
+                    NfcCardTransaction(4, 12_000, "EXPENSE", System.currentTimeMillis() - 86400_000L * 3, "Parkir Mall Grand Indonesia")
+                )
             )
             NfcCardType.BNI_TAPCASH -> NfcCardResult(
                 cardNumber = "7546029381729401",
                 balance = 125_000L,
-                cardType = NfcCardType.BNI_TAPCASH
+                cardType = NfcCardType.BNI_TAPCASH,
+                transactions = listOf(
+                    NfcCardTransaction(1, 8_000, "EXPENSE", System.currentTimeMillis() - 3600_000L, "KRL Manggarai - Bogor"),
+                    NfcCardTransaction(2, 100_000, "INCOME", System.currentTimeMillis() - 86400_000L, "Top Up ATM BNI"),
+                    NfcCardTransaction(3, 5_000, "EXPENSE", System.currentTimeMillis() - 86400_000L * 2, "Parkir Stasiun Tebet")
+                )
             )
             else -> NfcCardResult(
                 cardNumber = "9988776655443322",
                 balance = 50_000L,
-                cardType = NfcCardType.UNKNOWN
+                cardType = NfcCardType.UNKNOWN,
+                transactions = emptyList()
             )
         }
         triggerHapticFeedback()
@@ -246,15 +254,6 @@ class NfcQuickScanActivity : ComponentActivity() {
         } catch (_: Exception) {}
     }
 
-    private fun navigateToMainWithCard(card: NfcCardResult) {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("EXTRA_NAV_ROUTE", NavRoutes.inputRoute(null))
-            putExtra("EXTRA_CARD_NOTE", "${card.cardType.displayName} (${card.formattedCardNumber()})")
-        }
-        startActivity(intent)
-        finishWithFade()
-    }
 
     private fun finishWithFade() {
         finish()

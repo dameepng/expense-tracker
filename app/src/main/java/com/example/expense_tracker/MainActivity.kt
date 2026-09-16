@@ -112,9 +112,13 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : AppCompatActivity() {
+
+    private val pendingNavRoute = mutableStateOf<Triple<String, String?, Long?>?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        handleIntent(intent)
         enableEdgeToEdge()
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
@@ -237,7 +241,8 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     ExpenseTrackerApp(
                         userPreferencesRepository = userPrefsRepo,
-                        widthSizeClass = widthSizeClass
+                        widthSizeClass = widthSizeClass,
+                        pendingNavRoute = pendingNavRoute
                     )
                 }
             }
@@ -247,6 +252,19 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val route = intent?.getStringExtra("EXTRA_NAV_ROUTE")
+        val note = intent?.getStringExtra("EXTRA_CARD_NOTE")
+        val amount = intent?.getLongExtra("EXTRA_CARD_AMOUNT", 0L)?.takeIf { it > 0 }
+        if (route != null) {
+            pendingNavRoute.value = Triple(route, note, amount)
+            intent.removeExtra("EXTRA_NAV_ROUTE")
+            intent.removeExtra("EXTRA_CARD_NOTE")
+            intent.removeExtra("EXTRA_CARD_AMOUNT")
+        }
     }
 }
 
@@ -254,7 +272,8 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun ExpenseTrackerApp(
     userPreferencesRepository: UserPreferencesRepository,
-    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact
+    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
+    pendingNavRoute: androidx.compose.runtime.MutableState<Triple<String, String?, Long?>?> = remember { mutableStateOf(null) }
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as android.app.Application
@@ -293,14 +312,21 @@ fun ExpenseTrackerApp(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val activity = context as? android.app.Activity
-    LaunchedEffect(activity?.intent?.getStringExtra("EXTRA_NAV_ROUTE")) {
-        val targetRoute = activity?.intent?.getStringExtra("EXTRA_NAV_ROUTE")
-        if (targetRoute != null) {
-            navController.navigate(targetRoute) {
+    val navTarget by pendingNavRoute
+    LaunchedEffect(navTarget) {
+        val target = navTarget
+        if (target != null) {
+            val (route, note, amount) = target
+            navController.navigate(route) {
                 launchSingleTop = true
             }
-            activity.intent?.removeExtra("EXTRA_NAV_ROUTE")
+            if (!note.isNullOrBlank()) {
+                navController.currentBackStackEntry?.savedStateHandle?.set("initial_note", note)
+            }
+            if (amount != null && amount > 0) {
+                navController.currentBackStackEntry?.savedStateHandle?.set("initial_amount", amount.toString())
+            }
+            pendingNavRoute.value = null
         }
     }
 
@@ -472,8 +498,10 @@ fun ExpenseTrackerApp(
                 })
             ) { backStackEntry ->
                 val expenseId = backStackEntry.arguments?.getString("expenseId")?.toLongOrNull()
-                val factory = remember(expenseId) {
-                    InputViewModelFactory.create(app, expenseId)
+                val initialNote = backStackEntry.savedStateHandle.get<String>("initial_note")
+                val initialAmount = backStackEntry.savedStateHandle.get<String>("initial_amount")
+                val factory = remember(expenseId, initialNote, initialAmount) {
+                    InputViewModelFactory.create(app, expenseId, initialNote, initialAmount)
                 }
                 val inputViewModel: InputViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel(
