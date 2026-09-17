@@ -108,21 +108,6 @@ class NaturalLanguageViewModel(
         _uiState.update { it.copy(isParsing = false) }
     }
 
-    fun startManualEntry() {
-        if (_uiState.value.isSaving || _uiState.value.saved) return
-        cancelParsing()
-        _uiState.update { state ->
-            state.copy(
-                error = null,
-                draft = state.draft ?: TransactionDraft(
-                    dateText = LocalDate.now(clockProvider()).toString(),
-                    note = state.inputText,
-                    walletId = state.wallets.singleOrNull()?.id
-                )
-            )
-        }
-    }
-
     fun updateDraft(transform: (TransactionDraft) -> TransactionDraft) {
         val state = _uiState.value
         if (state.isSaving || state.isParsing || state.saved) return

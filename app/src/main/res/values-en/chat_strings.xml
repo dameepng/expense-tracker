@@ -13,6 +13,11 @@
     <string name="chat_history_truncated">Older conversation was removed from context to keep this session concise.</string>
     <string name="chat_welcome">Hello, how can I help you?</string>
     <string name="chat_empty_description">Choose an example or write your own question. Answers only use the available financial data.</string>
+    <string name="chat_prompt_suggestions_title">Prompt Suggestions</string>
+    <string name="chat_prompt_food_title">Food Spending</string>
+    <string name="chat_prompt_top_category_title">Top Spending Category</string>
+    <string name="chat_prompt_compare_title">Compare Periods</string>
+    <string name="chat_prompt_unusual_title">Spending Insights</string>
     <string name="chat_example_food_month">How much did I spend on food this month?</string>
     <string name="chat_example_top_category">Which category has the highest spending this week?</string>
     <string name="chat_example_month_comparison">Compare this month spending with last month.</string>

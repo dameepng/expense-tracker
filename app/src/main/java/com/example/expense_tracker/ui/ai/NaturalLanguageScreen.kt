@@ -1,7 +1,14 @@
 package com.example.expense_tracker.ui.ai
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -11,25 +18,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -39,16 +48,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import com.example.expense_tracker.data.TransactionType
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -61,9 +73,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
-import java.time.Instant
-import java.time.ZoneId
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -74,9 +87,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.CircularProgressIndicator
 import com.example.expense_tracker.R
+import com.example.expense_tracker.data.TransactionType
 import com.example.expense_tracker.ui.theme.spacing
+import java.time.Instant
+import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,6 +104,7 @@ fun NaturalLanguageScreen(
     val currentOnSaved by rememberUpdatedState(onSaved)
     val keyboard = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val haptic = LocalHapticFeedback.current
     val editingEnabled = !state.isParsing && !state.isSaving && !state.saved
 
     val handleBack = {
@@ -112,6 +128,29 @@ fun NaturalLanguageScreen(
             keyboard?.hide()
             focusManager.clearFocus()
         }
+    }
+
+    val micPrompt = stringResource(R.string.nl_quick_mic_prompt)
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val spokenText = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (!spokenText.isNullOrBlank()) {
+                viewModel.onInputChange(spokenText)
+            }
+        }
+    }
+
+    val launchSpeech = {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "id-ID")
+            putExtra(RecognizerIntent.EXTRA_PROMPT, micPrompt)
+        }
+        try {
+            speechLauncher.launch(intent)
+        } catch (_: Exception) {}
     }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -164,16 +203,18 @@ fun NaturalLanguageScreen(
             verticalArrangement = Arrangement.spacedBy(spacing.sectionGap)
         ) {
             Text(
-                stringResource(R.string.ai_intro),
+                text = stringResource(R.string.ai_intro),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            // ── Prompt Container Card ──
             Card(
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                )
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(spacing.cardPadding),
@@ -184,31 +225,102 @@ fun NaturalLanguageScreen(
                         onValueChange = viewModel::onInputChange,
                         enabled = editingEnabled,
                         label = { Text(stringResource(R.string.ai_sentence_label)) },
-                        placeholder = { Text(stringResource(R.string.ai_sentence_example)) },
-                        minLines = 3,
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.ai_sentence_example),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        },
+                        minLines = 4,
                         maxLines = 6,
                         shape = RoundedCornerShape(16.dp),
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Sentences
                         ),
-                        supportingText = {
-                            Text(stringResource(R.string.ai_character_count, state.inputText.length))
-                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text(
-                        stringResource(R.string.ai_transmission_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+
+                    // Integrated toolbar: character counter, clear button, and speech mic
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
+                            ) {
+                                Text(
+                                    text = "${state.inputText.length} / 1000",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+
+                            if (state.inputText.isNotBlank() && editingEnabled) {
+                                IconButton(
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        viewModel.onInputChange("")
+                                    },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.ai_clear_tooltip),
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+
+                        // Speech microphone button
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    launchSpeech()
+                                },
+                                enabled = editingEnabled
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = stringResource(R.string.ai_mic_tooltip),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Primary Parse Button
                     Button(
                         onClick = {
                             keyboard?.hide()
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             viewModel.parse()
                         },
                         enabled = state.canParse,
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth().height(52.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
                     ) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -221,7 +333,11 @@ fun NaturalLanguageScreen(
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
                             } else {
-                                Icon(Icons.Default.AutoAwesome, contentDescription = null)
+                                Icon(
+                                    Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                             Text(
                                 stringResource(
@@ -231,25 +347,64 @@ fun NaturalLanguageScreen(
                                         else -> R.string.ai_parse
                                     }
                                 ),
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
+
+                    // Cancel parsing button if in progress
                     if (state.isParsing) {
-                        TextButton(
-                            onClick = viewModel::cancelParsing,
-                            modifier = Modifier.align(Alignment.End)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            Text(stringResource(R.string.ai_cancel_parsing))
+                            TextButton(onClick = viewModel::cancelParsing) {
+                                Text(stringResource(R.string.ai_cancel_parsing))
+                            }
                         }
-                    } else if (state.draft == null) {
-                        TextButton(
-                            onClick = viewModel::startManualEntry,
-                            enabled = editingEnabled && !state.isInitializing,
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Text(stringResource(R.string.ai_manual_entry))
+                    }
+                }
+            }
+
+            // ── Discreet Trust & Privacy Card ──
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Security,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.ai_trust_title),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.ai_trust_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
                     }
                 }
             }
@@ -307,6 +462,7 @@ private fun TransactionPreview(
     onSave: () -> Unit
 ) {
     val previewStart = remember { BringIntoViewRequester() }
+    val haptic = LocalHapticFeedback.current
     LaunchedEffect(Unit) {
         withFrameNanos { }
         previewStart.bringIntoView()
@@ -316,7 +472,11 @@ private fun TransactionPreview(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(previewStart)
     ) {
         Column(
             modifier = Modifier.padding(spacing.cardPadding),
@@ -325,19 +485,23 @@ private fun TransactionPreview(
             Text(
                 stringResource(R.string.ai_preview_title),
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.bringIntoViewRequester(previewStart)
+                fontWeight = FontWeight.Bold
             )
             Text(
                 stringResource(R.string.ai_preview_note),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            // Segmented Button (Pengeluaran vs Pemasukan)
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 val isExpense = draft.type == TransactionType.EXPENSE.name
                 SegmentedButton(
                     selected = isExpense,
-                    onClick = { onDraftChange { it.copy(type = TransactionType.EXPENSE.name) } },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onDraftChange { it.copy(type = TransactionType.EXPENSE.name) }
+                    },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                     enabled = enabled
                 ) {
@@ -345,24 +509,38 @@ private fun TransactionPreview(
                 }
                 SegmentedButton(
                     selected = !isExpense,
-                    onClick = { onDraftChange { it.copy(type = TransactionType.INCOME.name) } },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onDraftChange { it.copy(type = TransactionType.INCOME.name) }
+                    },
                     shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                     enabled = enabled
                 ) {
                     Text(stringResource(R.string.transaction_income))
                 }
             }
+
+            // Amount field with prefix
             OutlinedTextField(
                 value = draft.amountText,
                 onValueChange = { text -> onDraftChange { it.copy(amountText = text) } },
                 enabled = enabled,
                 label = { Text(stringResource(R.string.ai_amount)) },
+                prefix = {
+                    Text(
+                        "Rp ",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
                 supportingText = { Text(stringResource(R.string.ai_amount_hint)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
+
+            // Category choice dropdown
             val categoryChoices = state.categories
                 .filter { it.type == draft.type || it.type == "BOTH" }
                 .map { it.id to it.name }
@@ -373,6 +551,8 @@ private fun TransactionPreview(
                 enabled = enabled,
                 onSelect = { id -> onDraftChange { it.copy(categoryId = id) } }
             )
+
+            // Wallet choice dropdown
             AiChoiceDropdown(
                 label = stringResource(R.string.input_choose_wallet),
                 selectedId = draft.walletId,
@@ -380,6 +560,8 @@ private fun TransactionPreview(
                 enabled = enabled,
                 onSelect = { id -> onDraftChange { it.copy(walletId = id) } }
             )
+
+            // Merchant field
             OutlinedTextField(
                 value = draft.merchant,
                 onValueChange = { text -> onDraftChange { it.copy(merchant = text) } },
@@ -390,6 +572,8 @@ private fun TransactionPreview(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
+
+            // Date picker
             var showDatePicker by remember { mutableStateOf(false) }
 
             if (showDatePicker) {
@@ -447,6 +631,8 @@ private fun TransactionPreview(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
+
+            // Note field
             OutlinedTextField(
                 value = draft.note,
                 onValueChange = { text -> onDraftChange { it.copy(note = text) } },
@@ -454,13 +640,15 @@ private fun TransactionPreview(
                 label = { Text(stringResource(R.string.ai_note)) },
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 minLines = 2,
-                maxLines = 5,
+                maxLines = 4,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+
+            // Recurring toggle
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.4f),
                 modifier = Modifier
                     .fillMaxWidth()
                     .toggleable(
@@ -472,18 +660,27 @@ private fun TransactionPreview(
                         }
                     )
             ) {
-                Text(
-                    stringResource(R.string.ai_recurring),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                Switch(checked = draft.isRecurring, onCheckedChange = null, enabled = enabled)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.ai_recurring),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            stringResource(R.string.ai_recurring_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(checked = draft.isRecurring, onCheckedChange = null, enabled = enabled)
+                }
             }
-            Text(
-                stringResource(R.string.ai_recurring_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
             if (!state.canSave && !state.isSaving && !state.isParsing && !state.saved) {
                 Text(
                     stringResource(R.string.ai_validation_hint),
@@ -491,11 +688,18 @@ private fun TransactionPreview(
                     color = MaterialTheme.colorScheme.error
                 )
             }
+
+            // Confirm & Save Button
             Button(
-                onClick = onSave,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onSave()
+                },
                 enabled = state.canSave,
                 shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth().height(52.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -512,6 +716,7 @@ private fun TransactionPreview(
                         stringResource(
                             if (state.isSaving) R.string.ai_saving else R.string.ai_confirm_save
                         ),
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                 }

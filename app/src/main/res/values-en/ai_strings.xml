@@ -10,7 +10,6 @@
     <string name="ai_parse_again">Parse again with AI</string>
     <string name="ai_parsing">Parsing transaction…</string>
     <string name="ai_cancel_parsing">Cancel parsing</string>
-    <string name="ai_manual_entry">Enter manually</string>
     <string name="ai_loading_choices">Loading categories and wallets…</string>
     <string name="ai_no_wallets">No wallets yet. Go back and add one from the Wallet tab before saving a transaction.</string>
     <string name="ai_no_categories">Categories are unavailable. Reload or reopen this page.</string>
@@ -42,4 +41,10 @@
     <string name="privacy_ai_content">AI features are optional and require an internet connection. Add with AI sends your typed sentence, category list, and device date and time zone to Claude (Anthropic). AI Chat sends your typed question, up to six latest completed conversation pairs, and aggregate spending summaries for all wallets covering the current week, current month, and previous month. The summary includes totals and categories plus time, time zone, and currency metadata; raw transactions, merchant or note details, and wallet card metadata are not added to chat requests. Chat history is kept only while the chat navigation entry remains active and is not stored in the database. Review AI results before using them. Manual entry remains available without AI processing.</string>
     <string name="receipt_picker_title">Receipt Photo</string>
     <string name="receipt_review_title">Review Receipt</string>
+
+    <!-- Quick AI Entry helpers -->
+    <string name="ai_clear_tooltip">Clear text</string>
+    <string name="ai_mic_tooltip">Speak transaction</string>
+    <string name="ai_trust_title">Secure &amp; Encrypted</string>
+    <string name="ai_trust_desc">Text and categories are securely processed only to parse this transaction.</string>
 </resources>

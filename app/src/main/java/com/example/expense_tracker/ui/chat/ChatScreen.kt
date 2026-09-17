@@ -2,6 +2,7 @@ package com.example.expense_tracker.ui.chat
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -9,11 +10,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -30,12 +33,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.CompareArrows
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.MicNone
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Lightbulb
+import androidx.compose.material.icons.rounded.Restaurant
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -66,10 +74,14 @@ import androidx.compose.runtime.withFrameNanos
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -438,53 +450,177 @@ private fun ChatNotice(text: String) {
     }
 }
 
+private data class PromptSuggestion(
+    val title: String,
+    val query: String,
+    val icon: ImageVector,
+    val iconTint: Color,
+    val iconBackground: Color
+)
+
 @Composable
 private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
     val spacing = MaterialTheme.spacing
-    val exFood = stringResource(R.string.chat_example_food_month)
-    val exTop = stringResource(R.string.chat_example_top_category)
-    val exComp = stringResource(R.string.chat_example_month_comparison)
-    val exUnusual = stringResource(R.string.chat_example_unusual)
-    val examples = remember(exFood, exTop, exComp, exUnusual) {
-        listOf(exFood, exTop, exComp, exUnusual)
-    }
-    Column(
-        verticalArrangement = Arrangement.spacedBy(spacing.itemGap)
+    val haptic = LocalHapticFeedback.current
+
+    val promptFoodTitle = stringResource(R.string.chat_prompt_food_title)
+    val promptFoodQuery = stringResource(R.string.chat_example_food_month)
+    val promptTopTitle = stringResource(R.string.chat_prompt_top_category_title)
+    val promptTopQuery = stringResource(R.string.chat_example_top_category)
+    val promptCompTitle = stringResource(R.string.chat_prompt_compare_title)
+    val promptCompQuery = stringResource(R.string.chat_example_month_comparison)
+    val promptUnusualTitle = stringResource(R.string.chat_prompt_unusual_title)
+    val promptUnusualQuery = stringResource(R.string.chat_example_unusual)
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val primaryContainer = MaterialTheme.colorScheme.primaryContainer
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val tertiaryContainer = MaterialTheme.colorScheme.tertiaryContainer
+    val surfaceContainerHighest = MaterialTheme.colorScheme.surfaceContainerHighest
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+
+    val suggestions = remember(
+        promptFoodTitle, promptFoodQuery,
+        promptTopTitle, promptTopQuery,
+        promptCompTitle, promptCompQuery,
+        promptUnusualTitle, promptUnusualQuery,
+        primaryColor, primaryContainer,
+        secondaryColor, secondaryContainer,
+        tertiaryColor, tertiaryContainer,
+        surfaceContainerHighest, onSurfaceVariant
     ) {
-        ChatMessageBubble(
-            message = previewMessage(
-                id = "assistant-welcome",
-                role = ChatRole.ASSISTANT,
-                content = stringResource(R.string.chat_welcome)
+        listOf(
+            PromptSuggestion(
+                title = promptFoodTitle,
+                query = promptFoodQuery,
+                icon = Icons.Rounded.Restaurant,
+                iconTint = primaryColor,
+                iconBackground = primaryContainer.copy(alpha = 0.6f)
             ),
-            userLabel = stringResource(R.string.chat_role_user),
-            assistantLabel = stringResource(R.string.chat_role_assistant),
-            sendingLabel = stringResource(R.string.chat_message_sending),
-            failedLabel = stringResource(R.string.chat_message_failed),
-            status = null
+            PromptSuggestion(
+                title = promptTopTitle,
+                query = promptTopQuery,
+                icon = Icons.AutoMirrored.Rounded.TrendingUp,
+                iconTint = secondaryColor,
+                iconBackground = secondaryContainer.copy(alpha = 0.6f)
+            ),
+            PromptSuggestion(
+                title = promptCompTitle,
+                query = promptCompQuery,
+                icon = Icons.AutoMirrored.Rounded.CompareArrows,
+                iconTint = tertiaryColor,
+                iconBackground = tertiaryContainer.copy(alpha = 0.6f)
+            ),
+            PromptSuggestion(
+                title = promptUnusualTitle,
+                query = promptUnusualQuery,
+                icon = Icons.Rounded.Lightbulb,
+                iconTint = onSurfaceVariant,
+                iconBackground = surfaceContainerHighest
+            )
         )
-        ChatNotice(text = stringResource(R.string.chat_privacy_summary))
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = spacing.space100),
+        verticalArrangement = Arrangement.spacedBy(spacing.space150)
+    ) {
+        // Welcoming Hero Header (Clean typography, no chat bubble)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = spacing.space50),
+            verticalArrangement = Arrangement.spacedBy(spacing.space100)
+        ) {
+            Text(
+                text = stringResource(R.string.chat_welcome),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Text(
+                text = stringResource(R.string.chat_empty_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Section Title
         Text(
-            text = stringResource(R.string.chat_empty_description),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = spacing.space50, vertical = spacing.space50)
+            text = stringResource(R.string.chat_prompt_suggestions_title),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = spacing.space50)
         )
-        examples.forEach { example ->
+
+        // Cards
+        suggestions.forEach { item ->
             Surface(
-                onClick = { onExampleClick(example) },
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onExampleClick(item.query)
+                },
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                 tonalElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = example,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = spacing.space250, vertical = spacing.space150)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = spacing.space200, vertical = spacing.space150),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(spacing.space150)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(item.iconBackground),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = null,
+                            tint = item.iconTint,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(spacing.space25)
+                    ) {
+                        Text(
+                            text = item.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = item.query,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
     }

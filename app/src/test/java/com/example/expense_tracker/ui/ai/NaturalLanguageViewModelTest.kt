@@ -92,7 +92,7 @@ class NaturalLanguageViewModelTest {
         assertEquals(1, repo.saved.size)
     }
 
-    @Test fun `api failure exposes error and manual entry remains available`() {
+    @Test fun `api failure exposes error`() {
         val repo = FakeDraftRepository()
         val vm = viewModel(repo) { throw AiInputException(AiError.NETWORK) }
         vm.onInputChange("makan 25rb")
@@ -101,26 +101,18 @@ class NaturalLanguageViewModelTest {
         assertEquals(AiUiError.NETWORK, vm.uiState.value.error)
         assertFalse(vm.uiState.value.isParsing)
         assertNull(vm.uiState.value.draft)
-        vm.startManualEntry()
-        assertNull(vm.uiState.value.error)
-        assertEquals("2026-09-10", vm.uiState.value.draft!!.dateText)
-        vm.updateDraft { it.copy(amountText = "25000", categoryId = 1) }
-        vm.save()
-        dispatcher.scheduler.runCurrent()
-        assertEquals(1, repo.saved.size)
     }
 
-    @Test fun `cancel then manual edit cannot be overwritten by late response`() {
+    @Test fun `cancel cannot be overwritten by late response`() {
         val response = CompletableDeferred<ParsedTransaction>()
         val vm = viewModel(FakeDraftRepository()) { response.await() }
         vm.onInputChange("makan 25rb")
         vm.parse()
         dispatcher.scheduler.runCurrent()
-        vm.startManualEntry()
-        vm.updateDraft { it.copy(note = "manual") }
+        vm.cancelParsing()
         response.complete(parsed)
         dispatcher.scheduler.runCurrent()
-        assertEquals("manual", vm.uiState.value.draft!!.note)
+        assertNull(vm.uiState.value.draft)
         assertFalse(vm.uiState.value.isParsing)
         assertNull(vm.uiState.value.error)
     }
@@ -128,7 +120,9 @@ class NaturalLanguageViewModelTest {
     @Test fun `invalid date amount and stale selections cannot save`() {
         val repo = FakeDraftRepository()
         val vm = viewModel(repo)
-        vm.startManualEntry()
+        vm.onInputChange("makan siang di warteg 25rb")
+        vm.parse()
+        dispatcher.scheduler.runCurrent()
         vm.updateDraft { it.copy(amountText = "25000", categoryId = 1, dateText = "2026-02-30") }
         assertFalse(vm.uiState.value.canSave)
         vm.updateDraft { it.copy(dateText = "2026-02-28", amountText = "9223372036854775808") }
@@ -147,7 +141,9 @@ class NaturalLanguageViewModelTest {
     @Test fun `save failure retains edited draft for retry`() {
         val repo = FakeDraftRepository().apply { failSave = true }
         val vm = viewModel(repo)
-        vm.startManualEntry()
+        vm.onInputChange("makan siang di warteg 25rb")
+        vm.parse()
+        dispatcher.scheduler.runCurrent()
         vm.updateDraft { it.copy(amountText = "25000", categoryId = 1, note = "keep me") }
         vm.save()
         dispatcher.scheduler.runCurrent()

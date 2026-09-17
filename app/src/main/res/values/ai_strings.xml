@@ -10,7 +10,6 @@
     <string name="ai_parse_again">Proses ulang dengan AI</string>
     <string name="ai_parsing">Memproses transaksi…</string>
     <string name="ai_cancel_parsing">Batalkan proses</string>
-    <string name="ai_manual_entry">Isi manual</string>
     <string name="ai_loading_choices">Memuat kategori dan dompet…</string>
     <string name="ai_no_wallets">Belum ada dompet. Kembali dan tambahkan dompet melalui tab Dompet sebelum menyimpan transaksi.</string>
     <string name="ai_no_categories">Kategori transaksi belum tersedia. Muat ulang atau buka kembali halaman ini.</string>
@@ -42,5 +41,11 @@
     <string name="privacy_ai_content">Fitur AI bersifat opsional dan membutuhkan internet. Catat dengan AI mengirim kalimat yang Anda ketik, daftar kategori, serta tanggal dan zona waktu perangkat ke Claude (Anthropic). AI Chat mengirim pertanyaan yang Anda ketik, maksimal enam pasangan percakapan selesai terbaru, serta ringkasan agregat pengeluaran semua wallet untuk minggu berjalan, bulan berjalan, dan bulan sebelumnya. Ringkasan mencakup total dan kategori serta metadata waktu, zona waktu, dan mata uang; daftar transaksi mentah, detail merchant atau catatan, dan metadata kartu dompet tidak ditambahkan ke permintaan chat. History chat hanya disimpan selama layar chat masih berada pada navigasi aktif dan tidak disimpan ke database. Periksa hasil AI sebelum menggunakannya. Input manual tetap tersedia tanpa pemrosesan AI.</string>
     <string name="receipt_picker_title">Foto Struk</string>
     <string name="receipt_review_title">Review Struk</string>
+
+    <!-- Quick AI Entry helpers -->
+    <string name="ai_clear_tooltip">Hapus teks</string>
+    <string name="ai_mic_tooltip">Bicara transaksi</string>
+    <string name="ai_trust_title">Enkripsi Aman &amp; Privat</string>
+    <string name="ai_trust_desc">Data kalimat dan kategori hanya dikirim untuk memproses analisis transaksi ini.</string>
 </resources>
 

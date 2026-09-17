@@ -13,6 +13,11 @@
     <string name="chat_history_truncated">Percakapan lama telah dilepas dari konteks agar sesi tetap ringkas.</string>
     <string name="chat_welcome">Halo, ada yang bisa saya bantu?</string>
     <string name="chat_empty_description">Pilih contoh atau tulis pertanyaan sendiri. Jawaban hanya memakai data keuangan yang tersedia.</string>
+    <string name="chat_prompt_suggestions_title">Inspirasi Pertanyaan</string>
+    <string name="chat_prompt_food_title">Pengeluaran Makan</string>
+    <string name="chat_prompt_top_category_title">Kategori Terbesar</string>
+    <string name="chat_prompt_compare_title">Bandingkan Periode</string>
+    <string name="chat_prompt_unusual_title">Insight Pengeluaran</string>
     <string name="chat_example_food_month">Berapa habis untuk makan bulan ini?</string>
     <string name="chat_example_top_category">Kategori apa yang paling boros minggu ini?</string>
     <string name="chat_example_month_comparison">Bandingkan pengeluaran bulan ini dengan bulan lalu.</string>
