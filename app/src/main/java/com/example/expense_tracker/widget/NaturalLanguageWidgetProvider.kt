@@ -38,7 +38,7 @@ class NaturalLanguageWidgetProvider : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Mic Tap Intent (Opens quick sheet and immediately triggers speech recognition)
+        // Mic Tap Intent (Opens quick sheet with speech recognition)
         val micIntent = Intent(context, NaturalLanguageQuickActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(EXTRA_AUTO_SPEECH, true)
@@ -58,6 +58,10 @@ class NaturalLanguageWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val EXTRA_AUTO_SPEECH = "extra_auto_speech"
+        const val EXTRA_WALLET_ID = "extra_wallet_id"
+        const val PREFS_NAME = "nl_widget_prefs"
+        const val KEY_SELECTED_WALLET_ID = "selected_wallet_id"
+
         private const val REQUEST_CODE_TEXT = 101
         private const val REQUEST_CODE_MIC = 102
 

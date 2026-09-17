@@ -37,27 +37,30 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -102,6 +105,7 @@ class NaturalLanguageQuickActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val autoSpeech = intent.getBooleanExtra(NaturalLanguageWidgetProvider.EXTRA_AUTO_SPEECH, false)
+        val initialWalletId = intent.getLongExtra(NaturalLanguageWidgetProvider.EXTRA_WALLET_ID, -1L)
 
         setContent {
             Expense_trackerTheme {
@@ -119,6 +123,7 @@ class NaturalLanguageQuickActivity : ComponentActivity() {
                 ) {
                     NaturalLanguageQuickSheet(
                         autoSpeech = autoSpeech,
+                        initialWalletId = initialWalletId,
                         onDismiss = { finishWithFade() },
                         onSuccessHaptic = { triggerHapticFeedback() },
                         modifier = Modifier
@@ -165,6 +170,7 @@ class NaturalLanguageQuickActivity : ComponentActivity() {
 @Composable
 fun NaturalLanguageQuickSheet(
     autoSpeech: Boolean,
+    initialWalletId: Long = -1L,
     onDismiss: () -> Unit,
     onSuccessHaptic: () -> Unit,
     modifier: Modifier = Modifier
@@ -189,12 +195,18 @@ fun NaturalLanguageQuickSheet(
     }
     val wallets by walletsFlow.collectAsState(initial = emptyList())
     var selectedWalletId by remember { mutableStateOf<Long?>(null) }
-    var showWalletDropdown by remember { mutableStateOf(false) }
+    var showWalletDialog by remember { mutableStateOf(false) }
 
-    // Select first wallet by default when loaded
+    // Select initial/saved wallet when loaded
     LaunchedEffect(wallets) {
         if (selectedWalletId == null && wallets.isNotEmpty()) {
-            selectedWalletId = wallets.first().id
+            selectedWalletId = if (initialWalletId > 0 && wallets.any { it.id == initialWalletId }) {
+                initialWalletId
+            } else {
+                val prefs = context.getSharedPreferences(NaturalLanguageWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE)
+                val savedId = prefs.getLong(NaturalLanguageWidgetProvider.KEY_SELECTED_WALLET_ID, -1L)
+                wallets.find { it.id == savedId }?.id ?: wallets.first().id
+            }
         }
     }
 
@@ -482,57 +494,147 @@ fun NaturalLanguageQuickSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Wallet Chip / Dropdown
+                    // Wallet Chip & Selection Dialog
                     val currentWallet = wallets.find { it.id == selectedWalletId } ?: wallets.firstOrNull()
-                    Box {
-                        Surface(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable(enabled = !isProcessing && wallets.size > 1) {
-                                    showWalletDropdown = true
-                                },
-                            color = Color(0xFF1E2638),
-                            shape = RoundedCornerShape(12.dp)
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(1.dp, Color(0xFF2E3A52), RoundedCornerShape(12.dp))
+                            .clickable(enabled = !isProcessing) {
+                                showWalletDialog = true
+                            },
+                        color = Color(0xFF1E2638),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                            Icon(
+                                imageVector = Icons.Default.AccountBalanceWallet,
+                                contentDescription = null,
+                                tint = Color(0xFF60A5FA),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = currentWallet?.name ?: "Dompet",
+                                color = Color(0xFFCBD5E1),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Pilih dompet",
+                                tint = Color(0xFF60A5FA),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+
+                    if (showWalletDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showWalletDialog = false },
+                            containerColor = Color(0xFF151B26),
+                            tonalElevation = 6.dp,
+                            shape = RoundedCornerShape(20.dp),
+                            icon = {
                                 Icon(
                                     imageVector = Icons.Default.AccountBalanceWallet,
                                     contentDescription = null,
-                                    tint = Color(0xFF60A5FA),
-                                    modifier = Modifier.size(16.dp)
+                                    tint = Color(0xFF2563EB),
+                                    modifier = Modifier.size(28.dp)
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                            },
+                            title = {
                                 Text(
-                                    text = currentWallet?.name ?: "Dompet",
-                                    color = Color(0xFFCBD5E1),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    text = stringResource(R.string.input_choose_wallet),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
                                 )
-                            }
-                        }
-
-                        if (wallets.size > 1) {
-                            DropdownMenu(
-                                expanded = showWalletDropdown,
-                                onDismissRequest = { showWalletDropdown = false },
-                                modifier = Modifier.background(Color(0xFF1E2638))
-                            ) {
-                                wallets.forEach { wallet ->
-                                    DropdownMenuItem(
-                                        text = { Text(wallet.name, color = Color.White) },
-                                        onClick = {
-                                            selectedWalletId = wallet.id
-                                            showWalletDropdown = false
+                            },
+                            text = {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .verticalScroll(rememberScrollState())
+                                ) {
+                                    if (wallets.isEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.no_wallet),
+                                            color = Color(0xFF94A3B8),
+                                            fontSize = 14.sp,
+                                            modifier = Modifier.padding(vertical = 12.dp)
+                                        )
+                                    } else {
+                                        wallets.forEach { wallet ->
+                                            val isSelected = wallet.id == selectedWalletId
+                                            Surface(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .clickable {
+                                                        selectedWalletId = wallet.id
+                                                        showWalletDialog = false
+                                                        context.getSharedPreferences(NaturalLanguageWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE)
+                                                            .edit()
+                                                            .putLong(NaturalLanguageWidgetProvider.KEY_SELECTED_WALLET_ID, wallet.id)
+                                                            .apply()
+                                                    },
+                                                color = if (isSelected) Color(0xFF1E2D4A) else Color(0xFF0F1724),
+                                                border = BorderStroke(
+                                                    1.dp,
+                                                    if (isSelected) Color(0xFF2563EB) else Color(0xFF233044)
+                                                ),
+                                                shape = RoundedCornerShape(12.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.AccountBalanceWallet,
+                                                            contentDescription = null,
+                                                            tint = if (isSelected) Color(0xFF60A5FA) else Color(0xFF64748B),
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(10.dp))
+                                                        Text(
+                                                            text = wallet.name,
+                                                            color = if (isSelected) Color.White else Color(0xFFCBD5E1),
+                                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                            fontSize = 15.sp
+                                                        )
+                                                    }
+                                                    if (isSelected) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Check,
+                                                            contentDescription = "Terpilih",
+                                                            tint = Color(0xFF60A5FA),
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
-                                    )
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(onClick = { showWalletDialog = false }) {
+                                    Text(text = stringResource(R.string.cancel), color = Color(0xFF60A5FA), fontWeight = FontWeight.SemiBold)
                                 }
                             }
-                        }
+                        )
                     }
 
                     // Submit / Catat Button
