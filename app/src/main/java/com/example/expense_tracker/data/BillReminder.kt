@@ -1,5 +1,6 @@
 package com.example.expense_tracker.data
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -23,6 +24,7 @@ import androidx.room.PrimaryKey
     ],
     indices = [Index("categoryId"), Index("walletId")]
 )
+@Immutable
 data class BillReminder(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

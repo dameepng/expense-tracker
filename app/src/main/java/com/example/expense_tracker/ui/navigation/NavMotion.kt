@@ -97,7 +97,7 @@ object NavMotion {
             scope.slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Start,
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationLong1, // 450ms
+                    durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (tuned for 60fps/120fps budget)
                     easing = MaterialMotionTokens.EmphasizedDecelerate
                 )
             ) + fadeIn(
@@ -137,9 +137,9 @@ object NavMotion {
             // M3 Shared Axis X: Forward push (outgoing parent shifts slightly left with parallax)
             scope.slideOutOfContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                targetOffset = { fullWidth -> (fullWidth * 0.30f).toInt() },
+                targetOffset = { fullWidth -> (fullWidth * 0.20f).toInt() },
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium4, // 400ms
+                    durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (tuned for 60fps/120fps budget)
                     easing = MaterialMotionTokens.EmphasizedDecelerate
                 )
             ) + fadeOut(
@@ -186,9 +186,9 @@ object NavMotion {
             // M3 Shared Axis X: Backward pop (parent returns from left parallax offset)
             scope.slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.End,
-                initialOffset = { fullWidth -> (fullWidth * 0.30f).toInt() },
+                initialOffset = { fullWidth -> (fullWidth * 0.20f).toInt() },
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationLong1, // 450ms
+                    durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (tuned for 60fps/120fps budget)
                     easing = MaterialMotionTokens.EmphasizedDecelerate
                 )
             ) + fadeIn(
@@ -229,7 +229,7 @@ object NavMotion {
                 towards = AnimatedContentTransitionScope.SlideDirection.End,
                 targetOffset = { fullWidth -> fullWidth },
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationShort4, // 200ms
+                    durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (harmonized with popEnter)
                     easing = MaterialMotionTokens.EmphasizedAccelerate
                 )
             ) + fadeOut(

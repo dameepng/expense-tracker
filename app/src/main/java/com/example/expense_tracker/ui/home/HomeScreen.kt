@@ -123,8 +123,19 @@ fun HeaderSection(
                     modifier = Modifier.size(38.dp)
                 ) {
                     if (!userPhotoUri.isNullOrEmpty()) {
+                        val context = LocalContext.current
+                        val imageRequest = remember(userPhotoUri, context) {
+                            coil.request.ImageRequest.Builder(context)
+                                .data(userPhotoUri)
+                                .crossfade(true)
+                                .size(coil.size.Size(120, 120))
+                                .memoryCacheKey(userPhotoUri)
+                                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .build()
+                        }
                         AsyncImage(
-                            model = userPhotoUri,
+                            model = imageRequest,
                             contentDescription = "Profil",
                             modifier = Modifier.fillMaxSize().clip(CircleShape),
                             contentScale = ContentScale.Crop
@@ -602,13 +613,17 @@ fun HomeScreen(
         
         Spacer(modifier = Modifier.height(spacing.sectionGap))
 
+        val onWalletSelected = remember(viewModel) {
+            { walletId: Long? -> viewModel.selectWallet(walletId) }
+        }
+
         // Balance Card
         BalanceCard(
             totalBalance = state.totalAmount,
             selectedWalletName = state.selectedWalletName,
             wallets = state.wallets,
             selectedWalletId = state.selectedWalletId,
-            onWalletSelected = { viewModel.selectWallet(it) }
+            onWalletSelected = onWalletSelected
         )
         
         Spacer(modifier = Modifier.height(spacing.sectionGap))
@@ -682,7 +697,7 @@ fun HomeScreen(
                         key = { it.id }
                     ) { expense ->
                         val currentExpense by rememberUpdatedState(expense)
-                        val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember {
+                        val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember(expense.id) {
                             { dismissValue -> onDismissTransaction(currentExpense, dismissValue) }
                         }
                         
@@ -736,15 +751,15 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .clip(swipeShape)
                         ) {
+                            val onItemClick = remember(expense.id) {
+                                {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onNavigateToInput(expense.id)
+                                }
+                            }
                             TransactionListItem(
                                 transaction = expense,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(swipeShape)
-                                    .clickable {
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onNavigateToInput(expense.id)
-                                    }
+                                onClick = onItemClick
                             )
                         }
                     }

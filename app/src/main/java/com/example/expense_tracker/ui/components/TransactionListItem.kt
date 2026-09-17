@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -88,15 +89,24 @@ fun TransactionListItem(
             .clip(cardShape)
     }
 
-    val title = transaction.merchant.takeIf { it.isNotBlank() }
-        ?: transaction.description.takeIf { it.isNotBlank() }
-        ?: transaction.categoryName
+    val title = remember(transaction.merchant, transaction.description, transaction.categoryName) {
+        transaction.merchant.takeIf { it.isNotBlank() }
+            ?: transaction.description.takeIf { it.isNotBlank() }
+            ?: transaction.categoryName
+    }
 
-    val formattedDate = TimeFormatter.formatDate(transaction.timestamp)
-    val subtitleText = if (title == transaction.categoryName) {
-        formattedDate
-    } else {
-        "${transaction.categoryName} • $formattedDate"
+    val formattedDate = remember(transaction.timestamp) {
+        TimeFormatter.formatDate(transaction.timestamp)
+    }
+    val subtitleText = remember(title, transaction.categoryName, formattedDate) {
+        if (title == transaction.categoryName) {
+            formattedDate
+        } else {
+            "${transaction.categoryName} • $formattedDate"
+        }
+    }
+    val formattedAmount = remember(transaction.amount) {
+        CurrencyFormatter.format(transaction.amount)
     }
 
     Surface(
@@ -178,7 +188,7 @@ fun TransactionListItem(
             },
             trailingContent = {
                 Text(
-                    text = amountPrefix + CurrencyFormatter.format(transaction.amount),
+                    text = amountPrefix + formattedAmount,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = amountColor

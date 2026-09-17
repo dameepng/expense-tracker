@@ -1,6 +1,7 @@
 package com.example.expense_tracker
 
 import android.Manifest
+import com.example.expense_tracker.startup.StartupManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -115,8 +116,10 @@ class MainActivity : AppCompatActivity() {
     private val pendingNavRoute = mutableStateOf<Triple<String, String?, Long?>?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        var isAppReady by mutableStateOf(false)
+        splashScreen.setKeepOnScreenCondition { !isAppReady }
         handleIntent(intent)
         enableEdgeToEdge()
         setContent {
@@ -127,21 +130,31 @@ class MainActivity : AppCompatActivity() {
                 com.example.expense_tracker.data.UserPreferencesRepositoryImpl(context.dataStore)
             }
             val themeMode by userPrefsRepo.themeModeFlow.collectAsState(initial = "System Default")
-            val currency by userPrefsRepo.currencyFlow.collectAsState(initial = "IDR")
-            val language by userPrefsRepo.languageFlow.collectAsState(initial = null)
             
-            LaunchedEffect(currency) {
-                CurrencyFormatter.setCurrency(currency)
-            }
-            
-            LaunchedEffect(language) {
-                if (language != null) {
-                    val localeStr = if (language == "English") "en" else "id"
-                    androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
-                        androidx.core.os.LocaleListCompat.forLanguageTags(localeStr)
-                    )
+            LaunchedEffect(userPrefsRepo) {
+                userPrefsRepo.currencyFlow.collect { curr ->
+                    CurrencyFormatter.setCurrency(curr)
                 }
             }
+            
+            LaunchedEffect(userPrefsRepo) {
+                userPrefsRepo.languageFlow.collect { lang ->
+                    if (lang != null) {
+                        val localeStr = if (lang == "English") "en" else "id"
+                        val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+                        if (currentLocales.toLanguageTags() != localeStr) {
+                            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                                androidx.core.os.LocaleListCompat.forLanguageTags(localeStr)
+                            )
+                        }
+                    }
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                isAppReady = true
+            }
+
             val isBiometricsEnabled by userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = false)
             
             val isSystemDark = isSystemInDarkTheme()
@@ -151,7 +164,7 @@ class MainActivity : AppCompatActivity() {
                 else -> isSystemDark
             }
 
-            SideEffect {
+            DisposableEffect(darkTheme) {
                 val transparent = android.graphics.Color.TRANSPARENT
                 val systemBarStyle = if (darkTheme) {
                     SystemBarStyle.dark(transparent)
@@ -162,6 +175,7 @@ class MainActivity : AppCompatActivity() {
                     statusBarStyle = systemBarStyle,
                     navigationBarStyle = systemBarStyle
                 )
+                onDispose {}
             }
             
             val isAuthenticated by AuthManager.isAuthenticated.collectAsState()
@@ -278,6 +292,10 @@ fun ExpenseTrackerApp(
     val homeViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
         factory = remember { HomeViewModelFactory.create(app) }
     )
+    val reminderListViewModel: com.example.expense_tracker.ui.reminder.ReminderListViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel(
+            factory = remember { com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory(app) }
+        )
     
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -289,6 +307,8 @@ fun ExpenseTrackerApp(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+        // Run deferred background startup tasks once first frame is mounted
+        StartupManager.getInstance(app).runDeferredTasks()
     }
 
     val navController = rememberNavController()
@@ -315,15 +335,65 @@ fun ExpenseTrackerApp(
 
     val isReduceMotion = rememberIsReduceMotion()
     val showNavigation = NavRoutes.shouldShowBottomBar(currentRoute)
-    val onNavigateTo: (String) -> Unit = { route ->
-        if (route == currentRoute || (route.startsWith("input") && currentRoute != null && currentRoute.startsWith("input"))) {
-            // no-op
-        } else {
-            navController.navigate(route) {
+    val onNavigateTo: (String) -> Unit = remember(navController, currentRoute) {
+        { route ->
+            if (route == currentRoute || (route.startsWith("input") && currentRoute != null && currentRoute.startsWith("input"))) {
+                // no-op
+            } else {
+                navController.navigate(route) {
+                    popUpTo(navController.graph.startDestinationId)
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+
+    val onNavigateToInput = remember(navController) {
+        { id: Long? -> navController.navigate(NavRoutes.inputRoute(id)) }
+    }
+    val onNavigateToSummary: (Long?) -> Unit = remember(navController) {
+        { walletId: Long? ->
+            navController.navigate(NavRoutes.SUMMARY) {
                 popUpTo(navController.graph.startDestinationId)
                 launchSingleTop = true
             }
+            navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.set("summary_wallet_id", walletId)
         }
+    }
+    val onNavigateToReminder: () -> Unit = remember(navController) {
+        {
+            navController.navigate(NavRoutes.REMINDER_LIST) {
+                launchSingleTop = true
+            }
+        }
+    }
+    val onNavigateToAiInput: () -> Unit = remember(navController) {
+        {
+            if (navController.currentDestination?.route != NavRoutes.AI_INPUT) {
+                navController.navigate(NavRoutes.AI_INPUT)
+            }
+        }
+    }
+    val onNavigateToReceipt: () -> Unit = remember(navController) {
+        {
+            if (navController.currentDestination?.route != NavRoutes.RECEIPT_PICKER) {
+                navController.navigate(NavRoutes.RECEIPT_PICKER) { launchSingleTop = true }
+            }
+        }
+    }
+    val onNavigateToChat: () -> Unit = remember(navController) {
+        {
+            if (navController.currentDestination?.route != NavRoutes.CHAT) {
+                navController.navigate(NavRoutes.CHAT) {
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+    val onNavigateBack: () -> Unit = remember(navController) {
+        { navController.popBackStack() }
     }
 
     val contentScaffold = @Composable {
@@ -370,30 +440,12 @@ fun ExpenseTrackerApp(
                 
                 HomeScreen(
                     viewModel = homeViewModel,
-                    onNavigateToInput = { id -> navController.navigate(NavRoutes.inputRoute(id)) },
-                    onNavigateToSummary = { walletId ->
-                        navController.navigate(NavRoutes.SUMMARY) {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
-                        navController.currentBackStackEntry
-                            ?.savedStateHandle
-                            ?.let { it["summary_wallet_id"] = walletId }
-                    },
-                    onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) },
-                    onNavigateToAiInput = { if (navController.currentDestination?.route != NavRoutes.AI_INPUT) navController.navigate(NavRoutes.AI_INPUT) },
-                    onNavigateToReceipt = {
-                        if (navController.currentDestination?.route != NavRoutes.RECEIPT_PICKER) {
-                            navController.navigate(NavRoutes.RECEIPT_PICKER) { launchSingleTop = true }
-                        }
-                    },
-                    onNavigateToChat = {
-                        if (navController.currentDestination?.route != NavRoutes.CHAT) {
-                            navController.navigate(NavRoutes.CHAT) {
-                                launchSingleTop = true
-                            }
-                        }
-                    }
+                    onNavigateToInput = onNavigateToInput,
+                    onNavigateToSummary = onNavigateToSummary,
+                    onNavigateToReminder = onNavigateToReminder,
+                    onNavigateToAiInput = onNavigateToAiInput,
+                    onNavigateToReceipt = onNavigateToReceipt,
+                    onNavigateToChat = onNavigateToChat
                 )
             }
 
@@ -654,17 +706,10 @@ fun ExpenseTrackerApp(
                 )
             }
             
-            composable(NavRoutes.REMINDER_LIST) { backStackEntry ->
-                val reminderListViewModel: com.example.expense_tracker.ui.reminder.ReminderListViewModel =
-                    androidx.lifecycle.viewmodel.compose.viewModel(
-                        viewModelStoreOwner = backStackEntry,
-                        factory = remember(backStackEntry) {
-                            com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory(app)
-                        }
-                    )
+            composable(NavRoutes.REMINDER_LIST) {
                 com.example.expense_tracker.ui.reminder.ReminderListScreen(
                     viewModel = reminderListViewModel,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = onNavigateBack
                 )
             }
                     }
@@ -678,7 +723,7 @@ fun ExpenseTrackerApp(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 enter = slideInVertically(
                     animationSpec = tween(
-                        durationMillis = MaterialMotionTokens.DurationShort4,
+                        durationMillis = MaterialMotionTokens.DurationMedium2,
                         easing = MaterialMotionTokens.EmphasizedDecelerate
                     ),
                     initialOffsetY = { it }
@@ -734,10 +779,9 @@ private fun applicationContext() =
 @Composable
 private fun rememberIsReduceMotion(): Boolean {
     val context = LocalContext.current
-    var isReduceMotion by remember {
-        mutableStateOf(checkReduceMotion(context))
-    }
+    var isReduceMotion by remember { mutableStateOf(false) }
     DisposableEffect(context) {
+        isReduceMotion = checkReduceMotion(context)
         val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
                 isReduceMotion = checkReduceMotion(context)

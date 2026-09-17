@@ -148,7 +148,7 @@ fun CategoryDetailScreen(
                         key = { it.id }
                     ) { expense ->
                         val currentExpense by rememberUpdatedState(expense)
-                        val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember {
+                        val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember(expense.id) {
                             { dismissValue -> onDismissTransaction(currentExpense, dismissValue) }
                         }
                         
@@ -202,12 +202,12 @@ fun CategoryDetailScreen(
                                 .fillMaxWidth()
                                 .clip(swipeShape)
                         ) {
+                            val onItemClick = remember(expense.id) {
+                                { onNavigateToInput(expense.id) }
+                            }
                             TransactionListItem(
                                 transaction = expense,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(swipeShape)
-                                    .clickable { onNavigateToInput(expense.id) }
+                                onClick = onItemClick
                             )
                         }
                     }

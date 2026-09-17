@@ -1,5 +1,6 @@
 package com.example.expense_tracker.data
 
+import androidx.compose.runtime.Immutable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -23,6 +24,7 @@ import androidx.room.PrimaryKey
         Index("type", "timestamp")
     ]
 )
+@Immutable
 data class Expense(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

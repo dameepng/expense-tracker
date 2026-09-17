@@ -22,12 +22,14 @@ import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.RoomExpenseRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.runtime.Immutable
 import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@Immutable
 data class ProfileUiState(
     val themeMode: String = "System Default",
     val currency: String = "IDR",

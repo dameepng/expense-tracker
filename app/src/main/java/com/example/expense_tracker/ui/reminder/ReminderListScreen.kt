@@ -77,6 +77,14 @@ import com.example.expense_tracker.ui.theme.motionScheme
 import com.example.expense_tracker.ui.theme.spacing
 import kotlinx.coroutines.launch
 
+private val CardShape = RoundedCornerShape(22.dp)
+private val SquircleShape = RoundedCornerShape(16.dp)
+private val PillShape = RoundedCornerShape(8.dp)
+private val StatusPillShape = RoundedCornerShape(10.dp)
+private val ButtonShape = RoundedCornerShape(12.dp)
+private val OverviewShape = RoundedCornerShape(24.dp)
+private val EmptyStateShape = RoundedCornerShape(28.dp)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderListScreen(
@@ -90,6 +98,10 @@ fun ReminderListScreen(
     val deletedMessage = stringResource(R.string.bill_deleted)
     val undoLabel = stringResource(R.string.bill_undo)
     val haptic = LocalHapticFeedback.current
+
+    val onMarkAsPaid: (com.example.expense_tracker.data.BillReminder) -> Unit = remember(viewModel) {
+        { reminder -> viewModel.markAsPaid(reminder) }
+    }
 
     Scaffold(
         topBar = {
@@ -116,9 +128,10 @@ fun ReminderListScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
-        if (uiState.isLoading) {
+        if (uiState.isLoading && uiState.activeReminders.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -134,7 +147,6 @@ fun ReminderListScreen(
                     .padding(padding)
             )
         } else {
-            val swipeShape = RoundedCornerShape(22.dp)
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -147,19 +159,26 @@ fun ReminderListScreen(
                 )
             ) {
                 // Hero Overview Card (Google I/O Material 3 Expressive)
-                item(key = "bill_overview_header") {
+                item(key = "bill_overview_header", contentType = "bill_overview_header") {
                     BillOverviewCard(
-                        reminders = uiState.activeReminders
+                        totalAmount = uiState.totalAmount,
+                        unpaidCount = uiState.unpaidCount,
+                        paidCount = uiState.paidCount
                     )
                 }
 
                 // Bill Reminder Cards
-                items(uiState.activeReminders, key = { it.reminder.id }) { item ->
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = { dismissValue ->
+                items(
+                    items = uiState.activeReminders,
+                    key = { it.reminder.id },
+                    contentType = { "reminder_card" }
+                ) { item ->
+                    val currentItem by androidx.compose.runtime.rememberUpdatedState(item)
+                    val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember(item.reminder.id) {
+                        { dismissValue ->
                             if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                val deletedReminder = item.reminder
+                                val deletedReminder = currentItem.reminder
                                 viewModel.deleteReminder(deletedReminder)
                                 coroutineScope.launch {
                                     val result = snackbarHostState.showSnackbar(
@@ -176,39 +195,49 @@ fun ReminderListScreen(
                                 false
                             }
                         }
+                    }
+
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = confirmValueChange
                     )
+
+                    val onItemMarkPaid: () -> Unit = remember(item.reminder.id) {
+                        { onMarkAsPaid(item.reminder) }
+                    }
 
                     SwipeToDismissBox(
                         state = dismissState,
                         backgroundContent = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(swipeShape)
-                                    .background(MaterialTheme.colorScheme.error, shape = swipeShape)
-                                    .padding(end = 24.dp),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete",
-                                    tint = MaterialTheme.colorScheme.onError
-                                )
+                            if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CardShape)
+                                        .background(MaterialTheme.colorScheme.error, shape = CardShape)
+                                        .padding(end = 24.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = MaterialTheme.colorScheme.onError
+                                    )
+                                }
                             }
                         },
                         enableDismissFromStartToEnd = false,
                         modifier = Modifier
                             .animateItem(
-                                fadeInSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                fadeInSpec = null,
                                 fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
                                 placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
                             )
                             .fillMaxWidth()
-                            .clip(swipeShape)
+                            .clip(CardShape)
                     ) {
                         ReminderItemCard(
                             item = item,
-                            onClickMarkAsPaid = { viewModel.markAsPaid(item.reminder) }
+                            onClickMarkAsPaid = onItemMarkPaid
                         )
                     }
                 }
@@ -222,17 +251,16 @@ fun ReminderListScreen(
  */
 @Composable
 fun BillOverviewCard(
-    reminders: List<ReminderItemUiState>,
+    totalAmount: Long,
+    unpaidCount: Int,
+    paidCount: Int,
     modifier: Modifier = Modifier
 ) {
-    val totalAmount = reminders.filter { it.reminder.isRepeat || !it.isPaid }.sumOf { it.reminder.amount }
-    val unpaidCount = reminders.count { !it.isPaid }
-    val paidCount = reminders.count { it.isPaid }
     val isDark = isSystemInDarkTheme()
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = OverviewShape,
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 1.dp
     ) {
@@ -272,7 +300,7 @@ fun BillOverviewCard(
                     MaterialTheme.colorScheme.onSurfaceVariant
                 }
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = StatusPillShape,
                     color = pendingBg
                 ) {
                     Row(
@@ -307,7 +335,7 @@ fun BillOverviewCard(
                     MaterialTheme.colorScheme.onSurfaceVariant
                 }
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = StatusPillShape,
                     color = paidBg
                 ) {
                     Row(
@@ -344,15 +372,18 @@ fun ReminderItemCard(
     onClickMarkAsPaid: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val cardShape = RoundedCornerShape(22.dp)
     val isDark = isSystemInDarkTheme()
     val haptic = LocalHapticFeedback.current
-    val iconBg = categoryColor(item.reminder.categoryId.toInt()).copy(alpha = if (isDark) 0.22f else 0.14f)
-    val iconTint = categoryColor(item.reminder.categoryId.toInt())
+    val iconTint = remember(item.reminder.categoryId) {
+        categoryColor(item.reminder.categoryId.toInt())
+    }
+    val iconBg = remember(iconTint, isDark) {
+        iconTint.copy(alpha = if (isDark) 0.22f else 0.14f)
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = cardShape,
+        shape = CardShape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 1.dp
     ) {
@@ -368,7 +399,7 @@ fun ReminderItemCard(
             ) {
                 // Leading Squircle Category Badge
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = SquircleShape,
                     color = iconBg,
                     modifier = Modifier.size(46.dp)
                 ) {
@@ -436,7 +467,7 @@ fun ReminderItemCard(
                 ) {
                     // Due Date Pill
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        shape = PillShape,
                         color = MaterialTheme.colorScheme.surfaceContainerHigh
                     ) {
                         Row(
@@ -461,7 +492,7 @@ fun ReminderItemCard(
 
                     // Repeat Pill
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        shape = PillShape,
                         color = MaterialTheme.colorScheme.surfaceContainerHigh
                     ) {
                         Row(
@@ -490,7 +521,7 @@ fun ReminderItemCard(
                     val paidBg = if (isDark) Color(0xFF163A27) else Color(0xFFE8F5E9)
                     val paidText = if (isDark) Color(0xFF4ADE80) else Color(0xFF1B5E20)
                     Surface(
-                        shape = RoundedCornerShape(10.dp),
+                        shape = StatusPillShape,
                         color = paidBg
                     ) {
                         Row(
@@ -519,7 +550,7 @@ fun ReminderItemCard(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             onClickMarkAsPaid()
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = ButtonShape,
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
                         modifier = Modifier.height(34.dp)
                     ) {
@@ -557,7 +588,7 @@ fun BillEmptyState(
             modifier = Modifier.padding(horizontal = 32.dp)
         ) {
             Surface(
-                shape = RoundedCornerShape(28.dp),
+                shape = EmptyStateShape,
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier.size(88.dp)
             ) {

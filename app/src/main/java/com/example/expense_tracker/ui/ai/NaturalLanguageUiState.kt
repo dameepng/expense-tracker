@@ -1,5 +1,6 @@
 package com.example.expense_tracker.ui.ai
 
+import androidx.compose.runtime.Immutable
 import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.TransactionType
 import com.example.expense_tracker.data.Wallet
@@ -10,6 +11,7 @@ enum class AiUiError {
     INVALID_RESPONSE, INVALID_INPUT, INITIALIZATION, VALIDATION, SAVE
 }
 
+@Immutable
 data class TransactionDraft(
     val amountText: String = "",
     val categoryId: Long? = null,
@@ -25,6 +27,7 @@ data class TransactionDraft(
     } else null
 }
 
+@Immutable
 data class NaturalLanguageUiState(
     val inputText: String = "",
     val categories: List<Category> = emptyList(),

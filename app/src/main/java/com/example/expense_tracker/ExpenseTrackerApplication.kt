@@ -1,36 +1,20 @@
 package com.example.expense_tracker
 
 import android.app.Application
-import androidx.work.Constraints
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import com.example.expense_tracker.utils.NotificationHelper
-import com.example.expense_tracker.worker.BillReminderWorker
-import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
+import com.example.expense_tracker.startup.StartupManager
 
+/**
+ * Application class decoupled from God-class initialization logic.
+ *
+ * Adheres to the Android Startup Pattern (Ehab Elwan), delegating initialization
+ * tasks to [StartupManager] to prevent blocking the UI thread on cold start.
+ */
 class ExpenseTrackerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        
-        NotificationHelper.createNotificationChannel(this)
-        
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
-            val constraints = Constraints.Builder()
-                .setRequiresBatteryNotLow(true)
-                .build()
-                
-            val dailyWorkRequest = PeriodicWorkRequestBuilder<BillReminderWorker>(24, TimeUnit.HOURS)
-                .setConstraints(constraints)
-                .build()
-                
-            WorkManager.getInstance(this@ExpenseTrackerApplication).enqueueUniquePeriodicWork(
-                "BillReminderWork",
-                ExistingPeriodicWorkPolicy.KEEP,
-                dailyWorkRequest
-            )
-        }
+
+        // Launch NORMAL boot tasks concurrently in the background (notification channels, DB prewarm)
+        StartupManager.getInstance(this).runNormalTasks()
     }
 }

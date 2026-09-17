@@ -1,5 +1,6 @@
 package com.example.expense_tracker.ui.chat
 
+import androidx.compose.runtime.Immutable
 import com.example.expense_tracker.data.ai.chat.ChatMessage
 
 enum class ChatUiError {
@@ -16,6 +17,7 @@ enum class ChatUiError {
     INPUT_LIMIT
 }
 
+@Immutable
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
     val inputText: String = "",

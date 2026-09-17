@@ -45,7 +45,7 @@ class SummaryViewModelTest {
     }
 
     private fun initViewModel(repo: FakeSummaryRepository): SummaryViewModel {
-        val vm = SummaryViewModel(repo, com.example.expense_tracker.data.FakeWalletRepository())
+        val vm = SummaryViewModel(repo, com.example.expense_tracker.data.FakeWalletRepository(), testDispatcher)
         testDispatcher.scheduler.advanceUntilIdle()
         return vm
     }

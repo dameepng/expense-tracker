@@ -71,6 +71,22 @@ fun CashFlowChart(
         }
     }
 
+    val textPaint = remember(labelSizePx) {
+        android.graphics.Paint().apply {
+            color = "#94A3B8".toColorInt()
+            textSize = labelSizePx
+            isAntiAlias = true
+        }
+    }
+    val xTextPaint = remember(labelSizePx) {
+        android.graphics.Paint().apply {
+            color = "#94A3B8".toColorInt()
+            textSize = labelSizePx
+            isAntiAlias = true
+            textAlign = android.graphics.Paint.Align.CENTER
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -94,12 +110,6 @@ fun CashFlowChart(
             // Calculate nice Y axis steps (3 levels: 0, mid, max)
             val ySteps = 3
             val stepValue = maxAmount.toFloat() / (ySteps - 1)
-
-            val textPaint = android.graphics.Paint().apply {
-                color = "#94A3B8".toColorInt()
-                textSize = labelSizePx
-                isAntiAlias = true
-            }
 
             // ── Draw Y Axis Labels & Gridlines ──
             for (i in 0 until ySteps) {
@@ -130,12 +140,6 @@ fun CashFlowChart(
             @Suppress("UNCHECKED_CAST")
             val labelPairs = dateLabels as? List<Pair<Int, String>>
             if (labelPairs != null) {
-                val xTextPaint = android.graphics.Paint().apply {
-                    color = "#94A3B8".toColorInt()
-                    textSize = labelSizePx
-                    isAntiAlias = true
-                    textAlign = android.graphics.Paint.Align.CENTER
-                }
                 labelPairs.forEach { (idx, label) ->
                     val x = leftMargin + idx * stepX
                     drawContext.canvas.nativeCanvas.drawText(

@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -158,18 +157,18 @@ private fun RowScope.CompactNavItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
-    // Indicator pill width animation
-    val indicatorWidth by animateDpAsState(
-        targetValue = if (selected) 56.dp else 0.dp,
+    // Indicator pill scale animation (deferred read inside graphicsLayer)
+    val indicatorScale = animateFloatAsState(
+        targetValue = if (selected) 1.0f else 0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessMedium
         ),
-        label = "nav_indicator_width"
+        label = "nav_indicator_scale"
     )
 
-    // Micro scale bounce when selected
-    val iconScale by animateFloatAsState(
+    // Micro scale bounce when selected (deferred read inside graphicsLayer)
+    val iconScale = animateFloatAsState(
         targetValue = if (selected) 1.0f else 0.95f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -183,16 +182,12 @@ private fun RowScope.CompactNavItem(
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "nav_icon_color"
     )
-    val indicatorColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-        label = "nav_indicator_color"
-    )
     val animatedTextColor by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "nav_text_color"
     )
+    val indicatorBgColor = MaterialTheme.colorScheme.secondaryContainer
 
     Column(
         modifier = Modifier
@@ -214,14 +209,17 @@ private fun RowScope.CompactNavItem(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            // Indicator pill
-            if (indicatorWidth > 0.dp) {
-                Box(
-                    modifier = Modifier
-                        .size(width = indicatorWidth, height = 30.dp)
-                        .background(color = indicatorColor, shape = CircleShape)
-                )
-            }
+            // Indicator pill: fixed size, scaleX/alpha deferred to graphicsLayer (zero composition overhead)
+            Box(
+                modifier = Modifier
+                    .size(width = 56.dp, height = 30.dp)
+                    .graphicsLayer {
+                        val s = indicatorScale.value
+                        scaleX = s
+                        alpha = if (s > 0.05f) 1f else 0f
+                    }
+                    .background(color = indicatorBgColor, shape = CircleShape)
+            )
 
             // Crossfade morph between filled (selected) and outlined (unselected) icons
             AnimatedContent(
@@ -239,8 +237,9 @@ private fun RowScope.CompactNavItem(
                     modifier = Modifier
                         .size(22.dp)
                         .graphicsLayer {
-                            scaleX = iconScale
-                            scaleY = iconScale
+                            val s = iconScale.value
+                            scaleX = s
+                            scaleY = s
                         }
                 )
             }
@@ -267,7 +266,8 @@ private fun RowScope.CompactNavAddButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val scale by animateFloatAsState(
+    // Button scale animation (deferred read inside graphicsLayer)
+    val scaleState = animateFloatAsState(
         targetValue = if (isPressed) 0.88f else if (selected) 1.05f else 1.0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -286,8 +286,9 @@ private fun RowScope.CompactNavAddButton(
             modifier = Modifier
                 .size(44.dp)
                 .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
+                    val s = scaleState.value
+                    scaleX = s
+                    scaleY = s
                 }
                 .clip(RoundedCornerShape(14.dp))
                 .background(

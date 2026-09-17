@@ -12,14 +12,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.RoomExpenseRepository
+import androidx.compose.runtime.Immutable
 import com.example.expense_tracker.data.RoomWalletRepository
 import com.example.expense_tracker.data.WalletRepository
 
+@Immutable
 data class ReminderItemUiState(
     val reminder: BillReminder,
     val categoryName: String,
@@ -30,8 +33,12 @@ data class ReminderItemUiState(
         get() = (reminder.isRepeat && isPaidThisMonth) || (!reminder.isRepeat && !reminder.isActive)
 }
 
+@Immutable
 data class ReminderListUiState(
     val activeReminders: List<ReminderItemUiState> = emptyList(),
+    val totalAmount: Long = 0L,
+    val unpaidCount: Int = 0,
+    val paidCount: Int = 0,
     val isLoading: Boolean = true
 )
 
@@ -60,7 +67,7 @@ class ReminderListViewModel(
                 val wallets = walletsList.associateBy { it.id }
                 val currentMonth = java.time.YearMonth.now().toString()
                 
-                reminders.map { reminder ->
+                val items = reminders.map { reminder ->
                     ReminderItemUiState(
                         reminder = reminder,
                         categoryName = categories[reminder.categoryId]?.name ?: "Unknown",
@@ -68,11 +75,22 @@ class ReminderListViewModel(
                         isPaidThisMonth = reminder.lastPaidMonth == currentMonth
                     )
                 }.sortedWith(compareBy<ReminderItemUiState> { it.isPaid }.thenBy { it.reminder.dueDay })
-            }.collect { items ->
-                _uiState.value = _uiState.value.copy(
+
+                val totalAmount = items.filter { it.reminder.isRepeat || !it.isPaid }.sumOf { it.reminder.amount }
+                val unpaidCount = items.count { !it.isPaid }
+                val paidCount = items.count { it.isPaid }
+
+                ReminderListUiState(
                     activeReminders = items,
+                    totalAmount = totalAmount,
+                    unpaidCount = unpaidCount,
+                    paidCount = paidCount,
                     isLoading = false
                 )
+            }
+            .flowOn(ioDispatcher)
+            .collect { newState ->
+                _uiState.value = newState
             }
         }
     }

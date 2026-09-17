@@ -12,12 +12,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@Immutable
 data class CategoryDetailUiState(
     val category: Category? = null,
     val transactions: List<ExpenseWithCategory> = emptyList(),
@@ -80,7 +83,9 @@ class CategoryDetailViewModel(
                         transactions = expensesWithCategory,
                         isLoading = false
                     )
-                }.catch { e ->
+                }
+                .flowOn(ioDispatcher)
+                .catch { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }.collect { state ->
                     _uiState.value = state
