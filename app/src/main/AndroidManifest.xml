@@ -41,6 +41,8 @@
             android:name=".ui.nfc.NfcQuickScanActivity"
             android:theme="@style/Theme.Expense_tracker.Translucent"
             android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.nfc.action.TECH_DISCOVERED" />
@@ -76,6 +78,8 @@
             android:theme="@style/Theme.Expense_tracker.Translucent"
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
             android:exported="true" />
 
         <!-- Home Screen Natural Language Widget -->

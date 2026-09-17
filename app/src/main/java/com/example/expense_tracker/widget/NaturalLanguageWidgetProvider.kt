@@ -28,7 +28,7 @@ class NaturalLanguageWidgetProvider : AppWidgetProvider() {
 
         // Main Tap Intent (Opens quick text input)
         val textIntent = Intent(context, NaturalLanguageQuickActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra(EXTRA_AUTO_SPEECH, false)
         }
         val textPendingIntent = PendingIntent.getActivity(
@@ -40,7 +40,7 @@ class NaturalLanguageWidgetProvider : AppWidgetProvider() {
 
         // Mic Tap Intent (Opens quick sheet with speech recognition)
         val micIntent = Intent(context, NaturalLanguageQuickActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra(EXTRA_AUTO_SPEECH, true)
         }
         val micPendingIntent = PendingIntent.getActivity(
@@ -50,7 +50,11 @@ class NaturalLanguageWidgetProvider : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // Bind PendingIntent to every clickable element so no area falls back to opening the main app
         views.setOnClickPendingIntent(R.id.widget_nl_root, textPendingIntent)
+        views.setOnClickPendingIntent(R.id.widget_nl_icon, textPendingIntent)
+        views.setOnClickPendingIntent(R.id.widget_nl_title, textPendingIntent)
+        views.setOnClickPendingIntent(R.id.widget_nl_prompt, textPendingIntent)
         views.setOnClickPendingIntent(R.id.widget_nl_btn_mic, micPendingIntent)
 
         return views

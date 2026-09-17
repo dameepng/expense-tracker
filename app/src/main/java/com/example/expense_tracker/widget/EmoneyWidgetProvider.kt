@@ -54,7 +54,7 @@ class EmoneyWidgetProvider : AppWidgetProvider() {
 
         // Intent to launch quick scan activity when user taps button or widget
         val scanIntent = Intent(context, NfcQuickScanActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
@@ -64,6 +64,8 @@ class EmoneyWidgetProvider : AppWidgetProvider() {
         )
 
         views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+        views.setOnClickPendingIntent(R.id.widget_icon, pendingIntent)
+        views.setOnClickPendingIntent(R.id.widget_card_title, pendingIntent)
         views.setOnClickPendingIntent(R.id.widget_btn_scan, pendingIntent)
 
         if (card != null) {
