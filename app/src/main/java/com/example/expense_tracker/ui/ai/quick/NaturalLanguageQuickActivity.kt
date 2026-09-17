@@ -305,7 +305,7 @@ fun NaturalLanguageQuickSheet(
                         modifier = Modifier
                             .size(34.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0xFF6366F1)),
+                            .background(Color(0xFF2563EB)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -427,7 +427,7 @@ fun NaturalLanguageQuickSheet(
                             Icon(
                                 imageVector = Icons.Default.Mic,
                                 contentDescription = "Bicara",
-                                tint = if (inputText.isNotBlank()) Color(0xFF818CF8) else Color(0xFF94A3B8)
+                                tint = if (inputText.isNotBlank()) Color(0xFF60A5FA) else Color(0xFF94A3B8)
                             )
                         }
                     },
@@ -440,7 +440,7 @@ fun NaturalLanguageQuickSheet(
                         disabledContainerColor = Color(0xFF0D131D),
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF6366F1),
+                        focusedBorderColor = Color(0xFF2563EB),
                         unfocusedBorderColor = Color(0xFF283244)
                     ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -501,7 +501,7 @@ fun NaturalLanguageQuickSheet(
                                 Icon(
                                     imageVector = Icons.Default.AccountBalanceWallet,
                                     contentDescription = null,
-                                    tint = Color(0xFF818CF8),
+                                    tint = Color(0xFF60A5FA),
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
@@ -541,8 +541,8 @@ fun NaturalLanguageQuickSheet(
                         enabled = inputText.isNotBlank() && !isProcessing,
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF6366F1),
-                            disabledContainerColor = Color(0xFF312E81).copy(alpha = 0.5f)
+                            containerColor = Color(0xFF2563EB),
+                            disabledContainerColor = Color(0xFF1E3A8A).copy(alpha = 0.5f)
                         ),
                         modifier = Modifier.height(44.dp)
                     ) {
