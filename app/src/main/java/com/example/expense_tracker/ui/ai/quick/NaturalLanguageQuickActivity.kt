@@ -14,6 +14,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.edit
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -123,9 +124,6 @@ class NaturalLanguageQuickActivity : ComponentActivity() {
                 ) {
                     NaturalLanguageQuickSheet(
                         autoSpeech = autoSpeech,
-                        initialWalletId = initialWalletId,
-                        onDismiss = { finishWithFade() },
-                        onSuccessHaptic = { triggerHapticFeedback() },
                         modifier = Modifier
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
@@ -133,7 +131,10 @@ class NaturalLanguageQuickActivity : ComponentActivity() {
                                 onClick = {} // Consume click
                             )
                             .navigationBarsPadding()
-                            .imePadding()
+                            .imePadding(),
+                        initialWalletId = initialWalletId,
+                        onDismiss = { finishWithFade() },
+                        onSuccessHaptic = { triggerHapticFeedback() }
                     )
                 }
             }
@@ -170,14 +171,17 @@ class NaturalLanguageQuickActivity : ComponentActivity() {
 @Composable
 fun NaturalLanguageQuickSheet(
     autoSpeech: Boolean,
+    modifier: Modifier = Modifier,
     initialWalletId: Long = -1L,
     onDismiss: () -> Unit,
-    onSuccessHaptic: () -> Unit,
-    modifier: Modifier = Modifier
+    onSuccessHaptic: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
+
+    val micPrompt = stringResource(R.string.nl_quick_mic_prompt)
+    val genericErrorMessage = stringResource(R.string.nl_quick_error_generic)
 
     var inputText by remember { mutableStateOf("") }
     var isProcessing by remember { mutableStateOf(false) }
@@ -226,7 +230,7 @@ fun NaturalLanguageQuickSheet(
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "id-ID")
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Bicara transaksi kamu...")
+            putExtra(RecognizerIntent.EXTRA_PROMPT, micPrompt)
         }
         try {
             speechLauncher.launch(intent)
@@ -272,7 +276,7 @@ fun NaturalLanguageQuickSheet(
                     },
                     onFailure = { error ->
                         isProcessing = false
-                        errorMessage = error.localizedMessage ?: "Gagal memproses transaksi. Coba ulangi."
+                        errorMessage = error.localizedMessage ?: genericErrorMessage
                     }
                 )
             }
@@ -353,7 +357,7 @@ fun NaturalLanguageQuickSheet(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Tutup",
+                        contentDescription = stringResource(R.string.nl_quick_close),
                         tint = Color(0xFF94A3B8)
                     )
                 }
@@ -388,8 +392,12 @@ fun NaturalLanguageQuickSheet(
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(4.dp))
+                    val amountFormatted = CurrencyFormatter.format(parsed.amount)
+                    val merchantSuffix = if (parsed.merchant.isNotBlank()) {
+                        " " + stringResource(R.string.nl_quick_at_merchant, parsed.merchant)
+                    } else ""
                     Text(
-                        text = "${CurrencyFormatter.format(parsed.amount)}${if (parsed.merchant.isNotBlank()) " di " + parsed.merchant else ""}",
+                        text = "$amountFormatted$merchantSuffix",
                         color = Color(0xFFE2E8F0),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp
@@ -405,7 +413,7 @@ fun NaturalLanguageQuickSheet(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "🔔 Notifikasi dikirim ke perangkat Anda",
+                        text = stringResource(R.string.nl_quick_notification_sent),
                         color = Color(0xFF34D399),
                         fontSize = 12.sp
                     )
@@ -438,7 +446,7 @@ fun NaturalLanguageQuickSheet(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Mic,
-                                contentDescription = "Bicara",
+                                contentDescription = stringResource(R.string.nl_quick_mic_desc),
                                 tint = if (inputText.isNotBlank()) Color(0xFF60A5FA) else Color(0xFF94A3B8)
                             )
                         }
@@ -518,7 +526,7 @@ fun NaturalLanguageQuickSheet(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = currentWallet?.name ?: "Dompet",
+                                text = currentWallet?.name ?: stringResource(R.string.nav_wallet),
                                 color = Color(0xFFCBD5E1),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
@@ -528,7 +536,7 @@ fun NaturalLanguageQuickSheet(
                             Spacer(modifier = Modifier.width(4.dp))
                             Icon(
                                 imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Pilih dompet",
+                                contentDescription = stringResource(R.string.input_choose_wallet),
                                 tint = Color(0xFF60A5FA),
                                 modifier = Modifier.size(18.dp)
                             )
@@ -582,9 +590,9 @@ fun NaturalLanguageQuickSheet(
                                                         selectedWalletId = wallet.id
                                                         showWalletDialog = false
                                                         context.getSharedPreferences(NaturalLanguageWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE)
-                                                            .edit()
-                                                            .putLong(NaturalLanguageWidgetProvider.KEY_SELECTED_WALLET_ID, wallet.id)
-                                                            .apply()
+                                                            .edit {
+                                                                putLong(NaturalLanguageWidgetProvider.KEY_SELECTED_WALLET_ID, wallet.id)
+                                                            }
                                                     },
                                                 color = if (isSelected) Color(0xFF1E2D4A) else Color(0xFF0F1724),
                                                 border = BorderStroke(
@@ -618,7 +626,7 @@ fun NaturalLanguageQuickSheet(
                                                     if (isSelected) {
                                                         Icon(
                                                             imageVector = Icons.Default.Check,
-                                                            contentDescription = "Terpilih",
+                                                            contentDescription = stringResource(R.string.nl_quick_wallet_selected_desc),
                                                             tint = Color(0xFF60A5FA),
                                                             modifier = Modifier.size(20.dp)
                                                         )

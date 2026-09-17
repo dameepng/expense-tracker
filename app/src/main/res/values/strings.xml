@@ -157,13 +157,24 @@
     <string name="widget_nl_name">Catat Cepat AI</string>
     <string name="widget_nl_description">Catat transaksi langsung dengan AI tanpa buka aplikasi</string>
     <string name="widget_nl_title">Catat Cepat AI</string>
-    <string name="widget_nl_prompt">Ketik / bicara transaksi kamu...</string>
+    <string name="widget_nl_prompt">Ketik / bicara transaksi kamu…</string>
     <string name="nl_quick_title">Catat Cepat AI</string>
     <string name="nl_quick_subtitle">Jelaskan pengeluaran atau pemasukan secara bebas</string>
     <string name="nl_quick_hint">Misal: Makan siang soto mie 25rb di warung budi pakai gopay</string>
     <string name="nl_quick_btn_submit">Catat Sekarang</string>
-    <string name="nl_quick_processing">AI sedang menganalisis transaksi...</string>
+    <string name="nl_quick_processing">AI sedang input transaksi…</string>
     <string name="nl_quick_success">Transaksi Berhasil Dicatat! ✨</string>
     <string name="nl_quick_error_generic">Gagal memproses transaksi. Silakan coba lagi.</string>
-    <string name="nl_quick_mic_listening">Mendengarkan suara...</string>
+    <string name="nl_quick_mic_listening">Mendengarkan suara…</string>
+    <string name="nl_quick_close">Tutup</string>
+    <string name="nl_quick_notification_sent">🔔 Notifikasi dikirim ke perangkat Anda</string>
+    <string name="nl_quick_mic_desc">Bicara</string>
+    <string name="nl_quick_mic_prompt">Bicara transaksi kamu…</string>
+    <string name="nl_quick_at_merchant">di %1$s</string>
+    <string name="nl_quick_wallet_selected_desc">Terpilih</string>
+    <string name="nl_quick_error_empty_text">Teks transaksi tidak boleh kosong</string>
+    <string name="nl_quick_default_wallet_name">Dompet Utama</string>
+    <string name="nl_quick_default_category_name">Transaksi</string>
+    <string name="nl_quick_channel_name">Catat Transaksi AI</string>
+    <string name="nl_quick_channel_desc">Notifikasi konfirmasi transaksi yang dicatat lewat AI Widget</string>
 </resources>

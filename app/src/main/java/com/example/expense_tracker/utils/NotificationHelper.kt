@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.expense_tracker.MainActivity
+import com.example.expense_tracker.R
 
 object NotificationHelper {
 
@@ -20,8 +21,6 @@ object NotificationHelper {
     private const val CHANNEL_DESC = "Notifications for upcoming bill due dates"
 
     private const val AI_CHANNEL_ID = "ai_transactions_channel"
-    private const val AI_CHANNEL_NAME = "Catat Transaksi AI"
-    private const val AI_CHANNEL_DESC = "Notifikasi konfirmasi transaksi yang dicatat lewat AI Widget"
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -36,12 +35,23 @@ object NotificationHelper {
                 description = CHANNEL_DESC
             }
 
+            val aiChannelName = try {
+                context.getString(R.string.nl_quick_channel_name)
+            } catch (_: Exception) {
+                "Catat Transaksi AI"
+            }
+            val aiChannelDesc = try {
+                context.getString(R.string.nl_quick_channel_desc)
+            } catch (_: Exception) {
+                "Notifikasi konfirmasi transaksi yang dicatat lewat AI Widget"
+            }
+
             val aiChannel = NotificationChannel(
                 AI_CHANNEL_ID,
-                AI_CHANNEL_NAME,
+                aiChannelName,
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = AI_CHANNEL_DESC
+                description = aiChannelDesc
                 enableVibration(true)
             }
 
