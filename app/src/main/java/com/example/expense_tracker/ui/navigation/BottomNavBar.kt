@@ -56,8 +56,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +64,9 @@ import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.R
 
 /**
- * Compact Navigation Bar following the Material 3 Expressive guidelines:
+ * M3 Expressive Bottom Navigation Bar.
+ *
+ * Design Spec:
  * - Height reduced to 64.dp (down from baseline 80.dp) for a sleeker profile.
  * - Morphing between Outlined (unselected) and Filled (selected) icons like Google apps.
  * - Dynamic pill indicator animation (expands/fades smoothly upon selection).
@@ -78,8 +78,6 @@ fun BottomNavBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit
 ) {
-    val haptic = LocalHapticFeedback.current
-
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 2.dp,
@@ -98,7 +96,6 @@ fun BottomNavBar(
             CompactNavItem(
                 selected = currentRoute == NavRoutes.HOME,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.HOME)
                 },
                 filledIcon = Icons.Filled.Home,
@@ -110,7 +107,6 @@ fun BottomNavBar(
             CompactNavItem(
                 selected = currentRoute == NavRoutes.WALLET,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.WALLET)
                 },
                 filledIcon = Icons.Filled.AccountBalanceWallet,
@@ -122,7 +118,6 @@ fun BottomNavBar(
             CompactNavAddButton(
                 selected = currentRoute?.startsWith("input") == true,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onNavigate(NavRoutes.inputRoute(null))
                 }
             )
@@ -131,7 +126,6 @@ fun BottomNavBar(
             CompactNavItem(
                 selected = currentRoute == NavRoutes.SUMMARY,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.SUMMARY)
                 },
                 filledIcon = Icons.Filled.PieChart,
@@ -143,7 +137,6 @@ fun BottomNavBar(
             CompactNavItem(
                 selected = currentRoute == NavRoutes.PROFILE,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.PROFILE)
                 },
                 filledIcon = Icons.Filled.Person,

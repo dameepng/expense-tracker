@@ -37,8 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,8 +53,6 @@ fun AppNavigationRail(
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val haptic = LocalHapticFeedback.current
-
     val spacing = MaterialTheme.spacing
     val itemColors = NavigationRailItemDefaults.colors(
         indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -73,7 +69,6 @@ fun AppNavigationRail(
             Spacer(modifier = Modifier.height(spacing.space100))
             FloatingActionButton(
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onNavigate(NavRoutes.inputRoute(null))
                 },
                 shape = RoundedCornerShape(18.dp),
@@ -99,7 +94,6 @@ fun AppNavigationRail(
             NavigationRailItem(
                 selected = currentRoute == NavRoutes.HOME,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.HOME)
                 },
                 icon = { Icon(Icons.Filled.Home, contentDescription = null) },
@@ -112,7 +106,6 @@ fun AppNavigationRail(
             NavigationRailItem(
                 selected = currentRoute == NavRoutes.WALLET,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.WALLET)
                 },
                 icon = { Icon(Icons.Filled.AccountBalanceWallet, contentDescription = null) },
@@ -125,7 +118,6 @@ fun AppNavigationRail(
             NavigationRailItem(
                 selected = currentRoute == NavRoutes.SUMMARY,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.SUMMARY)
                 },
                 icon = { Icon(Icons.Filled.PieChart, contentDescription = null) },
@@ -138,7 +130,6 @@ fun AppNavigationRail(
             NavigationRailItem(
                 selected = currentRoute == NavRoutes.PROFILE,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.PROFILE)
                 },
                 icon = { Icon(Icons.Filled.Person, contentDescription = null) },
@@ -159,8 +150,6 @@ fun AppNavigationDrawerContent(
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val haptic = LocalHapticFeedback.current
-
     val itemColors = NavigationDrawerItemDefaults.colors(
         selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
         selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -219,7 +208,6 @@ fun AppNavigationDrawerContent(
             // Primary Hero Action Button (M3 Expressive)
             Button(
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onNavigate(NavRoutes.inputRoute(null))
                 },
                 shape = RoundedCornerShape(16.dp),
@@ -248,7 +236,6 @@ fun AppNavigationDrawerContent(
                 label = { Text(stringResource(R.string.nav_home), fontWeight = FontWeight.SemiBold) },
                 selected = currentRoute == NavRoutes.HOME,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.HOME)
                 },
                 shape = RoundedCornerShape(16.dp),
@@ -261,7 +248,6 @@ fun AppNavigationDrawerContent(
                 label = { Text(stringResource(R.string.nav_wallet), fontWeight = FontWeight.SemiBold) },
                 selected = currentRoute == NavRoutes.WALLET,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.WALLET)
                 },
                 shape = RoundedCornerShape(16.dp),
@@ -274,7 +260,6 @@ fun AppNavigationDrawerContent(
                 label = { Text(stringResource(R.string.nav_summary), fontWeight = FontWeight.SemiBold) },
                 selected = currentRoute == NavRoutes.SUMMARY,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.SUMMARY)
                 },
                 shape = RoundedCornerShape(16.dp),
@@ -287,7 +272,6 @@ fun AppNavigationDrawerContent(
                 label = { Text(stringResource(R.string.nav_profile), fontWeight = FontWeight.SemiBold) },
                 selected = currentRoute == NavRoutes.PROFILE,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onNavigate(NavRoutes.PROFILE)
                 },
                 shape = RoundedCornerShape(16.dp),
