@@ -177,4 +177,21 @@
     <string name="nl_quick_default_category_name">Transaction</string>
     <string name="nl_quick_channel_name">AI Transaction Entry</string>
     <string name="nl_quick_channel_desc">Confirmation notifications for transactions recorded via AI Widget</string>
+
+    <!-- Bill Reminders Screen -->
+    <string name="bill_reminders_screen_title">Bill Reminders</string>
+    <string name="bill_total_monthly">Total Monthly Bills</string>
+    <string name="bill_pending_status">%1$d Due</string>
+    <string name="bill_paid_status">%1$d Paid</string>
+    <string name="bill_due_date_format">Day %1$d</string>
+    <string name="bill_monthly_repeat">Monthly</string>
+    <string name="bill_one_time">One-Time</string>
+    <string name="bill_status_paid">Paid</string>
+    <string name="bill_status_paid_short">Paid</string>
+    <string name="bill_action_pay">Pay</string>
+    <string name="bill_empty_title">No Bill Reminders Yet</string>
+    <string name="bill_empty_desc">Track recurring monthly bills (subscriptions, utilities, rent) to keep your finances organized.</string>
+    <string name="bill_deleted">Bill reminder deleted</string>
+    <string name="bill_undo">Undo</string>
+    <string name="transaction_recurring_badge">Recurring</string>
 </resources>

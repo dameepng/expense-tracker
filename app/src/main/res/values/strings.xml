@@ -177,4 +177,21 @@
     <string name="nl_quick_default_category_name">Transaksi</string>
     <string name="nl_quick_channel_name">Catat Transaksi AI</string>
     <string name="nl_quick_channel_desc">Notifikasi konfirmasi transaksi yang dicatat lewat AI Widget</string>
+
+    <!-- Bill Reminders Screen -->
+    <string name="bill_reminders_screen_title">Pengingat Tagihan</string>
+    <string name="bill_total_monthly">Total Tagihan Bulanan</string>
+    <string name="bill_pending_status">%1$d Perlu Dibayar</string>
+    <string name="bill_paid_status">%1$d Selesai</string>
+    <string name="bill_due_date_format">Tgl %1$d</string>
+    <string name="bill_monthly_repeat">Bulanan</string>
+    <string name="bill_one_time">Sekali</string>
+    <string name="bill_status_paid">Sudah Dibayar</string>
+    <string name="bill_status_paid_short">Lunas</string>
+    <string name="bill_action_pay">Bayar</string>
+    <string name="bill_empty_title">Belum Ada Tagihan</string>
+    <string name="bill_empty_desc">Catat tagihan rutin bulanan (langganan, listrik, internet) agar keuanganmu tetap rapi dan terencana.</string>
+    <string name="bill_deleted">Pengingat tagihan dihapus</string>
+    <string name="bill_undo">Urungkan</string>
+    <string name="transaction_recurring_badge">Berulang</string>
 </resources>

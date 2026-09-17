@@ -85,6 +85,14 @@ class ReminderListViewModel(
         }
     }
 
+    fun insertReminder(reminder: BillReminder) {
+        viewModelScope.launch {
+            withContext(ioDispatcher) {
+                repository.insertReminder(reminder)
+            }
+        }
+    }
+
     fun markAsPaid(reminder: BillReminder) {
         viewModelScope.launch {
             withContext(ioDispatcher) {

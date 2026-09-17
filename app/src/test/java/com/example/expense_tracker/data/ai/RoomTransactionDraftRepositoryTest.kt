@@ -7,6 +7,7 @@ import com.example.expense_tracker.data.RoomInputRepository
 import com.example.expense_tracker.data.TransactionType
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -37,7 +38,12 @@ class RoomTransactionDraftRepositoryTest {
             .addCallback(AppDatabase.SeedCallback())
             .allowMainThreadQueries()
             .build()
-        repository = RoomTransactionDraftRepository(database, Dispatchers.Unconfined) { zone }
+        repository = RoomTransactionDraftRepository(
+            database = database,
+            ioDispatcher = Dispatchers.Unconfined,
+            zoneIdProvider = { zone },
+            timeProvider = { LocalTime.MIDNIGHT }
+        )
     }
 
     @After
@@ -150,6 +156,26 @@ class RoomTransactionDraftRepositoryTest {
 
         val edited = database.expenseDao().getAllExpenses().single()
         assertEquals(original.copy(amount = 150_000, description = "Harga langganan dikoreksi"), edited)
+    }
+
+    @Test
+    fun `draft saved with custom time provider captures specific hour and minute`() = runBlocking {
+        val customRepo = RoomTransactionDraftRepository(
+            database = database,
+            ioDispatcher = Dispatchers.Unconfined,
+            zoneIdProvider = { zone },
+            timeProvider = { LocalTime.of(14, 30) }
+        )
+        val category = customRepo.getCategories().first().first()
+        val wallet = customRepo.getWallets().first().first()
+        val draft = transaction(category.id)
+
+        customRepo.save(draft, wallet.id)
+
+        val saved = database.expenseDao().getAllExpenses().first { it.amount == draft.amount }
+        val zonedDateTime = Instant.ofEpochMilli(saved.timestamp).atZone(zone)
+        assertEquals(14, zonedDateTime.hour)
+        assertEquals(30, zonedDateTime.minute)
     }
 
     private fun transaction(categoryId: Long) = ParsedTransaction(

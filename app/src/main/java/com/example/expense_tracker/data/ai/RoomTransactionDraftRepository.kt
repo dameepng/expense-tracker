@@ -5,6 +5,7 @@ import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.Expense
 import com.example.expense_tracker.data.TransactionType
 import com.example.expense_tracker.data.Wallet
+import java.time.LocalTime
 import java.time.ZoneId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,8 @@ import kotlinx.coroutines.withContext
 class RoomTransactionDraftRepository(
     private val database: AppDatabase,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val zoneIdProvider: () -> ZoneId = { ZoneId.systemDefault() }
+    private val zoneIdProvider: () -> ZoneId = { ZoneId.systemDefault() },
+    private val timeProvider: () -> LocalTime = { LocalTime.now() }
 ) : TransactionDraftRepository {
     override fun getCategories(): Flow<List<Category>> =
         database.expenseDao().getAllCategories()
@@ -31,12 +33,17 @@ class RoomTransactionDraftRepository(
                 require(database.walletDao().getWalletById(walletId) != null) {
                     "Dompet tidak tersedia. Pilih dompet lain."
                 }
+                val localTime = timeProvider()
+                val timestamp = transaction.date.atTime(localTime)
+                    .atZone(zoneIdProvider())
+                    .toInstant()
+                    .toEpochMilli()
                 database.expenseDao().insertExpense(
                     Expense(
                         amount = transaction.amount,
                         categoryId = transaction.categoryId,
                         description = transaction.note,
-                        timestamp = transaction.date.atStartOfDay(zoneIdProvider()).toInstant().toEpochMilli(),
+                        timestamp = timestamp,
                         type = transaction.type,
                         walletId = walletId,
                         merchant = transaction.merchant,

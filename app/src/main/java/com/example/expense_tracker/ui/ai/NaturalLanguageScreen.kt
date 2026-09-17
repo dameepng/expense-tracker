@@ -21,7 +21,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.Card
@@ -58,6 +62,8 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import java.time.Instant
+import java.time.ZoneId
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -291,6 +297,7 @@ fun NaturalLanguageScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TransactionPreview(
     state: NaturalLanguageUiState,
@@ -383,6 +390,41 @@ private fun TransactionPreview(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
+            var showDatePicker by remember { mutableStateOf(false) }
+
+            if (showDatePicker) {
+                val initialMillis = try {
+                    draft.parsedDate()?.atStartOfDay(ZoneId.of("UTC"))?.toInstant()?.toEpochMilli()
+                        ?: System.currentTimeMillis()
+                } catch (_: Exception) {
+                    System.currentTimeMillis()
+                }
+                val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                val selectedDate = Instant.ofEpochMilli(millis)
+                                    .atZone(ZoneId.of("UTC"))
+                                    .toLocalDate()
+                                onDraftChange { it.copy(dateText = selectedDate.toString()) }
+                            }
+                            showDatePicker = false
+                        }) {
+                            Text(stringResource(R.string.ok))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDatePicker = false }) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+
             OutlinedTextField(
                 value = draft.dateText,
                 onValueChange = { text -> onDraftChange { it.copy(dateText = text) } },
@@ -390,6 +432,17 @@ private fun TransactionPreview(
                 label = { Text(stringResource(R.string.ai_date)) },
                 supportingText = { Text(stringResource(R.string.ai_date_hint)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+                trailingIcon = {
+                    IconButton(
+                        onClick = { showDatePicker = true },
+                        enabled = enabled
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = stringResource(R.string.choose_date)
+                        )
+                    }
+                },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
