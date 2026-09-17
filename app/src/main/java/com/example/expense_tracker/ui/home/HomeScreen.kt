@@ -531,8 +531,13 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     LocalContext.current
 
+    var isFirstLoad by remember { mutableStateOf(true) }
     LaunchedEffect(state.transactions.firstOrNull()?.id) {
-        if (state.transactions.isNotEmpty()) {
+        if (isFirstLoad) {
+            isFirstLoad = false
+            return@LaunchedEffect
+        }
+        if (state.transactions.isNotEmpty() && listState.firstVisibleItemIndex > 0) {
             listState.animateScrollToItem(0)
         }
     }
@@ -763,8 +768,8 @@ fun AutoResizeText(
     fontWeight: FontWeight? = null,
     color: Color = Color.Unspecified
 ) {
-    var textStyle by remember { mutableStateOf(style) }
-    var readyToDraw by remember { mutableStateOf(false) }
+    var textStyle by remember(text, style) { mutableStateOf(style) }
+    var readyToDraw by remember(text, style) { mutableStateOf(false) }
 
     Text(
         text = text,

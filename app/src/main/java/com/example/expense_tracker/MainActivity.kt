@@ -97,8 +97,7 @@ import com.example.expense_tracker.ui.chat.ChatViewModelFactory
 import com.example.expense_tracker.ui.home.HomeScreen
 import com.example.expense_tracker.ui.home.HomeViewModel
 import com.example.expense_tracker.ui.home.HomeViewModelFactory
-import com.example.expense_tracker.ui.home.StreakCounterViewModel
-import com.example.expense_tracker.ui.home.StreakViewModelFactory
+
 import com.example.expense_tracker.ui.input.InputScreen
 import com.example.expense_tracker.ui.input.InputViewModel
 import com.example.expense_tracker.ui.input.InputViewModelFactory
@@ -143,9 +142,7 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
             }
-            
-            val isBiometricsEnabledState = userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = null)
-            val isBiometricsEnabled = isBiometricsEnabledState.value ?: return@setContent
+            val isBiometricsEnabled by userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = false)
             
             val isSystemDark = isSystemInDarkTheme()
             val darkTheme = when (themeMode) {
@@ -278,23 +275,9 @@ fun ExpenseTrackerApp(
     val context = LocalContext.current
     val app = context.applicationContext as android.app.Application
     
-    val homeViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = HomeViewModelFactory.create(app))
-    androidx.lifecycle.viewmodel.compose.viewModel<StreakCounterViewModel>(factory = StreakViewModelFactory.create(app))
-    val summaryViewModel: SummaryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = SummaryViewModelFactory.create(app))
-    val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(app))
-    val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(app))
-    val reminderListViewModel: com.example.expense_tracker.ui.reminder.ReminderListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory(app))
-    val receiptViewModel: com.example.expense_tracker.ui.receipt.ReceiptScanViewModel =
-        androidx.lifecycle.viewmodel.compose.viewModel(
-            factory = com.example.expense_tracker.ui.receipt.ReceiptScanViewModelFactory.create(
-                repository = AiDependencies.shared.createReceiptRepository(
-                    com.example.expense_tracker.data.ai.receipt.ReceiptImageProcessor(app.contentResolver)
-                ),
-                draftRepository = com.example.expense_tracker.data.ai.RoomTransactionDraftRepository(
-                    AppDatabase.getInstance(app)
-                )
-            )
-        )
+    val homeViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        factory = remember { HomeViewModelFactory.create(app) }
+    )
     
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -400,7 +383,6 @@ fun ExpenseTrackerApp(
                     onNavigateToReminder = { navController.navigate(NavRoutes.REMINDER_LIST) },
                     onNavigateToAiInput = { if (navController.currentDestination?.route != NavRoutes.AI_INPUT) navController.navigate(NavRoutes.AI_INPUT) },
                     onNavigateToReceipt = {
-                        receiptViewModel.reset()
                         if (navController.currentDestination?.route != NavRoutes.RECEIPT_PICKER) {
                             navController.navigate(NavRoutes.RECEIPT_PICKER) { launchSingleTop = true }
                         }
@@ -430,7 +412,21 @@ fun ExpenseTrackerApp(
                 )
             }
 
-            composable(route = NavRoutes.RECEIPT_PICKER) {
+            composable(route = NavRoutes.RECEIPT_PICKER) { backStackEntry ->
+                val receiptViewModel: com.example.expense_tracker.ui.receipt.ReceiptScanViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(
+                        viewModelStoreOwner = backStackEntry,
+                        factory = remember(backStackEntry) {
+                            com.example.expense_tracker.ui.receipt.ReceiptScanViewModelFactory.create(
+                                repository = AiDependencies.shared.createReceiptRepository(
+                                    com.example.expense_tracker.data.ai.receipt.ReceiptImageProcessor(app.contentResolver)
+                                ),
+                                draftRepository = com.example.expense_tracker.data.ai.RoomTransactionDraftRepository(
+                                    AppDatabase.getInstance(app)
+                                )
+                            )
+                        }
+                    )
                 CompositionLocalProvider(
                     LocalNavAnimatedVisibilityScope provides this@composable
                 ) {
@@ -448,7 +444,24 @@ fun ExpenseTrackerApp(
                 }
             }
 
-            composable(route = NavRoutes.RECEIPT_REVIEW) {
+            composable(route = NavRoutes.RECEIPT_REVIEW) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    runCatching { navController.getBackStackEntry(NavRoutes.RECEIPT_PICKER) }.getOrNull() ?: backStackEntry
+                }
+                val receiptViewModel: com.example.expense_tracker.ui.receipt.ReceiptScanViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(
+                        viewModelStoreOwner = parentEntry,
+                        factory = remember(parentEntry) {
+                            com.example.expense_tracker.ui.receipt.ReceiptScanViewModelFactory.create(
+                                repository = AiDependencies.shared.createReceiptRepository(
+                                    com.example.expense_tracker.data.ai.receipt.ReceiptImageProcessor(app.contentResolver)
+                                ),
+                                draftRepository = com.example.expense_tracker.data.ai.RoomTransactionDraftRepository(
+                                    AppDatabase.getInstance(app)
+                                )
+                            )
+                        }
+                    )
                 CompositionLocalProvider(
                     LocalNavAnimatedVisibilityScope provides this@composable
                 ) {
@@ -524,6 +537,10 @@ fun ExpenseTrackerApp(
             }
 
             composable(route = NavRoutes.SUMMARY) { backStackEntry ->
+                val summaryViewModel: SummaryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    viewModelStoreOwner = backStackEntry,
+                    factory = remember(backStackEntry) { SummaryViewModelFactory.create(app) }
+                )
                 val walletId = backStackEntry.savedStateHandle.get<Long?>("summary_wallet_id")
                 if (walletId != null) {
                     summaryViewModel.onWalletSelected(walletId)
@@ -563,7 +580,14 @@ fun ExpenseTrackerApp(
                 )
             }
             
-            composable(route = NavRoutes.WALLET) {
+            composable(route = NavRoutes.WALLET) { backStackEntry ->
+                val walletViewModel: com.example.expense_tracker.ui.wallet.WalletViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(
+                        viewModelStoreOwner = backStackEntry,
+                        factory = remember(backStackEntry) {
+                            com.example.expense_tracker.ui.wallet.WalletViewModelFactory.create(app)
+                        }
+                    )
                 com.example.expense_tracker.ui.wallet.WalletListScreen(
                     viewModel = walletViewModel,
                     onSelectWallet = { walletId ->
@@ -578,7 +602,14 @@ fun ExpenseTrackerApp(
                 )
             }
 
-            composable(route = NavRoutes.PROFILE) {
+            composable(route = NavRoutes.PROFILE) { backStackEntry ->
+                val profileViewModel: com.example.expense_tracker.ui.profile.ProfileViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(
+                        viewModelStoreOwner = backStackEntry,
+                        factory = remember(backStackEntry) {
+                            com.example.expense_tracker.ui.profile.ProfileViewModelFactory.create(app)
+                        }
+                    )
                 com.example.expense_tracker.ui.profile.ProfileScreen(
                     viewModel = profileViewModel,
                     onNavigateToHelpFaq = { navController.navigate(NavRoutes.HELP_FAQ) },
@@ -598,7 +629,6 @@ fun ExpenseTrackerApp(
                         }
                     },
                     onNavigateToReceipt = {
-                        receiptViewModel.reset()
                         if (navController.currentDestination?.route != NavRoutes.RECEIPT_PICKER) {
                             navController.navigate(NavRoutes.RECEIPT_PICKER) {
                                 launchSingleTop = true
@@ -624,7 +654,14 @@ fun ExpenseTrackerApp(
                 )
             }
             
-            composable(NavRoutes.REMINDER_LIST) {
+            composable(NavRoutes.REMINDER_LIST) { backStackEntry ->
+                val reminderListViewModel: com.example.expense_tracker.ui.reminder.ReminderListViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel(
+                        viewModelStoreOwner = backStackEntry,
+                        factory = remember(backStackEntry) {
+                            com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory(app)
+                        }
+                    )
                 com.example.expense_tracker.ui.reminder.ReminderListScreen(
                     viewModel = reminderListViewModel,
                     onNavigateBack = { navController.popBackStack() }
