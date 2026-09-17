@@ -152,4 +152,18 @@
     <string name="nfc_record_this">Catat</string>
     <string name="nfc_transaction_payment">Pembayaran / Mutasi</string>
     <string name="nfc_transaction_topup">Top Up Saldo</string>
+
+    <!-- Natural Language Widget -->
+    <string name="widget_nl_name">Catat Cepat AI</string>
+    <string name="widget_nl_description">Catat transaksi langsung dengan AI tanpa buka aplikasi</string>
+    <string name="widget_nl_title">Catat Cepat AI</string>
+    <string name="widget_nl_prompt">Ketik / bicara transaksi kamu...</string>
+    <string name="nl_quick_title">Catat Cepat AI</string>
+    <string name="nl_quick_subtitle">Jelaskan pengeluaran atau pemasukan secara bebas</string>
+    <string name="nl_quick_hint">Misal: Makan siang soto mie 25rb di warung budi pakai gopay</string>
+    <string name="nl_quick_btn_submit">Catat Sekarang</string>
+    <string name="nl_quick_processing">AI sedang menganalisis transaksi...</string>
+    <string name="nl_quick_success">Transaksi Berhasil Dicatat! ✨</string>
+    <string name="nl_quick_error_generic">Gagal memproses transaksi. Silakan coba lagi.</string>
+    <string name="nl_quick_mic_listening">Mendengarkan suara...</string>
 </resources>

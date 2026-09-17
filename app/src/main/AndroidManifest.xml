@@ -70,6 +70,27 @@
                 android:resource="@xml/emoney_widget_info" />
         </receiver>
 
+        <!-- Fast Translucent Natural Language Quick Activity -->
+        <activity
+            android:name=".ui.ai.quick.NaturalLanguageQuickActivity"
+            android:theme="@style/Theme.Expense_tracker.Translucent"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask"
+            android:exported="true" />
+
+        <!-- Home Screen Natural Language Widget -->
+        <receiver
+            android:name=".widget.NaturalLanguageWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_nl_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/natural_language_widget_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

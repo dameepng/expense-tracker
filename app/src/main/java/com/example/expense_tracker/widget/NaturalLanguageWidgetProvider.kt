@@ -1,0 +1,77 @@
+package com.example.expense_tracker.widget
+
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.widget.RemoteViews
+import com.example.expense_tracker.R
+import com.example.expense_tracker.ui.ai.quick.NaturalLanguageQuickActivity
+
+class NaturalLanguageWidgetProvider : AppWidgetProvider() {
+
+    override fun onUpdate(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
+        for (appWidgetId in appWidgetIds) {
+            val views = buildRemoteViews(context)
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+    }
+
+    private fun buildRemoteViews(context: Context): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.widget_natural_language)
+
+        // Main Tap Intent (Opens quick text input)
+        val textIntent = Intent(context, NaturalLanguageQuickActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(EXTRA_AUTO_SPEECH, false)
+        }
+        val textPendingIntent = PendingIntent.getActivity(
+            context,
+            REQUEST_CODE_TEXT,
+            textIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Mic Tap Intent (Opens quick sheet and immediately triggers speech recognition)
+        val micIntent = Intent(context, NaturalLanguageQuickActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(EXTRA_AUTO_SPEECH, true)
+        }
+        val micPendingIntent = PendingIntent.getActivity(
+            context,
+            REQUEST_CODE_MIC,
+            micIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        views.setOnClickPendingIntent(R.id.widget_nl_root, textPendingIntent)
+        views.setOnClickPendingIntent(R.id.widget_nl_btn_mic, micPendingIntent)
+
+        return views
+    }
+
+    companion object {
+        const val EXTRA_AUTO_SPEECH = "extra_auto_speech"
+        private const val REQUEST_CODE_TEXT = 101
+        private const val REQUEST_CODE_MIC = 102
+
+        fun updateAllWidgets(context: Context) {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val thisWidget = ComponentName(context, NaturalLanguageWidgetProvider::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
+            if (appWidgetIds.isNotEmpty()) {
+                val intent = Intent(context, NaturalLanguageWidgetProvider::class.java).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
+                }
+                context.sendBroadcast(intent)
+            }
+        }
+    }
+}

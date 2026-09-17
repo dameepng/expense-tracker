@@ -152,4 +152,18 @@
     <string name="nfc_record_this">Record</string>
     <string name="nfc_transaction_payment">Payment / Transaction</string>
     <string name="nfc_transaction_topup">Top Up Balance</string>
+
+    <!-- Natural Language Widget -->
+    <string name="widget_nl_name">AI Quick Entry</string>
+    <string name="widget_nl_description">Quickly record transactions using AI without opening the app</string>
+    <string name="widget_nl_title">AI Quick Entry</string>
+    <string name="widget_nl_prompt">Type or speak your transaction...</string>
+    <string name="nl_quick_title">AI Quick Entry</string>
+    <string name="nl_quick_subtitle">Describe your expense or income naturally</string>
+    <string name="nl_quick_hint">e.g. Lunch noodles $12 at warung budi using gopay</string>
+    <string name="nl_quick_btn_submit">Record Now</string>
+    <string name="nl_quick_processing">AI is analyzing your transaction...</string>
+    <string name="nl_quick_success">Transaction Recorded! ✨</string>
+    <string name="nl_quick_error_generic">Failed to process transaction. Please try again.</string>
+    <string name="nl_quick_mic_listening">Listening to voice...</string>
 </resources>
