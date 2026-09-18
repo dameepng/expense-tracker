@@ -42,6 +42,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private val MAX_NFC_SHEET_WIDTH = 560.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 class NfcQuickScanActivity : ComponentActivity() {
 
@@ -109,7 +111,7 @@ class NfcQuickScanActivity : ComponentActivity() {
                                     }
                                 }
                             } else null,
-                            modifier = Modifier.widthIn(max = 560.dp)
+                            modifier = Modifier.widthIn(max = MAX_NFC_SHEET_WIDTH)
                         )
                     }
                 }
@@ -157,13 +159,13 @@ class NfcQuickScanActivity : ComponentActivity() {
         nfcAdapter?.disableReaderMode(this)
     }
 
+    @Suppress("DEPRECATION")
     private fun handleNfcIntent(intent: Intent) {
         val action = intent.action ?: return
         if (action == NfcAdapter.ACTION_TECH_DISCOVERED || action == NfcAdapter.ACTION_TAG_DISCOVERED) {
             val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
             } else {
-                @Suppress("DEPRECATION")
                 intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
             }
             if (tag != null) {
@@ -202,35 +204,7 @@ class NfcQuickScanActivity : ComponentActivity() {
     }
 
     private suspend fun simulateScan(type: NfcCardType) {
-        val simulatedCard = when (type) {
-            NfcCardType.MANDIRI_EMONEY -> NfcCardResult(
-                cardNumber = "6032918239014812",
-                balance = 74_500L,
-                cardType = NfcCardType.MANDIRI_EMONEY,
-                transactions = listOf(
-                    NfcCardTransaction(1, 15_000, "EXPENSE", System.currentTimeMillis() - 7200_000L, "Gerbang Tol Cilandak Utama"),
-                    NfcCardTransaction(2, 50_000, "INCOME", System.currentTimeMillis() - 86400_000L, "Top Up Livin' by Mandiri"),
-                    NfcCardTransaction(3, 3_500, "EXPENSE", System.currentTimeMillis() - 86400_000L * 2, "TransJakarta Koridor 1"),
-                    NfcCardTransaction(4, 12_000, "EXPENSE", System.currentTimeMillis() - 86400_000L * 3, "Parkir Mall Grand Indonesia")
-                )
-            )
-            NfcCardType.BNI_TAPCASH -> NfcCardResult(
-                cardNumber = "7546029381729401",
-                balance = 125_000L,
-                cardType = NfcCardType.BNI_TAPCASH,
-                transactions = listOf(
-                    NfcCardTransaction(1, 8_000, "EXPENSE", System.currentTimeMillis() - 3600_000L, "KRL Manggarai - Bogor"),
-                    NfcCardTransaction(2, 100_000, "INCOME", System.currentTimeMillis() - 86400_000L, "Top Up ATM BNI"),
-                    NfcCardTransaction(3, 5_000, "EXPENSE", System.currentTimeMillis() - 86400_000L * 2, "Parkir Stasiun Tebet")
-                )
-            )
-            else -> NfcCardResult(
-                cardNumber = "9988776655443322",
-                balance = 50_000L,
-                cardType = NfcCardType.UNKNOWN,
-                transactions = emptyList()
-            )
-        }
+        val simulatedCard = createSimulatedCard(type)
         triggerHapticFeedback()
         saveCardAndNotifyWidget(simulatedCard)
         scanState = NfcScanState.Success(simulatedCard)
@@ -248,7 +222,9 @@ class NfcQuickScanActivity : ComponentActivity() {
                 )
                 db.nfcCardDao().upsertCard(entity)
                 EmoneyWidgetProvider.updateAllWidgets(applicationContext)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -268,17 +244,8 @@ class NfcQuickScanActivity : ComponentActivity() {
         } catch (_: Exception) {}
     }
 
-
     private fun finishWithFade() {
-        if (isFinishingActivity) return
-        isFinishingActivity = true
-        finishAndRemoveTask()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
-        } else {
-            @Suppress("DEPRECATION")
-            overridePendingTransition(0, 0)
-        }
+        finish()
     }
 
     override fun finish() {
@@ -291,5 +258,37 @@ class NfcQuickScanActivity : ComponentActivity() {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
         }
+    }
+}
+
+internal fun createSimulatedCard(type: NfcCardType, currentTime: Long = System.currentTimeMillis()): NfcCardResult {
+    return when (type) {
+        NfcCardType.MANDIRI_EMONEY -> NfcCardResult(
+            cardNumber = "6032918239014812",
+            balance = 74_500L,
+            cardType = NfcCardType.MANDIRI_EMONEY,
+            transactions = listOf(
+                NfcCardTransaction(1, 15_000, "EXPENSE", currentTime - 7200_000L, "Gerbang Tol Cilandak Utama"),
+                NfcCardTransaction(2, 50_000, "INCOME", currentTime - 86400_000L, "Top Up Livin' by Mandiri"),
+                NfcCardTransaction(3, 3_500, "EXPENSE", currentTime - 86400_000L * 2, "TransJakarta Koridor 1"),
+                NfcCardTransaction(4, 12_000, "EXPENSE", currentTime - 86400_000L * 3, "Parkir Mall Grand Indonesia")
+            )
+        )
+        NfcCardType.BNI_TAPCASH -> NfcCardResult(
+            cardNumber = "7546029381729401",
+            balance = 125_000L,
+            cardType = NfcCardType.BNI_TAPCASH,
+            transactions = listOf(
+                NfcCardTransaction(1, 8_000, "EXPENSE", currentTime - 3600_000L, "KRL Manggarai - Bogor"),
+                NfcCardTransaction(2, 100_000, "INCOME", currentTime - 86400_000L, "Top Up ATM BNI"),
+                NfcCardTransaction(3, 5_000, "EXPENSE", currentTime - 86400_000L * 2, "Parkir Stasiun Tebet")
+            )
+        )
+        else -> NfcCardResult(
+            cardNumber = "9988776655443322",
+            balance = 50_000L,
+            cardType = NfcCardType.UNKNOWN,
+            transactions = emptyList()
+        )
     }
 }
