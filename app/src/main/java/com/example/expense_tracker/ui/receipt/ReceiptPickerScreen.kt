@@ -5,23 +5,21 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import com.example.expense_tracker.R
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,6 +29,7 @@ import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,25 +38,31 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import com.example.expense_tracker.ui.navigation.LocalNavAnimatedVisibilityScope
-import com.example.expense_tracker.ui.navigation.LocalSharedTransitionScope
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import com.example.expense_tracker.R
+import com.example.expense_tracker.ui.navigation.LocalNavAnimatedVisibilityScope
+import com.example.expense_tracker.ui.navigation.LocalSharedTransitionScope
 import com.example.expense_tracker.ui.theme.spacing
 import java.io.File
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+private val MAX_RECEIPT_PICKER_WIDTH = 560.dp
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
     val context = LocalContext.current
@@ -137,19 +142,24 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 560.dp)
+                    .widthIn(max = MAX_RECEIPT_PICKER_WIDTH)
                     .padding(spacing.screenMargin),
                 verticalArrangement = Arrangement.spacedBy(spacing.itemGap)
             ) {
                 if (selectedUri == null) {
-                    Text("Ambil atau pilih foto struk", style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.receipt_picker_subtitle),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                     Button(
-                        onClick = { gallery.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Icon(Icons.Default.PhotoLibrary, null)
-                        Text("  Pilih dari galeri", style = MaterialTheme.typography.labelLarge)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.receipt_pick_gallery), style = MaterialTheme.typography.labelLarge)
                     }
                     OutlinedButton(
                         onClick = {
@@ -162,7 +172,8 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Icon(Icons.Default.PhotoCamera, null)
-                        Text("  Ambil dengan kamera", style = MaterialTheme.typography.labelLarge)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.receipt_pick_camera), style = MaterialTheme.typography.labelLarge)
                     }
                 } else {
                     Card(
@@ -172,14 +183,23 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
                         shape = RoundedCornerShape(24.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                     ) {
-                        AsyncImage(model = selectedUri, contentDescription = "Preview foto struk", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth().height(320.dp))
+                        AsyncImage(
+                            model = selectedUri,
+                            contentDescription = stringResource(R.string.receipt_preview_cd),
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxWidth().height(320.dp)
+                        )
                     }
                     Button(
                         onClick = { selectedUri?.let(onScan) },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Scan Struk", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.receipt_scan_button),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     OutlinedButton(
                         onClick = { selectedUri = null },
@@ -187,12 +207,15 @@ fun ReceiptPickerScreen(onBack: () -> Unit, onScan: (Uri) -> Unit) {
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Icon(Icons.Default.Delete, null)
-                        Text("  Hapus / ganti foto", style = MaterialTheme.typography.labelLarge)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.receipt_delete_replace), style = MaterialTheme.typography.labelLarge)
                     }
                 }
                 if (cameraDenied) {
-                    Text("Izin kamera ditolak. Aktifkan izin kamera di Settings untuk mengambil foto.", color = MaterialTheme.colorScheme.error)
-                    TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))) }) { Text("Buka Settings") }
+                    Text(stringResource(R.string.receipt_camera_denied), color = MaterialTheme.colorScheme.error)
+                    TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))) }) {
+                        Text(stringResource(R.string.receipt_open_settings))
+                    }
                 }
             }
         }

@@ -3,17 +3,30 @@ package com.example.expense_tracker.ui.receipt
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.expense_tracker.data.ai.*
-import com.example.expense_tracker.data.ai.receipt.*
+import com.example.expense_tracker.data.ai.AiError
+import com.example.expense_tracker.data.ai.AiInputException
+import com.example.expense_tracker.data.ai.ParsedTransaction
+import com.example.expense_tracker.data.ai.TransactionDraftRepository
+import com.example.expense_tracker.data.ai.receipt.ReceiptImageError
+import com.example.expense_tracker.data.ai.receipt.ReceiptImageException
+import com.example.expense_tracker.data.ai.receipt.ReceiptParseException
+import com.example.expense_tracker.data.ai.receipt.ReceiptRepository
+import com.example.expense_tracker.data.ai.receipt.ReceiptScanRequest
 import com.example.expense_tracker.ui.ai.TransactionDraft
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Clock
 import java.time.LocalDate
 
-import kotlinx.coroutines.withTimeoutOrNull
 
 class ReceiptScanViewModel(
     private val repository: ReceiptRepository,

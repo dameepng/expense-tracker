@@ -1,7 +1,21 @@
 package com.example.expense_tracker.ui.receipt
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,24 +24,54 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import com.example.expense_tracker.ui.navigation.LocalNavAnimatedVisibilityScope
-import com.example.expense_tracker.ui.navigation.LocalSharedTransitionScope
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.expense_tracker.ui.ai.TransactionDraft
-import com.example.expense_tracker.ui.theme.spacing
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.stringResource
 import com.example.expense_tracker.R
+import com.example.expense_tracker.ui.ai.TransactionDraft
+import com.example.expense_tracker.ui.navigation.LocalNavAnimatedVisibilityScope
+import com.example.expense_tracker.ui.navigation.LocalSharedTransitionScope
+import com.example.expense_tracker.ui.theme.spacing
 import java.time.LocalDate
+
+private val MAX_RECEIPT_REVIEW_WIDTH = 640.dp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -44,8 +88,8 @@ fun ReceiptReviewScreen(
             viewModel.startScan()
         }
     }
-    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
-    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val handleBack = {
         keyboard?.hide()
         focusManager.clearFocus()
@@ -117,7 +161,7 @@ fun ReceiptReviewScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 640.dp)
+                    .widthIn(max = MAX_RECEIPT_REVIEW_WIDTH)
                     .padding(horizontal = spacing.screenMargin, vertical = spacing.itemGap)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(spacing.sectionGap)
@@ -132,7 +176,7 @@ fun ReceiptReviewScreen(
                 ) {
                     AsyncImage(
                         model = it,
-                        contentDescription = "Preview struk",
+                        contentDescription = stringResource(R.string.receipt_preview_cd),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp)
@@ -155,12 +199,12 @@ fun ReceiptReviewScreen(
                     ) {
                         CircularProgressIndicator()
                         Text(
-                            text = "Menganalisis struk dengan AI...",
+                            text = stringResource(R.string.receipt_scanning_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Membaca nominal, merchant, tanggal, dan item",
+                            text = stringResource(R.string.receipt_scanning_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -176,18 +220,18 @@ fun ReceiptReviewScreen(
                 ) {
                     Column(modifier = Modifier.padding(spacing.cardPadding), verticalArrangement = Arrangement.spacedBy(spacing.space100)) {
                         Text(
-                            "Struk tidak terbaca atau format tidak sesuai.",
+                            stringResource(R.string.receipt_fallback_title),
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                         Text(
-                            "Silakan gunakan input manual atau Catat dengan AI.",
+                            stringResource(R.string.receipt_fallback_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                         TextButton(onClick = onManualInput) {
-                            Text("Input Manual / Catat dengan AI")
+                            Text(stringResource(R.string.receipt_fallback_action))
                         }
                     }
                 }
@@ -206,17 +250,19 @@ fun ReceiptReviewScreen(
                     ) {
                         Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                         Text(
-                            text = when (error) {
-                                ReceiptScanError.VALIDATION -> "Mohon lengkapi data: pastikan nominal valid, kategori dan dompet dipilih, serta tanggal YYYY-MM-DD."
-                                ReceiptScanError.SAVE -> "Gagal menyimpan transaksi ke database. Silakan periksa data dan coba lagi."
-                                ReceiptScanError.CONFIGURATION -> "Kunci API belum dikonfigurasi."
-                                ReceiptScanError.NETWORK -> "Koneksi internet bermasalah. Periksa jaringan Anda."
-                                ReceiptScanError.TIMEOUT -> "Waktu permintaan habis. Silakan coba lagi."
-                                ReceiptScanError.IMAGE_TOO_LARGE -> "Ukuran gambar terlalu besar."
-                                ReceiptScanError.IMAGE_DECODE -> "Gagal memproses file gambar."
-                                ReceiptScanError.INVALID_RESPONSE -> "Respons dari AI tidak valid. Coba scan ulang."
-                                else -> "Terjadi kesalahan saat memproses struk."
-                            },
+                            text = stringResource(
+                                when (error) {
+                                    ReceiptScanError.VALIDATION -> R.string.receipt_error_validation
+                                    ReceiptScanError.SAVE -> R.string.receipt_error_save
+                                    ReceiptScanError.CONFIGURATION -> R.string.receipt_error_config
+                                    ReceiptScanError.NETWORK -> R.string.receipt_error_network
+                                    ReceiptScanError.TIMEOUT -> R.string.receipt_error_timeout
+                                    ReceiptScanError.IMAGE_TOO_LARGE -> R.string.receipt_error_image_large
+                                    ReceiptScanError.IMAGE_DECODE -> R.string.receipt_error_image_decode
+                                    ReceiptScanError.INVALID_RESPONSE -> R.string.receipt_error_invalid
+                                    else -> R.string.receipt_error_unknown
+                                }
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
@@ -234,12 +280,20 @@ fun ReceiptReviewScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                     ) {
                         Column(modifier = Modifier.padding(spacing.cardPadding), verticalArrangement = Arrangement.spacedBy(spacing.space75)) {
-                            Text("Daftar Item (${state.items.size}):", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.receipt_items_title, state.items.size),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
                             state.items.take(15).forEach { item ->
                                 Text("• $item", style = MaterialTheme.typography.bodySmall)
                             }
                             if (state.items.size > 15) {
-                                Text("+ ${state.items.size - 15} item lainnya…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    stringResource(R.string.receipt_items_more, state.items.size - 15),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
@@ -258,9 +312,9 @@ fun ReceiptReviewScreen(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("Menyimpan…", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.receipt_saving), fontWeight = FontWeight.Bold)
                     } else {
-                        Text("Simpan Transaksi", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.receipt_save_button), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -271,7 +325,7 @@ fun ReceiptReviewScreen(
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
-                    Text("Scan Ulang", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.receipt_rescan), fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -294,7 +348,7 @@ private fun DraftFields(
     OutlinedTextField(
         value = draft.amountText,
         onValueChange = { value -> vm.updateDraft { it.copy(amountText = value.filter { c -> c.isDigit() }) } },
-        label = { Text("Nominal (Rp)") },
+        label = { Text(stringResource(R.string.receipt_field_amount)) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
@@ -308,7 +362,7 @@ private fun DraftFields(
             .map { it.id to it.name }
     }
     ReceiptChoiceDropdown(
-        label = "Kategori",
+        label = stringResource(R.string.receipt_field_category),
         selectedId = draft.categoryId,
         choices = categoryChoices,
         onSelect = { id -> vm.updateDraft { it.copy(categoryId = id) } }
@@ -319,7 +373,7 @@ private fun DraftFields(
         state.wallets.map { it.id to it.name }
     }
     ReceiptChoiceDropdown(
-        label = "Pilih Dompet",
+        label = stringResource(R.string.receipt_field_wallet),
         selectedId = draft.walletId,
         choices = walletChoices,
         onSelect = { id -> vm.updateDraft { it.copy(walletId = id) } }
@@ -329,7 +383,7 @@ private fun DraftFields(
     OutlinedTextField(
         value = draft.merchant,
         onValueChange = { value -> vm.updateDraft { it.copy(merchant = value) } },
-        label = { Text("Merchant / Toko") },
+        label = { Text(stringResource(R.string.receipt_field_merchant)) },
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
@@ -347,8 +401,8 @@ private fun DraftFields(
             OutlinedTextField(
                 value = draft.dateText,
                 onValueChange = { value -> vm.updateDraft { it.copy(dateText = value) } },
-                label = { Text("Tanggal") },
-                supportingText = { Text("Format: YYYY-MM-DD") },
+                label = { Text(stringResource(R.string.receipt_field_date)) },
+                supportingText = { Text(stringResource(R.string.receipt_field_date_hint)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
@@ -361,13 +415,13 @@ private fun DraftFields(
             ) {
                 Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Hari ini", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.receipt_field_date_today), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
             }
         }
 
         if (!isDateInCurrentMonth && draft.dateText.isNotBlank()) {
             Text(
-                text = "Catatan: Tanggal struk (${draft.dateText}) berada di luar bulan ini. Klik 'Hari ini' jika ingin dicatat pada bulan berjalan.",
+                text = stringResource(R.string.receipt_date_outside_month, draft.dateText),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.padding(horizontal = 4.dp)
@@ -379,7 +433,7 @@ private fun DraftFields(
     OutlinedTextField(
         value = draft.note,
         onValueChange = { value -> vm.updateDraft { it.copy(note = value) } },
-        label = { Text("Catatan") },
+        label = { Text(stringResource(R.string.receipt_field_note)) },
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         minLines = 2,
         maxLines = 4,

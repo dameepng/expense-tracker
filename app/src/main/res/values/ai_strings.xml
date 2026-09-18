@@ -47,6 +47,46 @@
     <string name="receipt_picker_title">Foto Struk</string>
     <string name="receipt_review_title">Review Struk</string>
 
+    <!-- Receipt Picker -->
+    <string name="receipt_picker_subtitle">Ambil atau pilih foto struk</string>
+    <string name="receipt_pick_gallery">Pilih dari galeri</string>
+    <string name="receipt_pick_camera">Ambil dengan kamera</string>
+    <string name="receipt_scan_button">Scan Struk</string>
+    <string name="receipt_delete_replace">Hapus / ganti foto</string>
+    <string name="receipt_preview_cd">Preview foto struk</string>
+    <string name="receipt_camera_denied">Izin kamera ditolak. Aktifkan izin kamera di Settings untuk mengambil foto.</string>
+    <string name="receipt_open_settings">Buka Settings</string>
+
+    <!-- Receipt Review -->
+    <string name="receipt_scanning_title">Menganalisis struk dengan AI…</string>
+    <string name="receipt_scanning_desc">Membaca nominal, merchant, tanggal, dan item</string>
+    <string name="receipt_fallback_title">Struk tidak terbaca atau format tidak sesuai.</string>
+    <string name="receipt_fallback_desc">Silakan gunakan input manual atau Catat dengan AI.</string>
+    <string name="receipt_fallback_action">Input Manual / Catat dengan AI</string>
+    <string name="receipt_error_validation">Mohon lengkapi data: pastikan nominal valid, kategori dan dompet dipilih, serta tanggal YYYY-MM-DD.</string>
+    <string name="receipt_error_save">Gagal menyimpan transaksi ke database. Silakan periksa data dan coba lagi.</string>
+    <string name="receipt_error_config">Kunci API belum dikonfigurasi.</string>
+    <string name="receipt_error_network">Koneksi internet bermasalah. Periksa jaringan Anda.</string>
+    <string name="receipt_error_timeout">Waktu permintaan habis. Silakan coba lagi.</string>
+    <string name="receipt_error_image_large">Ukuran gambar terlalu besar.</string>
+    <string name="receipt_error_image_decode">Gagal memproses file gambar.</string>
+    <string name="receipt_error_invalid">Respons dari AI tidak valid. Coba scan ulang.</string>
+    <string name="receipt_error_unknown">Terjadi kesalahan saat memproses struk.</string>
+    <string name="receipt_field_amount">Nominal (Rp)</string>
+    <string name="receipt_field_category">Kategori</string>
+    <string name="receipt_field_wallet">Pilih Dompet</string>
+    <string name="receipt_field_merchant">Merchant / Toko</string>
+    <string name="receipt_field_date">Tanggal</string>
+    <string name="receipt_field_date_hint">Format: YYYY-MM-DD</string>
+    <string name="receipt_field_date_today">Hari ini</string>
+    <string name="receipt_field_note">Catatan</string>
+    <string name="receipt_date_outside_month">Catatan: Tanggal struk (%1$s) berada di luar bulan ini. Klik \'Hari ini\' jika ingin dicatat pada bulan berjalan.</string>
+    <string name="receipt_items_title">Daftar Item (%1$d):</string>
+    <string name="receipt_items_more">+ %1$d item lainnya…</string>
+    <string name="receipt_save_button">Simpan Transaksi</string>
+    <string name="receipt_saving">Menyimpan…</string>
+    <string name="receipt_rescan">Scan Ulang</string>
+
     <!-- Quick AI Entry helpers -->
     <string name="ai_clear_tooltip">Hapus teks</string>
     <string name="ai_mic_tooltip">Bicara transaksi</string>

@@ -47,6 +47,46 @@
     <string name="receipt_picker_title">Receipt Photo</string>
     <string name="receipt_review_title">Review Receipt</string>
 
+    <!-- Receipt Picker -->
+    <string name="receipt_picker_subtitle">Take or choose a receipt photo</string>
+    <string name="receipt_pick_gallery">Pick from gallery</string>
+    <string name="receipt_pick_camera">Take with camera</string>
+    <string name="receipt_scan_button">Scan Receipt</string>
+    <string name="receipt_delete_replace">Delete / replace photo</string>
+    <string name="receipt_preview_cd">Receipt photo preview</string>
+    <string name="receipt_camera_denied">Camera permission denied. Enable camera permission in Settings to take a photo.</string>
+    <string name="receipt_open_settings">Open Settings</string>
+
+    <!-- Receipt Review -->
+    <string name="receipt_scanning_title">Analyzing receipt with AI…</string>
+    <string name="receipt_scanning_desc">Reading amount, merchant, date, and items</string>
+    <string name="receipt_fallback_title">Receipt could not be read or format is not supported.</string>
+    <string name="receipt_fallback_desc">Please use manual entry or Add with AI.</string>
+    <string name="receipt_fallback_action">Manual Entry / Add with AI</string>
+    <string name="receipt_error_validation">Please complete all fields: ensure a valid amount, category and wallet are selected, and date is YYYY-MM-DD.</string>
+    <string name="receipt_error_save">Failed to save transaction. Please check the data and try again.</string>
+    <string name="receipt_error_config">API key is not configured.</string>
+    <string name="receipt_error_network">Network connection error. Check your internet connection.</string>
+    <string name="receipt_error_timeout">Request timed out. Please try again.</string>
+    <string name="receipt_error_image_large">Image file is too large.</string>
+    <string name="receipt_error_image_decode">Failed to process image file.</string>
+    <string name="receipt_error_invalid">AI response is invalid. Try scanning again.</string>
+    <string name="receipt_error_unknown">An error occurred while processing the receipt.</string>
+    <string name="receipt_field_amount">Amount (Rp)</string>
+    <string name="receipt_field_category">Category</string>
+    <string name="receipt_field_wallet">Select Wallet</string>
+    <string name="receipt_field_merchant">Merchant / Store</string>
+    <string name="receipt_field_date">Date</string>
+    <string name="receipt_field_date_hint">Format: YYYY-MM-DD</string>
+    <string name="receipt_field_date_today">Today</string>
+    <string name="receipt_field_note">Note</string>
+    <string name="receipt_date_outside_month">Note: Receipt date (%1$s) is outside the current month. Tap \'Today\' to record in the current month.</string>
+    <string name="receipt_items_title">Item List (%1$d):</string>
+    <string name="receipt_items_more">+ %1$d more items…</string>
+    <string name="receipt_save_button">Save Transaction</string>
+    <string name="receipt_saving">Saving…</string>
+    <string name="receipt_rescan">Re-scan</string>
+
     <!-- Quick AI Entry helpers -->
     <string name="ai_clear_tooltip">Clear text</string>
     <string name="ai_mic_tooltip">Speak transaction</string>

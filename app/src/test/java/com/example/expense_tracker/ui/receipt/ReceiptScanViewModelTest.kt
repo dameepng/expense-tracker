@@ -3,19 +3,30 @@ package com.example.expense_tracker.ui.receipt
 import android.net.Uri
 import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.Wallet
+import com.example.expense_tracker.data.ai.AiError
+import com.example.expense_tracker.data.ai.AiInputException
 import com.example.expense_tracker.data.ai.ParsedTransaction
 import com.example.expense_tracker.data.ai.TransactionDraftRepository
+import com.example.expense_tracker.data.ai.receipt.ReceiptImageError
+import com.example.expense_tracker.data.ai.receipt.ReceiptImageException
+import com.example.expense_tracker.data.ai.receipt.ReceiptParseError
+import com.example.expense_tracker.data.ai.receipt.ReceiptParseException
 import com.example.expense_tracker.data.ai.receipt.ReceiptRepository
 import com.example.expense_tracker.data.ai.receipt.ReceiptScanRequest
 import com.example.expense_tracker.data.ai.receipt.ReceiptTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,15 +60,20 @@ class ReceiptScanViewModelTest {
         }
     }
 
-    private class FakeDraftRepository : TransactionDraftRepository {
+    private open class FakeDraftRepository : TransactionDraftRepository {
         val categoryFlow = MutableStateFlow<List<Category>>(emptyList())
         val walletFlow = MutableStateFlow<List<Wallet>>(emptyList())
         val saved = mutableListOf<Pair<ParsedTransaction, Long>>()
+        val receiptSaved = mutableListOf<Triple<ParsedTransaction, Long, List<String>>>()
 
-        override fun getCategories() = categoryFlow
-        override fun getWallets() = walletFlow
+        override fun getCategories(): Flow<List<Category>> = categoryFlow
+        override fun getWallets(): Flow<List<Wallet>> = walletFlow
         override suspend fun save(transaction: ParsedTransaction, walletId: Long) {
             saved += transaction to walletId
+        }
+        override suspend fun saveReceipt(transaction: ParsedTransaction, walletId: Long, items: List<String>) {
+            receiptSaved += Triple(transaction, walletId, items)
+            super.saveReceipt(transaction, walletId, items)
         }
     }
 
@@ -209,5 +225,271 @@ class ReceiptScanViewModelTest {
         // draft.walletId should now be automatically backfilled with first wallet id
         assertEquals(1L, vm.uiState.value.draft?.walletId)
         assertTrue(vm.uiState.value.canSave)
+    }
+
+    @Test
+    fun `selectImage null resets to IDLE`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        assertEquals(ReceiptScanPhase.SELECTED, vm.uiState.value.phase)
+        assertEquals(mockUri, vm.uiState.value.imageUri)
+
+        vm.selectImage(null)
+        assertEquals(ReceiptScanPhase.IDLE, vm.uiState.value.phase)
+        assertNull(vm.uiState.value.imageUri)
+    }
+
+    @Test
+    fun `replaceImage delegates to selectImage`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        val otherUri = Uri.parse("content://media/other.jpg")
+        vm.replaceImage(otherUri)
+        assertEquals(ReceiptScanPhase.SELECTED, vm.uiState.value.phase)
+        assertEquals(otherUri, vm.uiState.value.imageUri)
+    }
+
+    @Test
+    fun `startScan without imageUri is a no-op`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.startScan()
+        assertEquals(ReceiptScanPhase.IDLE, vm.uiState.value.phase)
+    }
+
+    @Test
+    fun `retry rescans when imageUri is present`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val receiptRepo = FakeReceiptRepository()
+        val vm = ReceiptScanViewModel(receiptRepo, draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.retry()
+        dispatcher.scheduler.runCurrent()
+        assertEquals(ReceiptScanPhase.SUCCESS, vm.uiState.value.phase)
+    }
+
+    @Test
+    fun `scan AiInputException sets FALLBACK phase`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val receiptRepo = FakeReceiptRepository().apply {
+            throwException = AiInputException(AiError.NETWORK)
+        }
+        val vm = ReceiptScanViewModel(receiptRepo, draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        assertEquals(ReceiptScanPhase.FALLBACK, vm.uiState.value.phase)
+        assertEquals(ReceiptScanError.NETWORK, vm.uiState.value.error)
+    }
+
+    @Test
+    fun `scan ReceiptImageException TOO_LARGE sets IMAGE_TOO_LARGE error`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val receiptRepo = FakeReceiptRepository().apply {
+            throwException = ReceiptImageException(ReceiptImageError.TOO_LARGE)
+        }
+        val vm = ReceiptScanViewModel(receiptRepo, draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        assertEquals(ReceiptScanPhase.ERROR, vm.uiState.value.phase)
+        assertEquals(ReceiptScanError.IMAGE_TOO_LARGE, vm.uiState.value.error)
+    }
+
+    @Test
+    fun `scan ReceiptParseException sets FALLBACK with INVALID_RESPONSE`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val receiptRepo = FakeReceiptRepository().apply {
+            throwException = ReceiptParseException(ReceiptParseError.INVALID_RESPONSE)
+        }
+        val vm = ReceiptScanViewModel(receiptRepo, draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        assertEquals(ReceiptScanPhase.FALLBACK, vm.uiState.value.phase)
+        assertEquals(ReceiptScanError.INVALID_RESPONSE, vm.uiState.value.error)
+    }
+
+    @Test
+    fun `scan generic exception sets UNKNOWN error`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val receiptRepo = FakeReceiptRepository().apply {
+            throwException = RuntimeException("unexpected")
+        }
+        val vm = ReceiptScanViewModel(receiptRepo, draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        assertEquals(ReceiptScanPhase.ERROR, vm.uiState.value.phase)
+        assertEquals(ReceiptScanError.UNKNOWN, vm.uiState.value.error)
+    }
+
+    @Test
+    fun `fallbackToManual cancels scan and sets FALLBACK phase`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.fallbackToManual()
+        assertEquals(ReceiptScanPhase.FALLBACK, vm.uiState.value.phase)
+    }
+
+    @Test
+    fun `updateDraft clears error`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        // Force a validation error first
+        vm.updateDraft { it.copy(walletId = null) }
+        vm.save()
+        dispatcher.scheduler.runCurrent()
+        assertEquals(ReceiptScanError.VALIDATION, vm.uiState.value.error)
+
+        // Updating draft should clear the error
+        vm.updateDraft { it.copy(walletId = 1L) }
+        assertNull(vm.uiState.value.error)
+    }
+
+    @Test
+    fun `save when already saving is no-op`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        // First save
+        vm.save()
+        dispatcher.scheduler.runCurrent()
+        assertTrue(vm.uiState.value.saved)
+
+        // Second save is no-op
+        val savedCount = draftRepo.saved.size
+        vm.save()
+        dispatcher.scheduler.runCurrent()
+        assertEquals(savedCount, draftRepo.saved.size)
+    }
+
+    @Test
+    fun `save failure sets SAVE error and isSaving returns to false`() {
+        val draftRepo = object : FakeDraftRepository() {
+            var failOnSave = true
+            override suspend fun save(transaction: ParsedTransaction, walletId: Long) {
+                if (failOnSave) throw RuntimeException("DB error")
+                super.save(transaction, walletId)
+            }
+        }.apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        vm.save()
+        dispatcher.scheduler.runCurrent()
+
+        assertFalse(vm.uiState.value.isSaving)
+        assertEquals(ReceiptScanError.SAVE, vm.uiState.value.error)
+        assertFalse(vm.uiState.value.saved)
+    }
+
+    @Test
+    fun `canSave is false when amount is zero`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        vm.updateDraft { it.copy(amountText = "0") }
+        assertFalse(vm.uiState.value.canSave)
+    }
+
+    @Test
+    fun `canSave is false when categoryId not in loaded categories`() {
+        val draftRepo = FakeDraftRepository().apply {
+            categoryFlow.value = sampleCategories
+            walletFlow.value = sampleWallets
+        }
+        val vm = ReceiptScanViewModel(FakeReceiptRepository(), draftRepo, clock)
+        dispatcher.scheduler.runCurrent()
+
+        vm.selectImage(mockUri)
+        vm.startScan()
+        dispatcher.scheduler.runCurrent()
+
+        vm.updateDraft { it.copy(categoryId = 999L) }
+        assertFalse(vm.uiState.value.canSave)
     }
 }
