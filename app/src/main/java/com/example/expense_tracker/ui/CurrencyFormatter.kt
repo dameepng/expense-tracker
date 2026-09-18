@@ -4,14 +4,15 @@ import java.text.NumberFormat
 import java.util.Locale
 
 object CurrencyFormatter {
-    private var currentCurrency: String = "IDR"
-    private var format: NumberFormat = createFormat("IDR")
+    private const val DEFAULT_CURRENCY = "IDR"
+    private var currentCurrency: String = DEFAULT_CURRENCY
+    private var format: NumberFormat = createFormat(DEFAULT_CURRENCY)
 
     private fun createFormat(currency: String): NumberFormat {
         val locale = when (currency) {
             "USD" -> Locale.US
             "EUR" -> Locale.GERMANY // Using Germany as default for Euro formatting
-            else -> Locale("id", "ID")
+            else -> Locale.forLanguageTag("id-ID")
         }
         return try {
             NumberFormat.getCurrencyInstance(locale)
@@ -20,6 +21,7 @@ object CurrencyFormatter {
         }.apply { maximumFractionDigits = 0 }
     }
 
+    @Synchronized
     fun setCurrency(currency: String) {
         if (currentCurrency != currency) {
             currentCurrency = currency
@@ -27,5 +29,6 @@ object CurrencyFormatter {
         }
     }
 
+    @Synchronized
     fun format(amount: Long): String = format.format(amount)
 }
