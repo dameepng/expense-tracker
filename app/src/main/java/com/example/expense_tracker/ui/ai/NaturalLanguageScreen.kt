@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -94,6 +95,8 @@ import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.theme.spacing
 import java.time.Instant
 import java.time.ZoneId
+
+private val MAX_NL_SCREEN_WIDTH = 640.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -195,10 +198,16 @@ fun NaturalLanguageScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
         val spacing = MaterialTheme.spacing
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .widthIn(max = MAX_NL_SCREEN_WIDTH)
                 .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = spacing.screenMargin, vertical = spacing.itemGap),
@@ -462,6 +471,7 @@ fun NaturalLanguageScreen(
                     }
                 )
             }
+        }
         }
     }
 }

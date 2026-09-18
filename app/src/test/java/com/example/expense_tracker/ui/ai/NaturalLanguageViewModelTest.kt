@@ -2,7 +2,12 @@ package com.example.expense_tracker.ui.ai
 
 import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.Wallet
-import com.example.expense_tracker.data.ai.*
+import com.example.expense_tracker.data.ai.AiError
+import com.example.expense_tracker.data.ai.AiInputException
+import com.example.expense_tracker.data.ai.NaturalLanguageRepository
+import com.example.expense_tracker.data.ai.NaturalLanguageRequest
+import com.example.expense_tracker.data.ai.ParsedTransaction
+import com.example.expense_tracker.data.ai.TransactionDraftRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,7 +16,10 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.Clock
