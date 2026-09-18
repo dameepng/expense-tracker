@@ -17,7 +17,7 @@ object NaturalLanguageQuickProcessor {
         context: Context,
         text: String,
         walletId: Long? = null
-    ): Result<ParsedTransaction> = withContext(Dispatchers.IO) {
+    ): Result<List<ParsedTransaction>> = withContext(Dispatchers.IO) {
         try {
             val cleanText = text.trim()
             if (cleanText.isBlank()) {
@@ -54,33 +54,52 @@ object NaturalLanguageQuickProcessor {
                 zoneId = ZoneId.systemDefault()
             )
 
-            val parsed = aiRepo.parse(request)
+            val parsedList = aiRepo.parse(request)
+            if (parsedList.isEmpty()) {
+                return@withContext Result.failure(IllegalStateException("Tidak ada transaksi yang terdeteksi"))
+            }
 
             val draftRepo = RoomTransactionDraftRepository(database)
-            draftRepo.save(parsed, targetWalletId)
+            draftRepo.saveAll(parsedList, targetWalletId)
 
             // Build friendly notification message
-            val formattedAmount = CurrencyFormatter.format(parsed.amount)
-            val categoryName = categories.find { it.id == parsed.categoryId }?.name ?: try {
-                context.getString(R.string.nl_quick_default_category_name)
-            } catch (_: Exception) {
-                "Transaksi"
-            }
-            val merchantInfo = if (parsed.merchant.isNotBlank()) {
+            val title = if (parsedList.size > 1) {
+                "${parsedList.size} Transaksi Berhasil Dicatat! ✨"
+            } else {
                 try {
-                    " " + context.getString(R.string.nl_quick_at_merchant, parsed.merchant)
+                    context.getString(R.string.nl_quick_success)
                 } catch (_: Exception) {
-                    " di ${parsed.merchant}"
+                    "Transaksi Berhasil Dicatat! ✨"
                 }
-            } else ""
-            val noteInfo = if (parsed.note.isNotBlank()) "\n\"${parsed.note}\"" else ""
-
-            val title = try {
-                context.getString(R.string.nl_quick_success)
-            } catch (_: Exception) {
-                "Transaksi Berhasil Dicatat! ✨"
             }
-            val message = "$formattedAmount • $categoryName$merchantInfo$noteInfo"
+
+            val message = if (parsedList.size == 1) {
+                val parsed = parsedList.first()
+                val formattedAmount = CurrencyFormatter.format(parsed.amount)
+                val categoryName = categories.find { it.id == parsed.categoryId }?.name ?: try {
+                    context.getString(R.string.nl_quick_default_category_name)
+                } catch (_: Exception) {
+                    "Transaksi"
+                }
+                val merchantInfo = if (parsed.merchant.isNotBlank()) {
+                    try {
+                        " " + context.getString(R.string.nl_quick_at_merchant, parsed.merchant)
+                    } catch (_: Exception) {
+                        " di ${parsed.merchant}"
+                    }
+                } else ""
+                val noteInfo = if (parsed.note.isNotBlank()) "\n\"${parsed.note}\"" else ""
+                "$formattedAmount • $categoryName$merchantInfo$noteInfo"
+            } else {
+                val totalAmount = parsedList.sumOf { it.amount }
+                val totalFormatted = CurrencyFormatter.format(totalAmount)
+                val itemsSummary = parsedList.joinToString("\n") { p ->
+                    val merch = if (p.merchant.isNotBlank()) " di ${p.merchant}" else if (p.note.isNotBlank()) " (${p.note})" else ""
+                    "• ${CurrencyFormatter.format(p.amount)}$merch"
+                }
+                "Total: $totalFormatted\n$itemsSummary"
+            }
+
             val subText = targetWalletName
 
             // Fire real push notification to device
@@ -91,7 +110,7 @@ object NaturalLanguageQuickProcessor {
                 subText = subText
             )
 
-            Result.success(parsed)
+            Result.success(parsedList)
         } catch (e: Exception) {
             Result.failure(e)
         }

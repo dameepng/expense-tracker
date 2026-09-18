@@ -1,9 +1,14 @@
 <resources>
     <string name="ai_open_input">Catat dengan AI</string>
     <string name="ai_title">Catat dengan AI</string>
-    <string name="ai_intro">Ceritakan satu transaksi (pengeluaran atau pemasukan). Periksa hasilnya, lalu simpan setelah semuanya sesuai.</string>
+    <string name="ai_intro">Ceritakan transaksi pengeluaran atau pemasukan (bisa sekaligus banyak). Periksa hasilnya, lalu simpan setelah semuanya sesuai.</string>
     <string name="ai_sentence_label">Kalimat transaksimu</string>
-    <string name="ai_sentence_example">makan siang di warteg 25rb atau gajian kantor 5.7jt</string>
+    <string name="ai_sentence_example">jajan sushi tei 500rb lalu jajan tizi 100rb lalu beli bensin 100rb</string>
+    <string name="ai_multiple_found">Ditemukan %1$d Transaksi</string>
+    <string name="ai_save_all">Simpan Semua Transaksi (%1$d)</string>
+    <string name="ai_delete_draft">Hapus transaksi ini</string>
+    <string name="ai_item_number">Transaksi #%1$d</string>
+    <string name="ai_total_preview">Total: %1$s</string>
     <string name="ai_character_count">%1$d / 1000 karakter</string>
     <string name="ai_transmission_note">Saat mengetuk Proses dengan AI, kalimat ini, daftar kategori, serta tanggal dan zona waktu perangkat dikirim ke Claude (Anthropic) untuk diproses.</string>
     <string name="ai_parse">Proses dengan AI</string>
@@ -33,7 +38,7 @@
     <string name="ai_error_authentication">Akses Claude ditolak. Konfigurasi akses AI perlu diperiksa. Kamu tetap bisa mengisi secara manual.</string>
     <string name="ai_error_service">Layanan AI sedang tidak tersedia. Coba lagi nanti atau isi secara manual.</string>
     <string name="ai_error_invalid_response">Hasil AI tidak dapat dibaca atau tidak sesuai dengan kategori dan format transaksi. Perjelas kalimat lalu proses ulang, atau isi secara manual.</string>
-    <string name="ai_error_invalid_input">Tulis satu transaksi dengan nominal yang jelas, maksimal 1000 karakter.</string>
+    <string name="ai_error_invalid_input">Tulis transaksi dengan nominal yang jelas, maksimal 1000 karakter.</string>
     <string name="ai_error_initialization">Kategori atau dompet gagal dimuat. Muat ulang untuk melanjutkan.</string>
     <string name="ai_error_save">Transaksi gagal disimpan. Periksa data dan dompet, lalu ketuk Konfirmasi &amp; simpan lagi.</string>
     <string name="ai_retry_load">Muat ulang</string>

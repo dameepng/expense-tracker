@@ -196,7 +196,7 @@ fun NaturalLanguageQuickSheet(
     var inputText by remember { mutableStateOf("") }
     var isProcessing by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var successResult by remember { mutableStateOf<ParsedTransaction?>(null) }
+    var successResult by remember { mutableStateOf<List<ParsedTransaction>?>(null) }
 
     // Load available wallets from Room
     val database = remember { AppDatabase.getInstance(context) }
@@ -263,7 +263,8 @@ fun NaturalLanguageQuickSheet(
     LaunchedEffect(successResult) {
         if (successResult != null) {
             onSuccessHaptic()
-            delay(1400)
+            val dismissDelay = if ((successResult?.size ?: 1) > 1) 2200L else 1400L
+            delay(dismissDelay)
             onDismiss()
         }
     }
@@ -377,56 +378,133 @@ fun NaturalLanguageQuickSheet(
 
             // SUCCESS STATE
             if (successResult != null) {
-                val parsed = successResult!!
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color(0xFF0F291E))
-                        .border(1.dp, Color(0xFF10B981).copy(alpha = 0.5f), RoundedCornerShape(18.dp))
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = Color(0xFF10B981),
-                        modifier = Modifier.size(44.dp)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.nl_quick_success),
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 17.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    val amountFormatted = CurrencyFormatter.format(parsed.amount)
-                    val merchantSuffix = if (parsed.merchant.isNotBlank()) {
-                        " " + stringResource(R.string.nl_quick_at_merchant, parsed.merchant)
-                    } else ""
-                    Text(
-                        text = "$amountFormatted$merchantSuffix",
-                        color = Color(0xFFE2E8F0),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp
-                    )
-                    if (parsed.note.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(2.dp))
+                val list = successResult!!
+                if (list.size == 1) {
+                    val parsed = list.first()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color(0xFF0F291E))
+                            .border(1.dp, Color(0xFF10B981).copy(alpha = 0.5f), RoundedCornerShape(18.dp))
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color(0xFF10B981),
+                            modifier = Modifier.size(44.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "\"${parsed.note}\"",
-                            color = Color(0xFF94A3B8),
-                            fontSize = 13.sp,
+                            text = stringResource(R.string.nl_quick_success),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp,
                             textAlign = TextAlign.Center
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        val amountFormatted = CurrencyFormatter.format(parsed.amount)
+                        val merchantSuffix = if (parsed.merchant.isNotBlank()) {
+                            " " + stringResource(R.string.nl_quick_at_merchant, parsed.merchant)
+                        } else ""
+                        Text(
+                            text = "$amountFormatted$merchantSuffix",
+                            color = Color(0xFFE2E8F0),
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp
+                        )
+                        if (parsed.note.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "\"${parsed.note}\"",
+                                color = Color(0xFF94A3B8),
+                                fontSize = 13.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.nl_quick_notification_sent),
+                            color = Color(0xFF34D399),
+                            fontSize = 12.sp
+                        )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.nl_quick_notification_sent),
-                        color = Color(0xFF34D399),
-                        fontSize = 12.sp
-                    )
+                } else {
+                    // Multi-transaction success summary
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color(0xFF0F291E))
+                            .border(1.dp, Color(0xFF10B981).copy(alpha = 0.5f), RoundedCornerShape(18.dp))
+                            .padding(18.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color(0xFF10B981),
+                            modifier = Modifier.size(42.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "${list.size} Transaksi Berhasil Dicatat! ✨",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Total: " + CurrencyFormatter.format(list.sumOf { it.amount }),
+                            color = Color(0xFFE2E8F0),
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 15.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF081811))
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            list.forEach { p ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    val label = if (p.merchant.isNotBlank()) p.merchant else p.note.ifBlank { "Transaksi" }
+                                    Text(
+                                        text = "• $label",
+                                        color = Color(0xFFCBD5E1),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = CurrencyFormatter.format(p.amount),
+                                        color = Color(0xFF34D399),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.nl_quick_notification_sent),
+                            color = Color(0xFF34D399),
+                            fontSize = 12.sp
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             } else {

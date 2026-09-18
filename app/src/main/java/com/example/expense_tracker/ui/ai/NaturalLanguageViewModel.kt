@@ -46,7 +46,7 @@ class NaturalLanguageViewModel(
                             categories = categories,
                             wallets = wallets,
                             isInitializing = false,
-                            draft = state.draft?.let { draft ->
+                            drafts = state.drafts.map { draft ->
                                 draft.copy(walletId = draft.walletId ?: wallets.singleOrNull()?.id)
                             }
                         )
@@ -65,7 +65,7 @@ class NaturalLanguageViewModel(
     fun onInputChange(text: String) {
         if (_uiState.value.isSaving || _uiState.value.saved) return
         cancelParsing()
-        _uiState.update { it.copy(inputText = text.take(1000), draft = null, error = null) }
+        _uiState.update { it.copy(inputText = text.take(1000), drafts = emptyList(), error = null) }
     }
 
     fun parse() {
@@ -73,21 +73,26 @@ class NaturalLanguageViewModel(
         if (!state.canParse) return
         val clock = clockProvider()
         val request = NaturalLanguageRequest(state.inputText.trim(), state.categories, LocalDate.now(clock), clock.zone)
-        _uiState.update { it.copy(isParsing = true, error = null, draft = null) }
+        _uiState.update { it.copy(isParsing = true, error = null, drafts = emptyList()) }
         parseJob = viewModelScope.launch {
             try {
-                val result = aiRepository.parse(request)
+                val results = aiRepository.parse(request)
                 coroutineContext.ensureActive()
                 _uiState.update { current ->
                     current.copy(
                         isParsing = false,
-                        draft = TransactionDraft(
-                            amountText = result.amount.toString(), categoryId = result.categoryId,
-                            merchant = result.merchant, dateText = result.date.toString(),
-                            note = result.note, isRecurring = result.isRecurring,
-                            walletId = current.wallets.singleOrNull()?.id,
-                            type = result.type
-                        )
+                        drafts = results.map { result ->
+                            TransactionDraft(
+                                amountText = result.amount.toString(),
+                                categoryId = result.categoryId,
+                                merchant = result.merchant,
+                                dateText = result.date.toString(),
+                                note = result.note,
+                                isRecurring = result.isRecurring,
+                                walletId = current.wallets.singleOrNull()?.id,
+                                type = result.type
+                            )
+                        }
                     )
                 }
             } catch (cancelled: CancellationException) {
@@ -108,11 +113,13 @@ class NaturalLanguageViewModel(
         _uiState.update { it.copy(isParsing = false) }
     }
 
-    fun updateDraft(transform: (TransactionDraft) -> TransactionDraft) {
+    fun updateDraft(index: Int = 0, transform: (TransactionDraft) -> TransactionDraft) {
         val state = _uiState.value
         if (state.isSaving || state.isParsing || state.saved) return
+        if (index !in state.drafts.indices) return
         _uiState.update { current ->
-            val initial = current.draft ?: return@update current
+            val updatedDrafts = current.drafts.toMutableList()
+            val initial = updatedDrafts[index]
             val updated = transform(initial)
             val finalDraft = if (updated.type != initial.type) {
                 val isCategoryCompatible = current.categories.any {
@@ -120,7 +127,19 @@ class NaturalLanguageViewModel(
                 }
                 if (!isCategoryCompatible) updated.copy(categoryId = null) else updated
             } else updated
-            current.copy(draft = finalDraft, error = null)
+            updatedDrafts[index] = finalDraft
+            current.copy(drafts = updatedDrafts, error = null)
+        }
+    }
+
+    fun removeDraft(index: Int) {
+        val state = _uiState.value
+        if (state.isSaving || state.isParsing || state.saved) return
+        if (index !in state.drafts.indices) return
+        _uiState.update { current ->
+            val updatedDrafts = current.drafts.toMutableList()
+            updatedDrafts.removeAt(index)
+            current.copy(drafts = updatedDrafts, error = null)
         }
     }
 
@@ -131,17 +150,22 @@ class NaturalLanguageViewModel(
             _uiState.update { it.copy(error = AiUiError.VALIDATION) }
             return
         }
-        val draft = requireNotNull(state.draft)
-        val transaction = ParsedTransaction(
-            amount = draft.amountText.toLong(), categoryId = requireNotNull(draft.categoryId),
-            merchant = draft.merchant.trim(), date = requireNotNull(draft.parsedDate()),
-            note = draft.note.trim(), isRecurring = draft.isRecurring,
-            type = draft.type
-        )
+        val pairs = state.drafts.map { draft ->
+            val transaction = ParsedTransaction(
+                amount = draft.amountText.toLong(),
+                categoryId = requireNotNull(draft.categoryId),
+                merchant = draft.merchant.trim(),
+                date = requireNotNull(draft.parsedDate()),
+                note = draft.note.trim(),
+                isRecurring = draft.isRecurring,
+                type = draft.type
+            )
+            transaction to requireNotNull(draft.walletId)
+        }
         _uiState.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
             try {
-                draftRepository.save(transaction, requireNotNull(draft.walletId))
+                draftRepository.saveAllWithWallets(pairs)
                 _uiState.update { it.copy(isSaving = false, saved = true) }
             } catch (cancelled: CancellationException) {
                 throw cancelled

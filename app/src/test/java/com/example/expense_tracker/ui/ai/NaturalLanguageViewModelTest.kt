@@ -39,6 +39,11 @@ class NaturalLanguageViewModelTest {
             if (failSave) error("disk error")
             saved += transaction to walletId
         }
+        override suspend fun saveAllWithWallets(transactions: List<Pair<ParsedTransaction, Long>>) {
+            saveGate?.await()
+            if (failSave) error("disk error")
+            saved += transactions
+        }
     }
 
     private fun viewModel(
@@ -46,7 +51,7 @@ class NaturalLanguageViewModelTest {
         parse: suspend (NaturalLanguageRequest) -> ParsedTransaction = { parsed }
     ): NaturalLanguageViewModel = NaturalLanguageViewModel(
         object : NaturalLanguageRepository {
-            override suspend fun parse(request: NaturalLanguageRequest) = parse.invoke(request)
+            override suspend fun parse(request: NaturalLanguageRequest) = listOf(parse.invoke(request))
         }, repository, { clock }
     ).also { dispatcher.scheduler.runCurrent() }
 
@@ -185,5 +190,47 @@ class NaturalLanguageViewModelTest {
         dispatcher.scheduler.runCurrent()
         assertEquals("INCOME", repo.saved.single().first.type)
         assertEquals(5729860L, repo.saved.single().first.amount)
+    }
+
+    @Test fun `multiple transactions are parsed, editable individually, removable, and saved in batch`() {
+        val t1 = ParsedTransaction(500000, 1, "Sushi Tei", LocalDate.of(2026, 9, 10), "jajan", false)
+        val t2 = ParsedTransaction(100000, 1, "Tizi", LocalDate.of(2026, 9, 10), "jajan", false)
+        val t3 = ParsedTransaction(100000, 2, "SPBU", LocalDate.of(2026, 9, 10), "bensin", false)
+        val repo = FakeDraftRepository()
+        val vm = NaturalLanguageViewModel(
+            object : NaturalLanguageRepository {
+                override suspend fun parse(request: NaturalLanguageRequest) = listOf(t1, t2, t3)
+            }, repo, { clock }
+        ).also { dispatcher.scheduler.runCurrent() }
+
+        vm.onInputChange("jajan sushi tei 500rb lalu jajan tizi 100rb lalu beli bensin 100rb")
+        vm.parse()
+        dispatcher.scheduler.runCurrent()
+
+        assertEquals(3, vm.uiState.value.drafts.size)
+        assertEquals("Sushi Tei", vm.uiState.value.drafts[0].merchant)
+        assertEquals("Tizi", vm.uiState.value.drafts[1].merchant)
+        assertEquals("SPBU", vm.uiState.value.drafts[2].merchant)
+        assertTrue(vm.uiState.value.canSave)
+
+        // Edit second draft
+        vm.updateDraft(index = 1) { it.copy(merchant = "Tizi Bakery", amountText = "120000") }
+        assertEquals("Tizi Bakery", vm.uiState.value.drafts[1].merchant)
+        assertEquals("120000", vm.uiState.value.drafts[1].amountText)
+
+        // Remove third draft
+        vm.removeDraft(index = 2)
+        assertEquals(2, vm.uiState.value.drafts.size)
+
+        // Save remaining 2 drafts
+        vm.save()
+        dispatcher.scheduler.runCurrent()
+
+        assertTrue(vm.uiState.value.saved)
+        assertEquals(2, repo.saved.size)
+        assertEquals(500000L, repo.saved[0].first.amount)
+        assertEquals("Sushi Tei", repo.saved[0].first.merchant)
+        assertEquals(120000L, repo.saved[1].first.amount)
+        assertEquals("Tizi Bakery", repo.saved[1].first.merchant)
     }
 }

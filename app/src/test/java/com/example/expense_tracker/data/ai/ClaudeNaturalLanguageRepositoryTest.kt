@@ -51,8 +51,8 @@ class ClaudeNaturalLanguageRepositoryTest {
         val categoryNames = context["categories"].asJsonArray.map { it.asJsonObject["name"].asString }
         assertEquals(listOf("Makanan", "Lainnya", "Gaji"), categoryNames)
         assertTrue(context["categories"].toString().contains("Gaji"))
-        assertEquals(25000L, result.amount)
-        assertEquals(LocalDate.of(2025, 12, 31), result.date)
+        assertEquals(25000L, result.single().amount)
+        assertEquals(LocalDate.of(2025, 12, 31), result.single().date)
     }
 
     @Test

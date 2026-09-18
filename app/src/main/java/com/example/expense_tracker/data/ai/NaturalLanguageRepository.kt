@@ -23,7 +23,8 @@ data class ParsedTransaction(
 )
 
 interface NaturalLanguageRepository {
-    suspend fun parse(request: NaturalLanguageRequest): ParsedTransaction
+    suspend fun parse(request: NaturalLanguageRequest): List<ParsedTransaction>
+    suspend fun parseSingle(request: NaturalLanguageRequest): ParsedTransaction = parse(request).first()
 }
 
 enum class AiError {

@@ -25,6 +25,14 @@ data class TransactionDraft(
     fun parsedDate(): LocalDate? = if (dateText.matches(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}"))) {
         runCatching { LocalDate.parse(dateText) }.getOrNull()?.takeIf { it.year in 1..9999 }
     } else null
+
+    fun isValid(categories: List<Category>, wallets: List<Wallet>): Boolean {
+        val amount = amountText.toLongOrNull() ?: 0
+        return amount > 0 && parsedDate() != null &&
+            merchant.length <= 200 && note.length <= 1000 &&
+            categories.any { category -> category.id == categoryId && (category.type == type || category.type == "BOTH") } &&
+            wallets.any { wallet -> wallet.id == walletId }
+    }
 }
 
 @Immutable
@@ -35,19 +43,18 @@ data class NaturalLanguageUiState(
     val isInitializing: Boolean = true,
     val isParsing: Boolean = false,
     val isSaving: Boolean = false,
-    val draft: TransactionDraft? = null,
+    val drafts: List<TransactionDraft> = emptyList(),
     val error: AiUiError? = null,
     val saved: Boolean = false
 ) {
+    val draft: TransactionDraft? get() = drafts.firstOrNull()
+
     val canParse: Boolean
         get() = !isInitializing && !isParsing && !isSaving && !saved &&
             inputText.isNotBlank() && inputText.length <= 1000 && categories.isNotEmpty()
 
     val canSave: Boolean
-        get() = !isInitializing && !isParsing && !isSaving && !saved && draft?.let {
-            (it.amountText.toLongOrNull() ?: 0) > 0 && it.parsedDate() != null &&
-                it.merchant.length <= 200 && it.note.length <= 1000 &&
-                categories.any { category -> category.id == it.categoryId && (category.type == it.type || category.type == "BOTH") } &&
-                wallets.any { wallet -> wallet.id == it.walletId }
-        } == true
+        get() = !isInitializing && !isParsing && !isSaving && !saved && drafts.isNotEmpty() && drafts.all {
+            it.isValid(categories, wallets)
+        }
 }

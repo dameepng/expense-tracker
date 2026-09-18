@@ -31,6 +31,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
@@ -89,6 +90,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.TransactionType
+import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.theme.spacing
 import java.time.Instant
 import java.time.ZoneId
@@ -343,7 +345,7 @@ fun NaturalLanguageScreen(
                                 stringResource(
                                     when {
                                         state.isParsing -> R.string.ai_parsing
-                                        state.draft != null || state.error != null -> R.string.ai_parse_again
+                                        state.drafts.isNotEmpty() || state.error != null -> R.string.ai_parse_again
                                         else -> R.string.ai_parse
                                     }
                                 ),
@@ -436,12 +438,24 @@ fun NaturalLanguageScreen(
                 AiErrorCard(error = error, onRetryLoad = viewModel::retryLoad)
             }
 
-            state.draft?.let { draft ->
+            if (state.drafts.size == 1) {
                 TransactionPreview(
                     state = state,
-                    draft = draft,
+                    draft = state.drafts.first(),
+                    enabled = editingEnabled,
+                    onDraftChange = { transform -> viewModel.updateDraft(0, transform) },
+                    onSave = {
+                        keyboard?.hide()
+                        viewModel.save()
+                    }
+                )
+            } else if (state.drafts.size > 1) {
+                MultiTransactionPreview(
+                    state = state,
+                    drafts = state.drafts,
                     enabled = editingEnabled,
                     onDraftChange = viewModel::updateDraft,
+                    onRemoveDraft = viewModel::removeDraft,
                     onSave = {
                         keyboard?.hide()
                         viewModel.save()
@@ -452,7 +466,167 @@ fun NaturalLanguageScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MultiTransactionPreview(
+    state: NaturalLanguageUiState,
+    drafts: List<TransactionDraft>,
+    enabled: Boolean,
+    onDraftChange: (Int, (TransactionDraft) -> TransactionDraft) -> Unit,
+    onRemoveDraft: (Int) -> Unit,
+    onSave: () -> Unit
+) {
+    val previewStart = remember { BringIntoViewRequester() }
+    val haptic = LocalHapticFeedback.current
+    LaunchedEffect(Unit) {
+        withFrameNanos { }
+        previewStart.bringIntoView()
+    }
+    val spacing = MaterialTheme.spacing
+    val totalAmount = drafts.sumOf { it.amountText.toLongOrNull() ?: 0L }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(previewStart),
+        verticalArrangement = Arrangement.spacedBy(spacing.sectionGap)
+    ) {
+        // Summary Header Card
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.ai_multiple_found, drafts.size),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.ai_total_preview, CurrencyFormatter.format(totalAmount)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+
+        // Each Transaction Card
+        drafts.forEachIndexed { index, draft ->
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(spacing.cardPadding),
+                    verticalArrangement = Arrangement.spacedBy(spacing.itemGap)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.ai_item_number, index + 1),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        IconButton(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onRemoveDraft(index)
+                            },
+                            enabled = enabled
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.ai_delete_draft),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+
+                    TransactionDraftFields(
+                        state = state,
+                        draft = draft,
+                        enabled = enabled,
+                        onDraftChange = { transform -> onDraftChange(index, transform) }
+                    )
+                }
+            }
+        }
+
+        if (!state.canSave && !state.isSaving && !state.isParsing && !state.saved) {
+            Text(
+                stringResource(R.string.ai_validation_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+
+        // Confirm & Save All Button
+        Button(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onSave()
+            },
+            enabled = state.canSave,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (state.isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                Text(
+                    stringResource(
+                        if (state.isSaving) R.string.ai_saving else R.string.ai_save_all,
+                        drafts.size
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun TransactionPreview(
     state: NaturalLanguageUiState,
@@ -493,193 +667,12 @@ private fun TransactionPreview(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // Segmented Button (Pengeluaran vs Pemasukan)
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                val isExpense = draft.type == TransactionType.EXPENSE.name
-                SegmentedButton(
-                    selected = isExpense,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onDraftChange { it.copy(type = TransactionType.EXPENSE.name) }
-                    },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                    enabled = enabled
-                ) {
-                    Text(stringResource(R.string.transaction_expense))
-                }
-                SegmentedButton(
-                    selected = !isExpense,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onDraftChange { it.copy(type = TransactionType.INCOME.name) }
-                    },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                    enabled = enabled
-                ) {
-                    Text(stringResource(R.string.transaction_income))
-                }
-            }
-
-            // Amount field with prefix
-            OutlinedTextField(
-                value = draft.amountText,
-                onValueChange = { text -> onDraftChange { it.copy(amountText = text) } },
+            TransactionDraftFields(
+                state = state,
+                draft = draft,
                 enabled = enabled,
-                label = { Text(stringResource(R.string.ai_amount)) },
-                prefix = {
-                    Text(
-                        "Rp ",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                },
-                supportingText = { Text(stringResource(R.string.ai_amount_hint)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
+                onDraftChange = onDraftChange
             )
-
-            // Category choice dropdown
-            val categoryChoices = state.categories
-                .filter { it.type == draft.type || it.type == "BOTH" }
-                .map { it.id to it.name }
-            AiChoiceDropdown(
-                label = stringResource(R.string.category),
-                selectedId = draft.categoryId,
-                choices = categoryChoices,
-                enabled = enabled,
-                onSelect = { id -> onDraftChange { it.copy(categoryId = id) } }
-            )
-
-            // Wallet choice dropdown
-            AiChoiceDropdown(
-                label = stringResource(R.string.input_choose_wallet),
-                selectedId = draft.walletId,
-                choices = state.wallets.map { it.id to it.name },
-                enabled = enabled,
-                onSelect = { id -> onDraftChange { it.copy(walletId = id) } }
-            )
-
-            // Merchant field
-            OutlinedTextField(
-                value = draft.merchant,
-                onValueChange = { text -> onDraftChange { it.copy(merchant = text) } },
-                enabled = enabled,
-                label = { Text(stringResource(R.string.ai_merchant)) },
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Date picker
-            var showDatePicker by remember { mutableStateOf(false) }
-
-            if (showDatePicker) {
-                val initialMillis = try {
-                    draft.parsedDate()?.atStartOfDay(ZoneId.of("UTC"))?.toInstant()?.toEpochMilli()
-                        ?: System.currentTimeMillis()
-                } catch (_: Exception) {
-                    System.currentTimeMillis()
-                }
-                val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
-                DatePickerDialog(
-                    onDismissRequest = { showDatePicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            datePickerState.selectedDateMillis?.let { millis ->
-                                val selectedDate = Instant.ofEpochMilli(millis)
-                                    .atZone(ZoneId.of("UTC"))
-                                    .toLocalDate()
-                                onDraftChange { it.copy(dateText = selectedDate.toString()) }
-                            }
-                            showDatePicker = false
-                        }) {
-                            Text(stringResource(R.string.ok))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDatePicker = false }) {
-                            Text(stringResource(R.string.cancel))
-                        }
-                    }
-                ) {
-                    DatePicker(state = datePickerState)
-                }
-            }
-
-            OutlinedTextField(
-                value = draft.dateText,
-                onValueChange = { text -> onDraftChange { it.copy(dateText = text) } },
-                enabled = enabled,
-                label = { Text(stringResource(R.string.ai_date)) },
-                supportingText = { Text(stringResource(R.string.ai_date_hint)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
-                trailingIcon = {
-                    IconButton(
-                        onClick = { showDatePicker = true },
-                        enabled = enabled
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = stringResource(R.string.choose_date)
-                        )
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Note field
-            OutlinedTextField(
-                value = draft.note,
-                onValueChange = { text -> onDraftChange { it.copy(note = text) } },
-                enabled = enabled,
-                label = { Text(stringResource(R.string.ai_note)) },
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                minLines = 2,
-                maxLines = 4,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Recurring toggle
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.4f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .toggleable(
-                        value = draft.isRecurring,
-                        enabled = enabled,
-                        role = Role.Switch,
-                        onValueChange = { checked ->
-                            onDraftChange { it.copy(isRecurring = checked) }
-                        }
-                    )
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.ai_recurring),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            stringResource(R.string.ai_recurring_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(checked = draft.isRecurring, onCheckedChange = null, enabled = enabled)
-                }
-            }
 
             if (!state.canSave && !state.isSaving && !state.isParsing && !state.saved) {
                 Text(
@@ -721,6 +714,205 @@ private fun TransactionPreview(
                     )
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TransactionDraftFields(
+    state: NaturalLanguageUiState,
+    draft: TransactionDraft,
+    enabled: Boolean,
+    onDraftChange: ((TransactionDraft) -> TransactionDraft) -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+
+    // Segmented Button (Pengeluaran vs Pemasukan)
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+        val isExpense = draft.type == TransactionType.EXPENSE.name
+        SegmentedButton(
+            selected = isExpense,
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onDraftChange { it.copy(type = TransactionType.EXPENSE.name) }
+            },
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+            enabled = enabled
+        ) {
+            Text(stringResource(R.string.transaction_expense))
+        }
+        SegmentedButton(
+            selected = !isExpense,
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onDraftChange { it.copy(type = TransactionType.INCOME.name) }
+            },
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            enabled = enabled
+        ) {
+            Text(stringResource(R.string.transaction_income))
+        }
+    }
+
+    // Amount field with prefix
+    OutlinedTextField(
+        value = draft.amountText,
+        onValueChange = { text -> onDraftChange { it.copy(amountText = text) } },
+        enabled = enabled,
+        label = { Text(stringResource(R.string.ai_amount)) },
+        prefix = {
+            Text(
+                "Rp ",
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        },
+        supportingText = { Text(stringResource(R.string.ai_amount_hint)) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    // Category choice dropdown
+    val categoryChoices = state.categories
+        .filter { it.type == draft.type || it.type == "BOTH" }
+        .map { it.id to it.name }
+    AiChoiceDropdown(
+        label = stringResource(R.string.category),
+        selectedId = draft.categoryId,
+        choices = categoryChoices,
+        enabled = enabled,
+        onSelect = { id -> onDraftChange { it.copy(categoryId = id) } }
+    )
+
+    // Wallet choice dropdown
+    AiChoiceDropdown(
+        label = stringResource(R.string.input_choose_wallet),
+        selectedId = draft.walletId,
+        choices = state.wallets.map { it.id to it.name },
+        enabled = enabled,
+        onSelect = { id -> onDraftChange { it.copy(walletId = id) } }
+    )
+
+    // Merchant field
+    OutlinedTextField(
+        value = draft.merchant,
+        onValueChange = { text -> onDraftChange { it.copy(merchant = text) } },
+        enabled = enabled,
+        label = { Text(stringResource(R.string.ai_merchant)) },
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    // Date picker
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        val initialMillis = try {
+            draft.parsedDate()?.atStartOfDay(ZoneId.of("UTC"))?.toInstant()?.toEpochMilli()
+                ?: System.currentTimeMillis()
+        } catch (_: Exception) {
+            System.currentTimeMillis()
+        }
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val selectedDate = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.of("UTC"))
+                            .toLocalDate()
+                        onDraftChange { it.copy(dateText = selectedDate.toString()) }
+                    }
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    OutlinedTextField(
+        value = draft.dateText,
+        onValueChange = { text -> onDraftChange { it.copy(dateText = text) } },
+        enabled = enabled,
+        label = { Text(stringResource(R.string.ai_date)) },
+        supportingText = { Text(stringResource(R.string.ai_date_hint)) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+        trailingIcon = {
+            IconButton(
+                onClick = { showDatePicker = true },
+                enabled = enabled
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = stringResource(R.string.choose_date)
+                )
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    // Note field
+    OutlinedTextField(
+        value = draft.note,
+        onValueChange = { text -> onDraftChange { it.copy(note = text) } },
+        enabled = enabled,
+        label = { Text(stringResource(R.string.ai_note)) },
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        minLines = 2,
+        maxLines = 4,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    // Recurring toggle
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.4f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(
+                value = draft.isRecurring,
+                enabled = enabled,
+                role = Role.Switch,
+                onValueChange = { checked ->
+                    onDraftChange { it.copy(isRecurring = checked) }
+                }
+            )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.ai_recurring),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    stringResource(R.string.ai_recurring_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(checked = draft.isRecurring, onCheckedChange = null, enabled = enabled)
         }
     }
 }

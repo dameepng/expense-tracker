@@ -1,9 +1,14 @@
 <resources>
     <string name="ai_open_input">Add with AI</string>
     <string name="ai_title">Add with AI</string>
-    <string name="ai_intro">Describe one transaction (expense or income). Review the result, then save when everything looks right.</string>
+    <string name="ai_intro">Describe one or multiple transactions (expenses or incomes). Review the result, then save when everything looks right.</string>
     <string name="ai_sentence_label">Your transaction</string>
-    <string name="ai_sentence_example">lunch at warteg 25k or monthly salary 5.7m</string>
+    <string name="ai_sentence_example">lunch at warteg 25k and petrol 50k</string>
+    <string name="ai_multiple_found">Found %1$d Transactions</string>
+    <string name="ai_save_all">Save All Transactions (%1$d)</string>
+    <string name="ai_delete_draft">Delete this transaction</string>
+    <string name="ai_item_number">Transaction #%1$d</string>
+    <string name="ai_total_preview">Total: %1$s</string>
     <string name="ai_character_count">%1$d / 1000 characters</string>
     <string name="ai_transmission_note">When you tap Parse with AI, this sentence, your category list, and the device date and time zone are sent to Claude (Anthropic) for processing.</string>
     <string name="ai_parse">Parse with AI</string>
@@ -33,7 +38,7 @@
     <string name="ai_error_authentication">Claude access was denied. The AI access configuration needs to be checked. You can still enter the transaction manually.</string>
     <string name="ai_error_service">The AI service is unavailable. Try again later or enter the transaction manually.</string>
     <string name="ai_error_invalid_response">The AI result could not be read or did not match the transaction format and available categories. Clarify the sentence and parse again, or enter the transaction manually.</string>
-    <string name="ai_error_invalid_input">Describe one transaction with a clear amount, using at most 1000 characters.</string>
+    <string name="ai_error_invalid_input">Describe transactions with a clear amount, using at most 1000 characters.</string>
     <string name="ai_error_initialization">Categories or wallets could not be loaded. Reload to continue.</string>
     <string name="ai_error_save">The transaction could not be saved. Check the fields and wallet, then tap Confirm &amp; save again.</string>
     <string name="ai_retry_load">Reload</string>
