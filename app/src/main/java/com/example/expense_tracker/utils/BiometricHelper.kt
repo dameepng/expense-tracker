@@ -7,6 +7,9 @@ import androidx.fragment.app.FragmentActivity
 
 object BiometricHelper {
 
+    private const val ALLOWED_AUTHENTICATORS = 
+        BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+
     fun authenticate(
         activity: FragmentActivity,
         title: String = "Autentikasi Diperlukan",
@@ -15,30 +18,37 @@ object BiometricHelper {
         onError: (String) -> Unit
     ) {
         val biometricManager = BiometricManager.from(activity)
-        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)) {
-            BiometricManager.BIOMETRIC_SUCCESS -> {
-                // Biometric is available
-            }
-            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
-                onError("Hardware biometrik tidak tersedia")
-                return
-            }
-            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-                onError("Hardware biometrik sedang tidak bisa digunakan")
-                return
-            }
-            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                onError("Anda belum mendaftarkan biometrik/PIN di perangkat ini")
-                return
-            }
-            else -> {
-                onError("Fitur biometrik tidak didukung")
-                return
-            }
+        val availabilityError = checkBiometricAvailability(biometricManager)
+        if (availabilityError != null) {
+            onError(availabilityError)
+            return
         }
 
+        val biometricPrompt = createBiometricPrompt(activity, onSuccess, onError)
+        val promptInfo = createPromptInfo(title, subtitle)
+
+        biometricPrompt.authenticate(promptInfo)
+    }
+
+    private fun checkBiometricAvailability(biometricManager: BiometricManager): String? {
+        return when (biometricManager.canAuthenticate(ALLOWED_AUTHENTICATORS)) {
+            BiometricManager.BIOMETRIC_SUCCESS -> null
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> "Hardware biometrik tidak tersedia"
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> "Hardware biometrik sedang tidak bisa digunakan"
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> "Anda belum mendaftarkan biometrik/PIN di perangkat ini"
+            else -> "Fitur biometrik tidak didukung"
+        }
+    }
+
+    private fun createBiometricPrompt(
+        activity: FragmentActivity,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ): BiometricPrompt {
         val executor = ContextCompat.getMainExecutor(activity)
-        val biometricPrompt = BiometricPrompt(activity, executor,
+        return BiometricPrompt(
+            activity,
+            executor,
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
@@ -49,15 +59,15 @@ object BiometricHelper {
                     super.onAuthenticationSucceeded(result)
                     onSuccess()
                 }
+            }
+        )
+    }
 
-            })
-
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+    private fun createPromptInfo(title: String, subtitle: String): BiometricPrompt.PromptInfo {
+        return BiometricPrompt.PromptInfo.Builder()
             .setTitle(title)
             .setSubtitle(subtitle)
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .setAllowedAuthenticators(ALLOWED_AUTHENTICATORS)
             .build()
-
-        biometricPrompt.authenticate(promptInfo)
     }
 }
