@@ -1,7 +1,12 @@
 package com.example.expense_tracker.ui.profile
 
 import android.content.Intent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,61 +21,67 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import com.example.expense_tracker.ui.theme.spacing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.foundation.clickable
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
+import coil.compose.AsyncImage
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import com.example.expense_tracker.R
+import com.example.expense_tracker.ui.theme.spacing
+import com.example.expense_tracker.utils.BiometricHelper
+
+private val MAX_PROFILE_CONTENT_WIDTH = 680.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,6 +102,21 @@ fun ProfileScreen(
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
+
+    val authenticateBiometrics: (onSuccess: () -> Unit) -> Unit = { onSuccess ->
+        val fragmentActivity = context as? FragmentActivity
+        if (fragmentActivity != null) {
+            BiometricHelper.authenticate(
+                activity = fragmentActivity,
+                onSuccess = onSuccess,
+                onError = { error ->
+                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+            Toast.makeText(context, "FragmentActivity not found", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     if (showEditProfileDialog) {
         EditProfileDialog(
@@ -166,7 +192,7 @@ fun ProfileScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 680.dp),
+                    .widthIn(max = MAX_PROFILE_CONTENT_WIDTH),
                 contentPadding = PaddingValues(bottom = 96.dp)
             ) {
             item {
@@ -245,38 +271,16 @@ fun ProfileScreen(
                         title = stringResource(R.string.profile_screen_lock),
                         subtitle = "Biometric / PIN",
                         onClick = { 
-                            val fragmentActivity = context as? androidx.fragment.app.FragmentActivity
-                            if (fragmentActivity != null) {
-                                com.example.expense_tracker.utils.BiometricHelper.authenticate(
-                                    activity = fragmentActivity,
-                                    onSuccess = {
-                                        viewModel.setBiometricsEnabled(!uiState.isBiometricsEnabled)
-                                    },
-                                    onError = { error ->
-                                        android.widget.Toast.makeText(context, error, android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                )
-                            } else {
-                                android.widget.Toast.makeText(context, "FragmentActivity not found", android.widget.Toast.LENGTH_SHORT).show()
+                            authenticateBiometrics {
+                                viewModel.setBiometricsEnabled(!uiState.isBiometricsEnabled)
                             }
                         },
                         trailingComponent = {
                             Switch(
                                 checked = uiState.isBiometricsEnabled,
                                 onCheckedChange = { isChecked -> 
-                                    val fragmentActivity = context as? androidx.fragment.app.FragmentActivity
-                                    if (fragmentActivity != null) {
-                                        com.example.expense_tracker.utils.BiometricHelper.authenticate(
-                                            activity = fragmentActivity,
-                                            onSuccess = {
-                                                viewModel.setBiometricsEnabled(isChecked)
-                                            },
-                                            onError = { error ->
-                                                android.widget.Toast.makeText(context, error, android.widget.Toast.LENGTH_SHORT).show()
-                                            }
-                                        )
-                                    } else {
-                                        android.widget.Toast.makeText(context, "FragmentActivity not found", android.widget.Toast.LENGTH_SHORT).show()
+                                    authenticateBiometrics {
+                                        viewModel.setBiometricsEnabled(isChecked)
                                     }
                                 }
                             )
@@ -417,7 +421,7 @@ fun SettingsGroup(
         
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
@@ -455,7 +459,7 @@ fun SettingsItem(
         // Leading Icon
         Surface(
             modifier = Modifier.size(44.dp),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(14.dp),
             color = iconColor.copy(alpha = 0.12f)
         ) {
             Icon(
@@ -574,7 +578,7 @@ fun EditProfileDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val context = LocalContext.current
-                val cropImage = rememberLauncherForActivityResult(com.canhub.cropper.CropImageContract()) { result ->
+                val cropImage = rememberLauncherForActivityResult(CropImageContract()) { result ->
                     if (result.isSuccessful) {
                         val uriContent = result.uriContent
                         if (uriContent != null) {
@@ -595,14 +599,14 @@ fun EditProfileDialog(
 
                 val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                     if (uri != null) {
-                        val cropOptions = com.canhub.cropper.CropImageContractOptions(
+                        val cropOptions = CropImageContractOptions(
                             uri,
-                            com.canhub.cropper.CropImageOptions().apply {
-                                guidelines = com.canhub.cropper.CropImageView.Guidelines.ON
+                            CropImageOptions().apply {
+                                guidelines = CropImageView.Guidelines.ON
                                 aspectRatioX = 1
                                 aspectRatioY = 1
                                 fixAspectRatio = true
-                                cropShape = com.canhub.cropper.CropImageView.CropShape.RECTANGLE
+                                cropShape = CropImageView.CropShape.RECTANGLE
                                 activityTitle = "Potong Foto"
                                 allowFlipping = true
                                 allowRotation = true
@@ -618,7 +622,7 @@ fun EditProfileDialog(
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer)
                         .clickable {
-                            pickMedia.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -644,13 +648,13 @@ fun EditProfileDialog(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
-                androidx.compose.material3.OutlinedTextField(
+                OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nama") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
             }
         },

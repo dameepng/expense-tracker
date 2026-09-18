@@ -1,33 +1,35 @@
 package com.example.expense_tracker.ui.profile
 
 import android.app.Application
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import com.example.expense_tracker.data.UserPreferencesRepository
-import com.example.expense_tracker.data.UserPreferencesRepositoryImpl
-import com.example.expense_tracker.data.dataStore
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import android.content.Context
 import android.content.Intent
 import android.os.Environment
 import android.widget.Toast
+import androidx.compose.runtime.Immutable
 import androidx.core.content.FileProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.expense_tracker.data.AppDatabase
+import com.example.expense_tracker.data.Expense
 import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.RoomExpenseRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import androidx.compose.runtime.Immutable
+import com.example.expense_tracker.data.UserPreferencesRepository
+import com.example.expense_tracker.data.UserPreferencesRepositoryImpl
+import com.example.expense_tracker.data.dataStore
 import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Immutable
 data class ProfileUiState(
@@ -41,7 +43,8 @@ data class ProfileUiState(
 
 class ProfileViewModel(
     private val preferencesRepository: UserPreferencesRepository,
-    private val expenseRepository: ExpenseRepository
+    private val expenseRepository: ExpenseRepository,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     val uiState: StateFlow<ProfileUiState> = combine(
@@ -111,7 +114,7 @@ class ProfileViewModel(
     fun exportData(context: Context) {
         viewModelScope.launch {
             try {
-                val transactions = withContext(Dispatchers.IO) {
+                val transactions = withContext(ioDispatcher) {
                     expenseRepository.getAllTransactions()
                 }
 
@@ -123,18 +126,14 @@ class ProfileViewModel(
                 val fileName = "Kasflow_Transactions_${System.currentTimeMillis()}.csv"
                 val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
 
-                withContext(Dispatchers.IO) {
-                    val writer = FileWriter(file)
-                    writer.append("Date,Type,Amount,Category,Note,WalletId\n")
-                    
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                    
-                    transactions.forEach { expense ->
-                        val dateStr = dateFormat.format(Date(expense.timestamp))
-                        writer.append("${dateStr},${expense.type},${expense.amount},${expense.categoryId},\"${expense.description}\",${expense.walletId}\n")
+                withContext(ioDispatcher) {
+                    FileWriter(file).buffered().use { writer ->
+                        writer.append(CSV_HEADER)
+                        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                        transactions.forEach { expense ->
+                            writer.append(formatCsvRow(expense, dateFormat))
+                        }
                     }
-                    writer.flush()
-                    writer.close()
                 }
 
                 val uri = FileProvider.getUriForFile(
@@ -157,6 +156,13 @@ class ProfileViewModel(
         }
     }
 }
+
+internal fun formatCsvRow(expense: Expense, dateFormat: SimpleDateFormat): String {
+    val dateStr = dateFormat.format(Date(expense.timestamp))
+    return "${dateStr},${expense.type},${expense.amount},${expense.categoryId},\"${expense.description}\",${expense.walletId}\n"
+}
+
+private const val CSV_HEADER = "Date,Type,Amount,Category,Note,WalletId\n"
 
 object ProfileViewModelFactory {
     fun create(application: Application): ViewModelProvider.Factory {
