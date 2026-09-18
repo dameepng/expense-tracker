@@ -3,6 +3,7 @@ package com.example.expense_tracker.ui.input
 import androidx.compose.runtime.Immutable
 import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.TransactionType
+import com.example.expense_tracker.data.Wallet
 
 enum class InputMode {
     TRANSACTION, BILL_REMINDER
@@ -27,6 +28,6 @@ data class InputUiState(
     val isSaveEnabled: Boolean = false,
     val saved: Boolean = false,
     val transactionType: TransactionType = TransactionType.EXPENSE,
-    val wallets: List<com.example.expense_tracker.data.Wallet> = emptyList(),
+    val wallets: List<Wallet> = emptyList(),
     val selectedWalletId: Long? = null
 )

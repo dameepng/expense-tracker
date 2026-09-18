@@ -35,17 +35,19 @@ internal fun formatWithDots(value: String): String {
     return sb.toString()
 }
 
+private const val CURRENCY_PREFIX = "Rp "
+private const val ZERO_AMOUNT_TEXT = "Rp 0"
+
 @Composable
 fun AmountInput(
     amountText: String,
     onAmountChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val prefix = "Rp "
     val displayText = if (amountText.isEmpty()) {
-        "Rp 0"
+        ZERO_AMOUNT_TEXT
     } else {
-        prefix + formatWithDots(amountText)
+        CURRENCY_PREFIX + formatWithDots(amountText)
     }
 
     val textColor = if (amountText.isEmpty()) {

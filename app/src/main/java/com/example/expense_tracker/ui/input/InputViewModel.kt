@@ -2,6 +2,12 @@ package com.example.expense_tracker.ui.input
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.expense_tracker.data.BillReminder
+import com.example.expense_tracker.data.BillReminderRepository
+import com.example.expense_tracker.data.TransactionType
+import com.example.expense_tracker.data.Wallet
+import com.example.expense_tracker.data.WalletRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -12,11 +18,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private const val MAX_DAYS_IN_MONTH = 31
+private const val DEFAULT_EXPENSE_ID = 0L
+private val KNOWN_WALLET_KEYWORDS = listOf("TapCash", "e-Money")
+
 class InputViewModel(
     private val repository: InputRepository,
-    private val walletRepository: com.example.expense_tracker.data.WalletRepository,
-    private val billReminderRepository: com.example.expense_tracker.data.BillReminderRepository,
-    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
+    private val walletRepository: WalletRepository,
+    private val billReminderRepository: BillReminderRepository,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val expenseId: Long? = null,
     private val initialDescription: String? = null,
     private val initialAmount: String? = null
@@ -46,25 +56,17 @@ class InputViewModel(
                     var loadedAmount = initialAmount ?: ""
                     var loadedDescription = initialDescription ?: ""
                     var loadedCategoryId: Long? = null
-                    var loadedWalletId: Long? = if (wallets.size == 1) {
-                        wallets.first().id
-                    } else if (initialDescription != null) {
-                        wallets.firstOrNull { wallet ->
-                            initialDescription.contains(wallet.name, ignoreCase = true) ||
-                            (wallet.name.contains("TapCash", ignoreCase = true) && initialDescription.contains("TapCash", ignoreCase = true)) ||
-                            (wallet.name.contains("e-Money", ignoreCase = true) && initialDescription.contains("e-Money", ignoreCase = true))
-                        }?.id ?: wallets.firstOrNull()?.id
-                    } else null
-                    var loadedTransactionType = com.example.expense_tracker.data.TransactionType.EXPENSE
+                    var loadedWalletId: Long? = resolveInitialWalletId(wallets, initialDescription)
+                    var loadedTransactionType = TransactionType.EXPENSE
 
                     if (expense != null) {
                         loadedAmount = expense.amount.toString()
                         loadedDescription = expense.description
                         loadedCategoryId = expense.categoryId
                         loadedTransactionType = try {
-                            com.example.expense_tracker.data.TransactionType.valueOf(expense.type)
-                        } catch (e: IllegalArgumentException) {
-                            com.example.expense_tracker.data.TransactionType.EXPENSE
+                            TransactionType.valueOf(expense.type)
+                        } catch (_: IllegalArgumentException) {
+                            TransactionType.EXPENSE
                         }
                         loadedWalletId = expense.walletId
                     }
@@ -91,6 +93,19 @@ class InputViewModel(
         }
     }
 
+    private fun resolveInitialWalletId(wallets: List<Wallet>, description: String?): Long? {
+        return if (wallets.size == 1) {
+            wallets.first().id
+        } else if (description != null) {
+            wallets.firstOrNull { wallet ->
+                description.contains(wallet.name, ignoreCase = true) ||
+                    KNOWN_WALLET_KEYWORDS.any { keyword ->
+                        wallet.name.contains(keyword, ignoreCase = true) && description.contains(keyword, ignoreCase = true)
+                    }
+            }?.id ?: wallets.firstOrNull()?.id
+        } else null
+    }
+
     private fun updateSaveEnabled() {
         val state = _uiState.value
         val amountValid = state.amountText.toLongOrNull()?.let { it > 0 } ?: false
@@ -101,7 +116,7 @@ class InputViewModel(
             amountValid && walletSelected && categorySelected
         } else {
             val dueDay = state.billReminderDueDay.toIntOrNull()
-            val dueDayValid = dueDay != null && dueDay in 1..31
+            val dueDayValid = dueDay != null && dueDay in 1..MAX_DAYS_IN_MONTH
             val nameValid = state.billReminderName.isNotBlank()
             amountValid && walletSelected && dueDayValid && nameValid && categorySelected
         }
@@ -109,7 +124,7 @@ class InputViewModel(
     }
 
     fun onInputTypeSelected(option: InputTypeOption) {
-        val newTransactionType = if (option == InputTypeOption.INCOME) com.example.expense_tracker.data.TransactionType.INCOME else com.example.expense_tracker.data.TransactionType.EXPENSE
+        val newTransactionType = if (option == InputTypeOption.INCOME) TransactionType.INCOME else TransactionType.EXPENSE
         val newInputMode = if (option == InputTypeOption.BILL_REMINDER) InputMode.BILL_REMINDER else InputMode.TRANSACTION
 
         _uiState.value = _uiState.value.copy(
@@ -139,8 +154,8 @@ class InputViewModel(
     }
 
     fun onBillReminderDueDayChange(text: String) {
-        // Only allow numbers up to 31
-        if (text.isEmpty() || (text.toIntOrNull() != null && text.toInt() <= 31)) {
+        // Only allow numbers up to MAX_DAYS_IN_MONTH
+        if (text.isEmpty() || (text.toIntOrNull() != null && text.toInt() <= MAX_DAYS_IN_MONTH)) {
             _uiState.value = _uiState.value.copy(billReminderDueDay = text)
             updateSaveEnabled()
         }
@@ -175,8 +190,6 @@ class InputViewModel(
         updateSaveEnabled()
     }
 
-
-
     fun onSave() {
         val state = _uiState.value
         val amount = state.amountText.toLongOrNull() ?: return
@@ -199,11 +212,11 @@ class InputViewModel(
                         timestamp = timestamp,
                         type = state.transactionType.name,
                         walletId = walletId,
-                        id = expenseId ?: 0L
+                        id = expenseId ?: DEFAULT_EXPENSE_ID
                     )
                 } else {
                     val dueDay = state.billReminderDueDay.toIntOrNull() ?: return@withContext
-                    val reminder = com.example.expense_tracker.data.BillReminder(
+                    val reminder = BillReminder(
                         name = state.billReminderName,
                         amount = amount,
                         dueDay = dueDay,
