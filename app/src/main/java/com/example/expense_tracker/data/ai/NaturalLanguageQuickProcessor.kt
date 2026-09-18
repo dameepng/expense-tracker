@@ -3,6 +3,7 @@ package com.example.expense_tracker.data.ai
 import android.content.Context
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.AppDatabase
+import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.utils.NotificationHelper
 import kotlinx.coroutines.Dispatchers
@@ -62,47 +63,10 @@ object NaturalLanguageQuickProcessor {
             val draftRepo = RoomTransactionDraftRepository(database)
             draftRepo.saveAll(parsedList, targetWalletId)
 
-            // Build friendly notification message
-            val title = if (parsedList.size > 1) {
-                "${parsedList.size} Transaksi Berhasil Dicatat! ✨"
-            } else {
-                try {
-                    context.getString(R.string.nl_quick_success)
-                } catch (_: Exception) {
-                    "Transaksi Berhasil Dicatat! ✨"
-                }
-            }
-
-            val message = if (parsedList.size == 1) {
-                val parsed = parsedList.first()
-                val formattedAmount = CurrencyFormatter.format(parsed.amount)
-                val categoryName = categories.find { it.id == parsed.categoryId }?.name ?: try {
-                    context.getString(R.string.nl_quick_default_category_name)
-                } catch (_: Exception) {
-                    "Transaksi"
-                }
-                val merchantInfo = if (parsed.merchant.isNotBlank()) {
-                    try {
-                        " " + context.getString(R.string.nl_quick_at_merchant, parsed.merchant)
-                    } catch (_: Exception) {
-                        " di ${parsed.merchant}"
-                    }
-                } else ""
-                val noteInfo = if (parsed.note.isNotBlank()) "\n\"${parsed.note}\"" else ""
-                "$formattedAmount • $categoryName$merchantInfo$noteInfo"
-            } else {
-                val totalAmount = parsedList.sumOf { it.amount }
-                val totalFormatted = CurrencyFormatter.format(totalAmount)
-                val itemsSummary = parsedList.joinToString("\n") { p ->
-                    val merch = if (p.merchant.isNotBlank()) " di ${p.merchant}" else if (p.note.isNotBlank()) " (${p.note})" else ""
-                    "• ${CurrencyFormatter.format(p.amount)}$merch"
-                }
-                "Total: $totalFormatted\n$itemsSummary"
-            }
-
+            val title = buildNotificationTitle(context, parsedList.size)
+            val message = buildNotificationMessage(context, parsedList, categories)
             val subText = targetWalletName
 
-            // Fire real push notification to device
             NotificationHelper.showTransactionSuccessNotification(
                 context = context,
                 title = title,
@@ -113,6 +77,51 @@ object NaturalLanguageQuickProcessor {
             Result.success(parsedList)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    private fun buildNotificationTitle(context: Context, count: Int): String {
+        return if (count > 1) {
+            "$count Transaksi Berhasil Dicatat! ✨"
+        } else {
+            try {
+                context.getString(R.string.nl_quick_success)
+            } catch (_: Exception) {
+                "Transaksi Berhasil Dicatat! ✨"
+            }
+        }
+    }
+
+    private fun buildNotificationMessage(
+        context: Context,
+        parsedList: List<ParsedTransaction>,
+        categories: List<Category>
+    ): String {
+        return if (parsedList.size == 1) {
+            val parsed = parsedList.first()
+            val formattedAmount = CurrencyFormatter.format(parsed.amount)
+            val categoryName = categories.find { it.id == parsed.categoryId }?.name ?: try {
+                context.getString(R.string.nl_quick_default_category_name)
+            } catch (_: Exception) {
+                "Transaksi"
+            }
+            val merchantInfo = if (parsed.merchant.isNotBlank()) {
+                try {
+                    " " + context.getString(R.string.nl_quick_at_merchant, parsed.merchant)
+                } catch (_: Exception) {
+                    " di ${parsed.merchant}"
+                }
+            } else ""
+            val noteInfo = if (parsed.note.isNotBlank()) "\n\"${parsed.note}\"" else ""
+            "$formattedAmount • $categoryName$merchantInfo$noteInfo"
+        } else {
+            val totalAmount = parsedList.sumOf { it.amount }
+            val totalFormatted = CurrencyFormatter.format(totalAmount)
+            val itemsSummary = parsedList.joinToString("\n") { p ->
+                val merch = if (p.merchant.isNotBlank()) " di ${p.merchant}" else if (p.note.isNotBlank()) " (${p.note})" else ""
+                "• ${CurrencyFormatter.format(p.amount)}$merch"
+            }
+            "Total: $totalFormatted\n$itemsSummary"
         }
     }
 }

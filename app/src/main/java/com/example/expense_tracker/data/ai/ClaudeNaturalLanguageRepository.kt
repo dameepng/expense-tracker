@@ -1,6 +1,5 @@
 package com.example.expense_tracker.data.ai
 
-import com.example.expense_tracker.data.TransactionType
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 
@@ -66,7 +65,7 @@ class ClaudeNaturalLanguageRepository internal constructor(
             If amount or intended date is ambiguous or missing essential information, return
             {"error":"ambiguous_input"} only. Never add up separate transactions together into one or guess an amount.
             Context (JSON data):
-            ${Gson().toJson(context)}
+            ${gson.toJson(context)}
         """.trimIndent()
     }
 
@@ -84,5 +83,6 @@ class ClaudeNaturalLanguageRepository internal constructor(
 
     private companion object {
         const val MAX_INPUT_CHARS = 1_000
+        val gson = Gson()
     }
 }

@@ -4,6 +4,9 @@ import com.example.expense_tracker.BuildConfig
 import com.example.expense_tracker.data.ai.chat.ChatContextSource
 import com.example.expense_tracker.data.ai.chat.ChatRepository
 import com.example.expense_tracker.data.ai.chat.ClaudeChatRepository
+import com.example.expense_tracker.data.ai.receipt.ClaudeReceiptRepository
+import com.example.expense_tracker.data.ai.receipt.ReceiptImageProcessor
+import com.example.expense_tracker.data.ai.receipt.ReceiptRepository
 
 internal class AiConfiguration(
     val apiKey: String,
@@ -32,8 +35,13 @@ internal class AiDependencies(
             contextSource = contextSource
         )
 
-    fun createReceiptRepository(imageProcessor: com.example.expense_tracker.data.ai.receipt.ReceiptImageProcessor): com.example.expense_tracker.data.ai.receipt.ReceiptRepository =
-        com.example.expense_tracker.data.ai.receipt.ClaudeReceiptRepository(configuration.apiKey, configuration.model, claudeApi, imageProcessor)
+    fun createReceiptRepository(imageProcessor: ReceiptImageProcessor): ReceiptRepository =
+        ClaudeReceiptRepository(
+            apiKey = configuration.apiKey,
+            model = configuration.model,
+            api = claudeApi,
+            imageProcessor = imageProcessor
+        )
 
     companion object {
         val shared: AiDependencies by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {

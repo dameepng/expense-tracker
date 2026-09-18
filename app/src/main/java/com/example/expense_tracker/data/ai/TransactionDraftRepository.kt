@@ -21,12 +21,14 @@ interface TransactionDraftRepository {
 }
 
 object ReceiptNoteFormatter {
+    private const val MAX_NOTE_LENGTH = 1000
+
     fun format(note: String, items: List<String>): String {
         val summary = items.filter { it.isNotBlank() }.joinToString(", ")
-        if (summary.isBlank()) return note.take(1000)
+        if (summary.isBlank()) return note.take(MAX_NOTE_LENGTH)
         val suffix = "\nItem: "
-        val available = (1000 - note.length - suffix.length).coerceAtLeast(0)
+        val available = (MAX_NOTE_LENGTH - note.length - suffix.length).coerceAtLeast(0)
         val bounded = summary.take(available)
-        return (note + suffix + bounded + if (bounded.length < summary.length) "…" else "").take(1000)
+        return (note + suffix + bounded + if (bounded.length < summary.length) "…" else "").take(MAX_NOTE_LENGTH)
     }
 }

@@ -3,7 +3,6 @@ package com.example.expense_tracker.data.ai
 import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.Category
 import com.example.expense_tracker.data.Expense
-import com.example.expense_tracker.data.TransactionType
 import com.example.expense_tracker.data.Wallet
 import java.time.LocalTime
 import java.time.ZoneId
@@ -28,36 +27,7 @@ class RoomTransactionDraftRepository(
     }
 
     override suspend fun saveAll(transactions: List<ParsedTransaction>, walletId: Long) {
-        withContext(ioDispatcher) {
-            database.runInTransaction {
-                val localTime = timeProvider()
-                require(database.walletDao().getWalletById(walletId) != null) {
-                    "Dompet tidak tersedia. Pilih dompet lain."
-                }
-                transactions.forEach { transaction ->
-                    val category = database.expenseDao().getCategoryById(transaction.categoryId)
-                    require(category != null && category.type in setOf(transaction.type, "BOTH")) {
-                        "Kategori tidak sesuai dengan jenis transaksi. Pilih kategori lain."
-                    }
-                    val timestamp = transaction.date.atTime(localTime)
-                        .atZone(zoneIdProvider())
-                        .toInstant()
-                        .toEpochMilli()
-                    database.expenseDao().insertExpense(
-                        Expense(
-                            amount = transaction.amount,
-                            categoryId = transaction.categoryId,
-                            description = transaction.note,
-                            timestamp = timestamp,
-                            type = transaction.type,
-                            walletId = walletId,
-                            merchant = transaction.merchant,
-                            isRecurring = transaction.isRecurring
-                        )
-                    )
-                }
-            }
-        }
+        saveAllWithWallets(transactions.map { it to walletId })
     }
 
     override suspend fun saveAllWithWallets(transactions: List<Pair<ParsedTransaction, Long>>) {
