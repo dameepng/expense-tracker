@@ -1,9 +1,11 @@
 package com.example.expense_tracker.data.nfc
 
+import com.example.expense_tracker.data.TransactionType
+
 data class NfcCardTransaction(
     val id: Long = 0,
     val amount: Long,
-    val type: String = "EXPENSE", // EXPENSE or INCOME
+    val type: String = TransactionType.EXPENSE.name, // EXPENSE or INCOME
     val timestamp: Long = System.currentTimeMillis(),
     val terminalId: String? = null
 )
@@ -19,7 +21,7 @@ data class NfcCardResult(
      * Formats card number for display with masked mid-digits, e.g. "6032 •••• •••• 1294"
      */
     fun formattedCardNumber(): String {
-        val clean = cardNumber.replace("\\s".toRegex(), "")
+        val clean = cardNumber.filter { !it.isWhitespace() }
         return when {
             clean.length >= 16 -> {
                 val p1 = clean.substring(0, 4)

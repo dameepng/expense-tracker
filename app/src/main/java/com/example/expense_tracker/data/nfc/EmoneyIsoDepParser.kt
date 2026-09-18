@@ -1,14 +1,17 @@
 package com.example.expense_tracker.data.nfc
 
 import android.nfc.tech.IsoDep
+import com.example.expense_tracker.data.TransactionType
 import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 object EmoneyIsoDepParser {
+
+    private const val MANDIRI_PAN_PREFIX = "6032"
+    private const val TAPCASH_PAN_PREFIX = "7546"
+    private const val MAX_CARD_BALANCE = 20_000_000L
+    private const val MAX_TRANSACTION_AMOUNT = 10_000_000L
+    private const val ISO_DEP_TIMEOUT_MS = 5000
+    private const val ONE_HOUR_MS = 3600_000L
 
     // APDU Commands - Mandiri e-Money Gen 2
     private val APDU_SELECT_MANDIRI_AID_1 = hexToBytes("00A4040008A00000000386980701")
@@ -33,10 +36,10 @@ object EmoneyIsoDepParser {
      */
     fun readCard(isoDep: IsoDep, uid: ByteArray): Result<NfcCardResult> {
         return try {
-            if (!isoDep.isConnected) {
-                isoDep.connect()
+            if (!ensureConnected(isoDep)) {
+                return Result.failure(IOException("Failed to connect to NFC card"))
             }
-            isoDep.timeout = 5000 // 5 seconds timeout for multi-step APDU transceive
+            isoDep.timeout = ISO_DEP_TIMEOUT_MS
 
             val uidHex = bytesToHex(uid)
 
@@ -62,57 +65,29 @@ object EmoneyIsoDepParser {
         }
     }
 
+    private fun ensureConnected(isoDep: IsoDep): Boolean {
+        if (!isoDep.isConnected) {
+            try {
+                isoDep.connect()
+            } catch (_: Exception) {
+                return false
+            }
+        }
+        return true
+    }
+
     private fun tryReadMandiri(isoDep: IsoDep, uidHex: String): NfcCardResult? {
         return try {
-            if (!isoDep.isConnected) {
-                try { isoDep.connect() } catch (_: Exception) { return null }
-            }
+            if (!ensureConnected(isoDep)) return null
+            if (!selectMandiriApplication(isoDep)) return null
 
-            // Step 1: Select Application
-            val resp1 = try { isoDep.transceive(APDU_SELECT_MANDIRI_AID_1) } catch (_: Exception) { null }
-            val resp = if (isSuccess(resp1)) {
-                resp1
-            } else {
-                try { isoDep.transceive(APDU_SELECT_MANDIRI_AID_2) } catch (_: Exception) { null }
-            }
-            if (!isSuccess(resp)) return null
+            val cardNumber = readMandiriCardNumber(isoDep, uidHex)
 
-            // Step 2: Read Card Number (PAN)
-            var cardNumber = formatUidAsCardNumber(uidHex, "6032")
-            try {
-                val cardNumResp = isoDep.transceive(APDU_READ_MANDIRI_CARD_NUM)
-                if (isSuccess(cardNumResp) && cardNumResp.size >= 10) {
-                    val parsedNum = parseCardNumberBytes(cardNumResp)
-                    if (parsedNum != null && parsedNum.length >= 10) {
-                        cardNumber = parsedNum
-                    }
-                }
-            } catch (_: Exception) {}
-
-            // Step 3: Read Balance
             val balanceResp = try { isoDep.transceive(APDU_READ_MANDIRI_BALANCE) } catch (_: Exception) { null }
             if (!isSuccess(balanceResp) || balanceResp == null) return null
 
             val balance = parseMandiriBalance(balanceResp)
-
-            // Step 4: Read Transaction Logs (Optional)
-            val transactions = mutableListOf<NfcCardTransaction>()
-            for (recordIndex in 1..5) {
-                try {
-                    val cmd = byteArrayOf(0x00.toByte(), 0xB2.toByte(), recordIndex.toByte(), 0x1C.toByte(), 0x00.toByte())
-                    val txResp = isoDep.transceive(cmd)
-                    if (isSuccess(txResp) && txResp.size >= 12) {
-                        val tx = parseTransactionRecord(txResp, recordIndex.toLong())
-                        if (tx != null && tx.amount > 0) {
-                            transactions.add(tx)
-                        }
-                    } else {
-                        break
-                    }
-                } catch (_: Exception) {
-                    break
-                }
-            }
+            val transactions = readMandiriTransactions(isoDep)
 
             NfcCardResult(
                 cardNumber = cardNumber,
@@ -125,67 +100,61 @@ object EmoneyIsoDepParser {
         }
     }
 
+    private fun selectMandiriApplication(isoDep: IsoDep): Boolean {
+        val resp1 = try { isoDep.transceive(APDU_SELECT_MANDIRI_AID_1) } catch (_: Exception) { null }
+        val resp = if (isSuccess(resp1)) {
+            resp1
+        } else {
+            try { isoDep.transceive(APDU_SELECT_MANDIRI_AID_2) } catch (_: Exception) { null }
+        }
+        return isSuccess(resp)
+    }
+
+    private fun readMandiriCardNumber(isoDep: IsoDep, uidHex: String): String {
+        var cardNumber = formatUidAsCardNumber(uidHex, MANDIRI_PAN_PREFIX)
+        try {
+            val cardNumResp = isoDep.transceive(APDU_READ_MANDIRI_CARD_NUM)
+            if (isSuccess(cardNumResp) && cardNumResp.size >= 10) {
+                val parsedNum = parseCardNumberBytes(cardNumResp)
+                if (parsedNum != null && parsedNum.length >= 10) {
+                    cardNumber = parsedNum
+                }
+            }
+        } catch (_: Exception) {}
+        return cardNumber
+    }
+
+    private fun readMandiriTransactions(isoDep: IsoDep): List<NfcCardTransaction> {
+        val transactions = mutableListOf<NfcCardTransaction>()
+        for (recordIndex in 1..5) {
+            try {
+                val cmd = byteArrayOf(0x00.toByte(), 0xB2.toByte(), recordIndex.toByte(), 0x1C.toByte(), 0x00.toByte())
+                val txResp = isoDep.transceive(cmd)
+                if (isSuccess(txResp) && txResp.size >= 12) {
+                    val tx = parseTransactionRecord(txResp, recordIndex.toLong())
+                    if (tx != null && tx.amount > 0) {
+                        transactions.add(tx)
+                    }
+                } else {
+                    break
+                }
+            } catch (_: Exception) {
+                break
+            }
+        }
+        return transactions
+    }
+
     private fun tryReadTapCash(isoDep: IsoDep, uidHex: String): NfcCardResult? {
         return try {
-            if (!isoDep.isConnected) {
-                try { isoDep.connect() } catch (_: Exception) { return null }
-            }
+            if (!ensureConnected(isoDep)) return null
+            if (!selectTapCashApplication(isoDep)) return null
 
-            var selected = false
-
-            // Step 1: Select Application AID
-            // TapCash cards have Master AID (A000424E49100001) and Purse AID (A000424E49999999)
-            val resp1 = try { isoDep.transceive(APDU_SELECT_TAPCASH_AID_1) } catch (_: Exception) { null }
-            if (isSuccess(resp1)) {
-                selected = true
-                // Select Purse sub-applet
-                val resp2 = try { isoDep.transceive(APDU_SELECT_TAPCASH_AID_2) } catch (_: Exception) { null }
-                if (!isSuccess(resp2)) {
-                    // If AID 2 failed, re-select AID 1 so master application remains active
-                    try { isoDep.transceive(APDU_SELECT_TAPCASH_AID_1) } catch (_: Exception) {}
-                }
-            } else {
-                // If AID 1 not found, try selecting AID 2 directly
-                val resp2 = try { isoDep.transceive(APDU_SELECT_TAPCASH_AID_2) } catch (_: Exception) { null }
-                if (isSuccess(resp2)) {
-                    selected = true
-                }
-            }
-
-            if (!selected) return null
-
-            // Step 2: Read TapCash Purse Data via 90 32 03 00 00 (DESFire command)
             val dataResp = try { isoDep.transceive(APDU_READ_TAPCASH_DATA) } catch (_: Exception) { null }
             if (dataResp != null && dataResp.size >= 16) {
                 val balance = parseTapCashBalanceDesfire(dataResp)
-                val cardNumber = parseTapCashCardNumber(dataResp) ?: formatUidAsCardNumber(uidHex, "7546")
-
-                // Extract transactions from cyclic file 0x04 or payload fallback
-                val transactions = mutableListOf<NfcCardTransaction>()
-                try {
-                    val recordResp = isoDep.transceive(APDU_READ_TAPCASH_RECORDS)
-                    if (isSuccess(recordResp) && recordResp.size >= 18) {
-                        val parsed = parseTapCashRecords(recordResp)
-                        if (parsed.isNotEmpty()) {
-                            transactions.addAll(parsed)
-                        }
-                    }
-                } catch (_: Exception) {}
-
-                if (transactions.isEmpty() && dataResp.size >= 46) {
-                    val txAmount = readUint32BigEndian(dataResp, 42)
-                    if (txAmount in 1..10_000_000L) {
-                        transactions.add(
-                            NfcCardTransaction(
-                                id = 1L,
-                                amount = txAmount,
-                                type = "EXPENSE",
-                                timestamp = System.currentTimeMillis() - 3600_000L,
-                                terminalId = "Mutasi Terakhir"
-                            )
-                        )
-                    }
-                }
+                val cardNumber = parseTapCashCardNumber(dataResp) ?: formatUidAsCardNumber(uidHex, TAPCASH_PAN_PREFIX)
+                val transactions = readTapCashTransactions(isoDep, dataResp)
 
                 return NfcCardResult(
                     cardNumber = cardNumber,
@@ -195,11 +164,10 @@ object EmoneyIsoDepParser {
                 )
             }
 
-            // Step 3: Fallback to ISO 7816 Read Record (00B2010C00) in case legacy/alternate card
             val fallbackResp = try { isoDep.transceive(APDU_READ_TAPCASH_BALANCE_FALLBACK) } catch (_: Exception) { null }
             if (fallbackResp != null && isSuccess(fallbackResp)) {
                 val balance = parseTapCashBalance(fallbackResp)
-                val cardNumber = formatUidAsCardNumber(uidHex, "7546")
+                val cardNumber = formatUidAsCardNumber(uidHex, TAPCASH_PAN_PREFIX)
                 return NfcCardResult(
                     cardNumber = cardNumber,
                     balance = balance,
@@ -211,6 +179,48 @@ object EmoneyIsoDepParser {
         } catch (_: Exception) {
             null
         }
+    }
+
+    private fun selectTapCashApplication(isoDep: IsoDep): Boolean {
+        val resp1 = try { isoDep.transceive(APDU_SELECT_TAPCASH_AID_1) } catch (_: Exception) { null }
+        if (isSuccess(resp1)) {
+            val resp2 = try { isoDep.transceive(APDU_SELECT_TAPCASH_AID_2) } catch (_: Exception) { null }
+            if (!isSuccess(resp2)) {
+                try { isoDep.transceive(APDU_SELECT_TAPCASH_AID_1) } catch (_: Exception) {}
+            }
+            return true
+        }
+        val resp2 = try { isoDep.transceive(APDU_SELECT_TAPCASH_AID_2) } catch (_: Exception) { null }
+        return isSuccess(resp2)
+    }
+
+    private fun readTapCashTransactions(isoDep: IsoDep, dataResp: ByteArray): List<NfcCardTransaction> {
+        val transactions = mutableListOf<NfcCardTransaction>()
+        try {
+            val recordResp = isoDep.transceive(APDU_READ_TAPCASH_RECORDS)
+            if (isSuccess(recordResp) && recordResp.size >= 18) {
+                val parsed = parseTapCashRecords(recordResp)
+                if (parsed.isNotEmpty()) {
+                    transactions.addAll(parsed)
+                }
+            }
+        } catch (_: Exception) {}
+
+        if (transactions.isEmpty() && dataResp.size >= 46) {
+            val txAmount = readUint32BigEndian(dataResp, 42)
+            if (txAmount in 1..MAX_TRANSACTION_AMOUNT) {
+                transactions.add(
+                    NfcCardTransaction(
+                        id = 1L,
+                        amount = txAmount,
+                        type = TransactionType.EXPENSE.name,
+                        timestamp = System.currentTimeMillis() - ONE_HOUR_MS,
+                        terminalId = "Mutasi Terakhir"
+                    )
+                )
+            }
+        }
+        return transactions
     }
 
     /**
@@ -264,21 +274,21 @@ object EmoneyIsoDepParser {
         // Primary offset: bytes 0..3
         val balance1 = readUint32BigEndian(response, 0)
         // Check sanity (balance between 0 and Rp 20.000.000)
-        if (balance1 in 0..20_000_000L) {
+        if (balance1 in 0..MAX_CARD_BALANCE) {
             return balance1
         }
 
         // Secondary offset: bytes 4..7
         if (dataLen >= 8) {
             val balance2 = readUint32BigEndian(response, 4)
-            if (balance2 in 0..20_000_000L) {
+            if (balance2 in 0..MAX_CARD_BALANCE) {
                 return balance2
             }
         }
 
         // Little endian fallback check
         val balanceLE = readUint32LittleEndian(response, 0)
-        if (balanceLE in 0..20_000_000L) {
+        if (balanceLE in 0..MAX_CARD_BALANCE) {
             return balanceLE
         }
 
@@ -293,13 +303,13 @@ object EmoneyIsoDepParser {
         if (dataLen < 4) return 0L
 
         val balance = readUint32BigEndian(response, 0)
-        if (balance in 0..20_000_000L) {
+        if (balance in 0..MAX_CARD_BALANCE) {
             return balance
         }
 
         if (dataLen >= 8) {
             val balance2 = readUint32BigEndian(response, 4)
-            if (balance2 in 0..20_000_000L) {
+            if (balance2 in 0..MAX_CARD_BALANCE) {
                 return balance2
             }
         }
@@ -329,14 +339,14 @@ object EmoneyIsoDepParser {
         if (dataLen < 8) return null
 
         val amount = readUint32BigEndian(response, 0)
-        if (amount <= 0 || amount > 10_000_000L) return null
+        if (amount <= 0 || amount > MAX_TRANSACTION_AMOUNT) return null
 
         val typeByte = if (dataLen >= 9) response[8].toInt() and 0xFF else 0x01
-        val txType = if (typeByte in listOf(0x03, 0x04, 0x07)) "INCOME" else "EXPENSE"
+        val txType = if (typeByte in listOf(0x03, 0x04, 0x07)) TransactionType.INCOME.name else TransactionType.EXPENSE.name
         val terminalHex = if (dataLen >= 12) bytesToHex(response.copyOfRange(4, 8)) else null
         val terminalName = when {
-            terminalHex == null -> if (txType == "INCOME") "Top Up Saldo" else "Pembayaran E-Money"
-            txType == "INCOME" -> "Top Up ($terminalHex)"
+            terminalHex == null -> if (txType == TransactionType.INCOME.name) "Top Up Saldo" else "Pembayaran E-Money"
+            txType == TransactionType.INCOME.name -> "Top Up ($terminalHex)"
             else -> "Pembayaran ($terminalHex)"
         }
 
@@ -344,7 +354,7 @@ object EmoneyIsoDepParser {
             id = id,
             amount = amount,
             type = txType,
-            timestamp = System.currentTimeMillis() - (id * 3600_000L),
+            timestamp = System.currentTimeMillis() - (id * ONE_HOUR_MS),
             terminalId = terminalName
         )
     }
@@ -362,13 +372,13 @@ object EmoneyIsoDepParser {
             for (i in 0 until numRecords) {
                 val offset = i * recordSize
                 val amount = readUint32LittleEndian(data, offset)
-                if (amount in 1..10_000_000L) {
+                if (amount in 1..MAX_TRANSACTION_AMOUNT) {
                     records.add(
                         NfcCardTransaction(
                             id = (i + 1).toLong(),
                             amount = amount,
-                            type = "EXPENSE",
-                            timestamp = System.currentTimeMillis() - (i * 3600_000L),
+                            type = TransactionType.EXPENSE.name,
+                            timestamp = System.currentTimeMillis() - (i * ONE_HOUR_MS),
                             terminalId = "Mutasi TapCash #${i + 1}"
                         )
                     )
@@ -403,7 +413,7 @@ object EmoneyIsoDepParser {
     }
 
     fun hexToBytes(hex: String): ByteArray {
-        val cleanHex = hex.replace("\\s".toRegex(), "")
+        val cleanHex = hex.filter { !it.isWhitespace() }
         val len = cleanHex.length
         val data = ByteArray(len / 2)
         for (i in 0 until len step 2) {
