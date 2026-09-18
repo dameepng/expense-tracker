@@ -194,4 +194,9 @@
     <string name="bill_deleted">Pengingat tagihan dihapus</string>
     <string name="bill_undo">Urungkan</string>
     <string name="transaction_recurring_badge">Berulang</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_title">Selamat Datang di Kasflow</string>
+    <string name="onboarding_subtitle">Kelola keuangan Anda dengan mudah, aman, dan efisien.</string>
+    <string name="onboarding_start_button">Mulai Aplikasi</string>
 </resources>

@@ -194,4 +194,9 @@
     <string name="bill_deleted">Bill reminder deleted</string>
     <string name="bill_undo">Undo</string>
     <string name="transaction_recurring_badge">Recurring</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_title">Welcome to Kasflow</string>
+    <string name="onboarding_subtitle">Manage your finances easily, securely, and efficiently.</string>
+    <string name="onboarding_start_button">Get Started</string>
 </resources>
