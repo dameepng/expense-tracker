@@ -41,16 +41,22 @@ class ReceiptImageProcessor(
         val oriented = bitmap
         try {
             val output = ByteArrayOutputStream()
-            if (!oriented.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, output)) throw ReceiptImageException(ReceiptImageError.COMPRESSION_FAILED)
+            if (!oriented.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, output)) {
+                throw ReceiptImageException(ReceiptImageError.COMPRESSION_FAILED)
+            }
             var bytes = output.toByteArray()
             if (bytes.size > MAX_BASE64_CHARS * 3 / 4) {
                 output.reset()
-                if (!oriented.compress(Bitmap.CompressFormat.JPEG, 60, output)) throw ReceiptImageException(ReceiptImageError.COMPRESSION_FAILED)
+                if (!oriented.compress(Bitmap.CompressFormat.JPEG, JPEG_FALLBACK_QUALITY, output)) {
+                    throw ReceiptImageException(ReceiptImageError.COMPRESSION_FAILED)
+                }
                 bytes = output.toByteArray()
             }
             val encoded = Base64.getEncoder().encodeToString(bytes)
-            if (encoded.length > MAX_BASE64_CHARS) throw ReceiptImageException(ReceiptImageError.TOO_LARGE)
-            ProcessedReceiptImage("image/jpeg", encoded, oriented.width, oriented.height)
+            if (encoded.length > MAX_BASE64_CHARS) {
+                throw ReceiptImageException(ReceiptImageError.TOO_LARGE)
+            }
+            ProcessedReceiptImage(JPEG_MIME, encoded, oriented.width, oriented.height)
         } finally {
             if (oriented !== bitmap) oriented.recycle()
             bitmap.recycle()
@@ -64,9 +70,11 @@ class ReceiptImageProcessor(
     }
 
     private companion object {
-        val SUPPORTED_MIME = setOf("image/jpeg", "image/png", "image/webp")
+        const val JPEG_MIME = "image/jpeg"
+        val SUPPORTED_MIME = setOf(JPEG_MIME, "image/png", "image/webp")
         const val MAX_DIMENSION = 1600
         const val JPEG_QUALITY = 82
+        const val JPEG_FALLBACK_QUALITY = 60
         const val MAX_BASE64_CHARS = 240_000
     }
 }

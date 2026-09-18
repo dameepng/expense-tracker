@@ -42,33 +42,56 @@ internal class ReceiptResponseParser {
     private fun read(json: String): ReceiptResponse = JsonReader(StringReader(json)).use { reader ->
         reader.strictness = Strictness.STRICT
         val names = mutableSetOf<String>()
-        var amount: Long? = null; var category: String? = null; var merchant: String? = null
-        var date: String? = null; var note: String? = null; var items: List<String>? = null
-        var recurring: Boolean? = null; var error: ReceiptParseError? = null
+        var amount: Long? = null
+        var category: String? = null
+        var merchant: String? = null
+        var date: String? = null
+        var note: String? = null
+        var items: List<String>? = null
+        var recurring: Boolean? = null
+        var error: ReceiptParseError? = null
+
         reader.beginObject()
         while (reader.hasNext()) {
             val name = reader.nextName()
             if (!names.add(name)) invalid()
             when (name) {
-                "amount" -> { if (reader.peek() != JsonToken.NUMBER) invalid(); amount = reader.nextString().toLongOrNull()?.takeIf { it > 0 } ?: invalid() }
+                "amount" -> {
+                    if (reader.peek() != JsonToken.NUMBER) invalid()
+                    amount = reader.nextString().toLongOrNull()?.takeIf { it > 0 } ?: invalid()
+                }
                 "category" -> category = reader.string(MAX_TEXT)
                 "merchant" -> merchant = reader.string(MAX_TEXT)
-                "date" -> date = reader.string(10)
+                "date" -> date = reader.string(DATE_STRING_LENGTH)
                 "note" -> note = reader.string(MAX_NOTE)
-                "is_recurring" -> { if (reader.peek() != JsonToken.BOOLEAN) invalid(); recurring = reader.nextBoolean() }
-                "items" -> {
-                    if (reader.peek() != JsonToken.BEGIN_ARRAY) invalid()
-                    reader.beginArray(); val values = mutableListOf<String>()
-                    while (reader.hasNext()) { if (reader.peek() != JsonToken.STRING) invalid(); values += reader.nextString() }
-                    reader.endArray(); items = values
+                "is_recurring" -> {
+                    if (reader.peek() != JsonToken.BOOLEAN) invalid()
+                    recurring = reader.nextBoolean()
                 }
+                "items" -> items = readItems(reader)
                 "error" -> error = errorReason(reader.string(MAX_TEXT))
                 else -> invalid()
             }
         }
-        reader.endObject(); if (reader.peek() != JsonToken.END_DOCUMENT) invalid()
-        if (error != null) { if (names != setOf("error")) invalid(); return@use ReceiptResponse(error = error.name.lowercase()) }
+        reader.endObject()
+        if (reader.peek() != JsonToken.END_DOCUMENT) invalid()
+        if (error != null) {
+            if (names != setOf("error")) invalid()
+            return@use ReceiptResponse(error = error.name.lowercase())
+        }
         ReceiptResponse(amount, category, merchant, date, note, items, recurring)
+    }
+
+    private fun readItems(reader: JsonReader): List<String> {
+        if (reader.peek() != JsonToken.BEGIN_ARRAY) invalid()
+        reader.beginArray()
+        val values = mutableListOf<String>()
+        while (reader.hasNext()) {
+            if (reader.peek() != JsonToken.STRING) invalid()
+            values += reader.nextString()
+        }
+        reader.endArray()
+        return values
     }
 
     private fun JsonReader.string(max: Int): String {
@@ -76,8 +99,16 @@ internal class ReceiptResponseParser {
         return nextString().also { if (it.length > max) invalid() }
     }
 
-    private fun cleanJson(raw: String): String = raw.trim().let {
-        if (!it.startsWith("```")) it else it.removePrefix("```json").removePrefix("```JSON").removePrefix("```").removeSuffix("```").trim()
+    private fun cleanJson(raw: String): String = raw.trim().let { text ->
+        if (!text.startsWith("```")) {
+            text
+        } else {
+            text.removePrefix("```json")
+                .removePrefix("```JSON")
+                .removePrefix("```")
+                .removeSuffix("```")
+                .trim()
+        }
     }
 
     private fun errorReason(value: String): ReceiptParseError = when (value) {
@@ -88,9 +119,14 @@ internal class ReceiptResponseParser {
     }
 
     private companion object {
-        const val MAX_RESPONSE_CHARS = 16_384; const val MAX_ITEMS = 100
-        const val MAX_ITEM_LENGTH = 200; const val MAX_TEXT = 200; const val MAX_NOTE = 1_000
+        const val MAX_RESPONSE_CHARS = 16_384
+        const val MAX_ITEMS = 100
+        const val MAX_ITEM_LENGTH = 200
+        const val MAX_TEXT = 200
+        const val MAX_NOTE = 1_000
+        const val DATE_STRING_LENGTH = 10
         val ISO_DATE = Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}")
+
         fun invalid(): Nothing = throw ReceiptParseException(ReceiptParseError.INVALID_RESPONSE)
     }
 }
