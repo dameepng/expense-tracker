@@ -26,29 +26,8 @@ class NaturalLanguageWidgetProvider : AppWidgetProvider() {
     private fun buildRemoteViews(context: Context): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_natural_language)
 
-        // Main Tap Intent (Opens quick text input)
-        val textIntent = Intent(context, NaturalLanguageQuickActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra(EXTRA_AUTO_SPEECH, false)
-        }
-        val textPendingIntent = PendingIntent.getActivity(
-            context,
-            REQUEST_CODE_TEXT,
-            textIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Mic Tap Intent (Opens quick sheet with speech recognition)
-        val micIntent = Intent(context, NaturalLanguageQuickActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra(EXTRA_AUTO_SPEECH, true)
-        }
-        val micPendingIntent = PendingIntent.getActivity(
-            context,
-            REQUEST_CODE_MIC,
-            micIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val textPendingIntent = createPendingIntent(context, autoSpeech = false, REQUEST_CODE_TEXT)
+        val micPendingIntent = createPendingIntent(context, autoSpeech = true, REQUEST_CODE_MIC)
 
         // Bind PendingIntent to every clickable element so no area falls back to opening the main app
         views.setOnClickPendingIntent(R.id.widget_nl_root, textPendingIntent)
@@ -58,6 +37,23 @@ class NaturalLanguageWidgetProvider : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.widget_nl_btn_mic, micPendingIntent)
 
         return views
+    }
+
+    private fun createPendingIntent(
+        context: Context,
+        autoSpeech: Boolean,
+        requestCode: Int
+    ): PendingIntent {
+        val intent = Intent(context, NaturalLanguageQuickActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(EXTRA_AUTO_SPEECH, autoSpeech)
+        }
+        return PendingIntent.getActivity(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     companion object {

@@ -51,17 +51,7 @@ class EmoneyWidgetProvider : AppWidgetProvider() {
 
     private fun buildRemoteViews(context: Context, card: NfcCardEntity?): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_emoney_card)
-
-        // Intent to launch quick scan activity when user taps button or widget
-        val scanIntent = Intent(context, NfcQuickScanActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            scanIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent = createScanPendingIntent(context)
 
         views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
         views.setOnClickPendingIntent(R.id.widget_icon, pendingIntent)
@@ -69,17 +59,14 @@ class EmoneyWidgetProvider : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.widget_btn_scan, pendingIntent)
 
         if (card != null) {
-            val cardType = try {
-                NfcCardType.valueOf(card.cardType)
-            } catch (_: Exception) {
-                NfcCardType.UNKNOWN
-            }
+            val cardType = parseCardType(card.cardType)
 
             views.setTextViewText(R.id.widget_card_title, cardType.displayName)
             views.setTextViewText(R.id.widget_balance_amount, CurrencyFormatter.format(card.balance))
 
             // Format last scanned time
-            val timeStr = SimpleDateFormat("dd MMM, HH:mm", Locale.forLanguageTag("id-ID")).format(Date(card.lastScannedAt))
+            val timeStr = SimpleDateFormat(DATE_TIME_FORMAT_PATTERN, Locale.forLanguageTag("id-ID"))
+                .format(Date(card.lastScannedAt))
             views.setTextViewText(R.id.widget_last_scanned, context.getString(R.string.nfc_last_scanned, timeStr))
         } else {
             views.setTextViewText(R.id.widget_card_title, context.getString(R.string.widget_emoney_name))
@@ -90,7 +77,27 @@ class EmoneyWidgetProvider : AppWidgetProvider() {
         return views
     }
 
+    private fun createScanPendingIntent(context: Context): PendingIntent {
+        val scanIntent = Intent(context, NfcQuickScanActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        return PendingIntent.getActivity(
+            context,
+            0,
+            scanIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    private fun parseCardType(rawType: String): NfcCardType = try {
+        NfcCardType.valueOf(rawType)
+    } catch (_: Exception) {
+        NfcCardType.UNKNOWN
+    }
+
     companion object {
+        private const val DATE_TIME_FORMAT_PATTERN = "dd MMM, HH:mm"
+
         fun updateAllWidgets(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val thisWidget = ComponentName(context, EmoneyWidgetProvider::class.java)
