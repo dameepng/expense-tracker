@@ -53,7 +53,7 @@ class ChatViewModel internal constructor(
                 _uiState.update { it.copy(error = ChatUiError.INVALID_INPUT) }
                 return
             }
-            question.length > MAX_INPUT_CHARACTERS -> {
+            question.length > ChatUiState.MAX_INPUT_CHARACTERS -> {
                 _uiState.update { it.copy(error = ChatUiError.INPUT_LIMIT) }
                 return
             }
@@ -202,9 +202,5 @@ class ChatViewModel internal constructor(
         ChatError.INVALID_RESPONSE,
         ChatError.UNSUPPORTED_RESPONSE,
         ChatError.TRUNCATED_RESPONSE -> ChatUiError.INVALID_RESPONSE
-    }
-
-    private companion object {
-        const val MAX_INPUT_CHARACTERS = 1_000
     }
 }

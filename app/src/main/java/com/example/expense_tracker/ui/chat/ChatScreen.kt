@@ -1,7 +1,6 @@
 package com.example.expense_tracker.ui.chat
 
 import android.content.res.Configuration
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -100,6 +99,8 @@ import com.example.expense_tracker.ui.chat.components.ChatBubbleStatus
 import com.example.expense_tracker.ui.chat.components.ChatMessageBubble
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 import com.example.expense_tracker.ui.theme.spacing
+
+private val MAX_CHAT_SCREEN_WIDTH = 768.dp
 
 @Composable
 fun ChatScreen(
@@ -210,7 +211,7 @@ internal fun ChatScreenContent(
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
-                .widthIn(max = 768.dp)
+                .widthIn(max = MAX_CHAT_SCREEN_WIDTH)
                 .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
             // WindowInsets(0): Matikan inset handling otomatis Scaffold.
             // Alasan: Jika Scaffold mengurus insets secara otomatis, bottomBar atau contentPadding

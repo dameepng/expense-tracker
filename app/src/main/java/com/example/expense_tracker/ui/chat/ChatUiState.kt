@@ -34,7 +34,7 @@ data class ChatUiState(
     val canRetry: Boolean
         get() = !isLoading && failedMessage != null
 
-    private companion object {
+    companion object {
         const val MAX_INPUT_CHARACTERS = 1_000
     }
 }
