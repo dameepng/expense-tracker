@@ -2,9 +2,10 @@ package com.example.expense_tracker.ui.wallet
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.expense_tracker.data.ExpenseRepository
+import com.example.expense_tracker.data.UserPreferencesRepository
 import com.example.expense_tracker.data.Wallet
 import com.example.expense_tracker.data.WalletRepository
-import com.example.expense_tracker.data.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,8 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-import com.example.expense_tracker.data.ExpenseRepository
 
 class WalletViewModel(
     private val repository: WalletRepository,

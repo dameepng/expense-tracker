@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import com.example.expense_tracker.ui.theme.spacing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +31,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.Wallet
+import com.example.expense_tracker.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +116,7 @@ fun WalletListScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .widthIn(max = 840.dp),
+                        .widthIn(max = MAX_WALLET_LIST_WIDTH),
                     contentPadding = PaddingValues(
                         start = spacing.screenMargin,
                         end = spacing.screenMargin,
@@ -176,7 +177,7 @@ fun WalletListScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .widthIn(max = 560.dp)
+                        .widthIn(max = MAX_WALLET_SHEET_WIDTH)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = spacing.screenMargin)
                         .padding(bottom = spacing.space400)
@@ -379,7 +380,7 @@ fun WalletListScreen(
                         onValueChange = { confirmText = it },
                         label = {
                             val hintText = stringResource(R.string.delete_wallet_hint)
-                            val target = "\"hapus dompet\""
+                            val target = CONFIRM_DELETE_TARGET
                             val start = hintText.indexOf(target, ignoreCase = true)
                             if (start != -1) {
                                 Text(
@@ -409,7 +410,7 @@ fun WalletListScreen(
                     },
                     enabled = isConfirmed,
                     shape = RoundedCornerShape(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
                     )
@@ -534,7 +535,7 @@ fun CreditCardItem(
                             color = Color.White.copy(alpha = 0.7f)
                         )
                         Text(
-                            text = wallet.cardExpiry.ifBlank { "12/28" },
+                            text = wallet.cardExpiry.ifBlank { DEFAULT_CARD_EXPIRY },
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White
@@ -565,9 +566,9 @@ fun CardChip(modifier: Modifier = Modifier) {
     }
 }
 
-private fun formatMaskedCardNumber(cardNumber: String): String {
+internal fun formatMaskedCardNumber(cardNumber: String): String {
     val digits = cardNumber.filter { it.isDigit() }
-    if (digits.isEmpty()) return "•••• •••• •••• 5052"
+    if (digits.isEmpty()) return DEFAULT_CARD_MASK
     val masked = if (digits.length >= 4) {
         "•".repeat((digits.length - 4).coerceAtLeast(0)) + digits.takeLast(4)
     } else {
@@ -576,4 +577,11 @@ private fun formatMaskedCardNumber(cardNumber: String): String {
     val padded = masked.padEnd(16, '•')
     return padded.chunked(4).joinToString(" ")
 }
+
+private val MAX_WALLET_LIST_WIDTH = 840.dp
+private val MAX_WALLET_SHEET_WIDTH = 560.dp
+private const val CONFIRM_DELETE_TARGET = "\"hapus dompet\""
+private const val DEFAULT_CARD_EXPIRY = "12/28"
+private const val DEFAULT_CARD_MASK = "•••• •••• •••• 5052"
+
 

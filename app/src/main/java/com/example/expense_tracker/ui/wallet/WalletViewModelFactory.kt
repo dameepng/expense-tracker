@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.expense_tracker.data.AppDatabase
+import com.example.expense_tracker.data.RoomExpenseRepository
 import com.example.expense_tracker.data.RoomWalletRepository
 import com.example.expense_tracker.data.UserPreferencesRepositoryImpl
 import com.example.expense_tracker.data.dataStore
@@ -13,7 +14,7 @@ class WalletViewModelFactory(private val context: Context) : ViewModelProvider.F
         if (modelClass.isAssignableFrom(WalletViewModel::class.java)) {
             val database = AppDatabase.getInstance(context)
             val repository = RoomWalletRepository(database.walletDao())
-            val expenseRepository = com.example.expense_tracker.data.RoomExpenseRepository(database.expenseDao())
+            val expenseRepository = RoomExpenseRepository(database.expenseDao())
             val userPrefs = UserPreferencesRepositoryImpl(context.dataStore)
             @Suppress("UNCHECKED_CAST")
             return WalletViewModel(repository, expenseRepository, userPrefs) as T

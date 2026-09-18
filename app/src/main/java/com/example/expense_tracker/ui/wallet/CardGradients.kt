@@ -1,8 +1,10 @@
 package com.example.expense_tracker.ui.wallet
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
+@Immutable
 data class CardGradient(
     val id: String,
     val name: String,
