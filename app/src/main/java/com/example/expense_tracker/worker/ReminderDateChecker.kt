@@ -1,7 +1,6 @@
 package com.example.expense_tracker.worker
 
 import java.time.LocalDate
-import java.time.YearMonth
 
 data class NotificationPayload(
     val title: String,
@@ -9,6 +8,9 @@ data class NotificationPayload(
 )
 
 object ReminderDateChecker {
+
+    private const val DAYS_BEFORE_DUE_EARLY = 7
+    private const val DAYS_BEFORE_DUE_URGENT = 3
 
     fun getNotificationPayload(
         dueDay: Int,
@@ -18,20 +20,18 @@ object ReminderDateChecker {
     ): NotificationPayload? {
         val dayOfMonth = today.dayOfMonth
         val isFirstDayOfMonth = dayOfMonth == 1
-        
-        val lengthOfMonth = YearMonth.of(today.year, today.month).lengthOfMonth()
-        val actualDueDay = if (dueDay > lengthOfMonth) lengthOfMonth else dueDay
+        val actualDueDay = dueDay.coerceAtMost(today.lengthOfMonth())
 
         return when {
             isFirstDayOfMonth -> NotificationPayload(
                 title = "Bill Reminder",
                 messageTemplate = "💡 Reminder: $reminderName jatuh tempo tgl $dueDay"
             )
-            dayOfMonth == actualDueDay - 7 -> NotificationPayload(
+            dayOfMonth == actualDueDay - DAYS_BEFORE_DUE_EARLY -> NotificationPayload(
                 title = "H-7 Payment",
                 messageTemplate = "⚠️ H-7: $reminderName $amountStr jatuh tempo tgl $dueDay"
             )
-            dayOfMonth == actualDueDay - 3 -> NotificationPayload(
+            dayOfMonth == actualDueDay - DAYS_BEFORE_DUE_URGENT -> NotificationPayload(
                 title = "H-3 Payment",
                 messageTemplate = "🔴 H-3: Segera bayar $reminderName $amountStr!"
             )

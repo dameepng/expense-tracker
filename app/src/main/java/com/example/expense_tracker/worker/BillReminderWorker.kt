@@ -1,6 +1,7 @@
 package com.example.expense_tracker.worker
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.expense_tracker.data.AppDatabase
@@ -33,9 +34,7 @@ class BillReminderWorker(
             }
 
             val today = LocalDate.now()
-            today.dayOfMonth
-            
-            val currencyFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+            val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"))
 
             for (reminder in activeReminders) {
                 val amountStr = currencyFormat.format(reminder.amount)
@@ -60,8 +59,12 @@ class BillReminderWorker(
 
             Result.success()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Failed to process bill reminders", e)
             Result.failure()
         }
+    }
+
+    private companion object {
+        const val TAG = "BillReminderWorker"
     }
 }
