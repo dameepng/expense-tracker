@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,6 +58,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,6 +73,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.expense_tracker.R
+import com.example.expense_tracker.data.BillReminder
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.theme.categoryColor
 import com.example.expense_tracker.ui.theme.motionScheme
@@ -99,7 +102,7 @@ fun ReminderListScreen(
     val undoLabel = stringResource(R.string.bill_undo)
     val haptic = LocalHapticFeedback.current
 
-    val onMarkAsPaid: (com.example.expense_tracker.data.BillReminder) -> Unit = remember(viewModel) {
+    val onMarkAsPaid: (BillReminder) -> Unit = remember(viewModel) {
         { reminder -> viewModel.markAsPaid(reminder) }
     }
 
@@ -147,17 +150,23 @@ fun ReminderListScreen(
                     .padding(padding)
             )
         } else {
-            LazyColumn(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = spacing.screenMargin),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                contentPadding = PaddingValues(
-                    top = spacing.space100,
-                    bottom = spacing.space400
-                )
+                    .padding(padding),
+                contentAlignment = Alignment.TopCenter
             ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = MAX_REMINDER_LIST_WIDTH)
+                        .padding(horizontal = spacing.screenMargin),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                    contentPadding = PaddingValues(
+                        top = spacing.space100,
+                        bottom = spacing.space400
+                    )
+                ) {
                 // Hero Overview Card (Google I/O Material 3 Expressive)
                 item(key = "bill_overview_header", contentType = "bill_overview_header") {
                     BillOverviewCard(
@@ -167,13 +176,12 @@ fun ReminderListScreen(
                     )
                 }
 
-                // Bill Reminder Cards
                 items(
                     items = uiState.activeReminders,
                     key = { it.reminder.id },
                     contentType = { "reminder_card" }
                 ) { item ->
-                    val currentItem by androidx.compose.runtime.rememberUpdatedState(item)
+                    val currentItem by rememberUpdatedState(item)
                     val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember(item.reminder.id) {
                         { dismissValue ->
                             if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
@@ -241,6 +249,7 @@ fun ReminderListScreen(
                         )
                     }
                 }
+            }
             }
         }
     }
@@ -619,7 +628,7 @@ fun BillEmptyState(
     }
 }
 
-private fun getCategoryIcon(categoryId: Long): ImageVector = when (categoryId) {
+internal fun getCategoryIcon(categoryId: Long): ImageVector = when (categoryId) {
     1L -> Icons.Default.Restaurant
     2L -> Icons.Default.DirectionsCar
     3L -> Icons.Default.ShoppingCart
@@ -628,3 +637,6 @@ private fun getCategoryIcon(categoryId: Long): ImageVector = when (categoryId) {
     6L -> Icons.Default.LocalHospital
     else -> Icons.Default.Notifications
 }
+
+private val MAX_REMINDER_LIST_WIDTH = 840.dp
+

@@ -1,26 +1,29 @@
 package com.example.expense_tracker.ui.reminder
 
 import android.app.Application
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.BillReminder
 import com.example.expense_tracker.data.BillReminderRepository
+import com.example.expense_tracker.data.Expense
+import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.RoomBillReminderRepository
+import com.example.expense_tracker.data.RoomExpenseRepository
+import com.example.expense_tracker.data.RoomWalletRepository
+import com.example.expense_tracker.data.WalletRepository
+import java.time.YearMonth
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-import com.example.expense_tracker.data.ExpenseRepository
-import com.example.expense_tracker.data.RoomExpenseRepository
-import androidx.compose.runtime.Immutable
-import com.example.expense_tracker.data.RoomWalletRepository
-import com.example.expense_tracker.data.WalletRepository
 
 @Immutable
 data class ReminderItemUiState(
@@ -46,7 +49,7 @@ class ReminderListViewModel(
     private val repository: BillReminderRepository,
     private val expenseRepository: ExpenseRepository,
     private val walletRepository: WalletRepository,
-    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReminderListUiState())
@@ -58,14 +61,14 @@ class ReminderListViewModel(
             val categoriesFlow = expenseRepository.getCategories()
             val walletsFlow = walletRepository.getAllWallets()
 
-            kotlinx.coroutines.flow.combine(
+            combine(
                 remindersFlow,
                 categoriesFlow,
                 walletsFlow
             ) { reminders, categoriesList, walletsList ->
                 val categories = categoriesList.associateBy { it.id }
                 val wallets = walletsList.associateBy { it.id }
-                val currentMonth = java.time.YearMonth.now().toString()
+                val currentMonth = YearMonth.now().toString()
                 
                 val items = reminders.map { reminder ->
                     ReminderItemUiState(
@@ -115,7 +118,7 @@ class ReminderListViewModel(
         viewModelScope.launch {
             withContext(ioDispatcher) {
                 // 1. Create an Expense
-                val expense = com.example.expense_tracker.data.Expense(
+                val expense = Expense(
                     amount = reminder.amount,
                     categoryId = reminder.categoryId,
                     walletId = reminder.walletId,
@@ -132,7 +135,7 @@ class ReminderListViewModel(
                 }
 
                 // 3. Mark reminder as paid for this month, or deactivate if it's one-time
-                val currentMonth = java.time.YearMonth.now().toString() // e.g., "2026-07"
+                val currentMonth = YearMonth.now().toString() // e.g., "2026-07"
                 if (reminder.isRepeat) {
                     repository.updateReminder(reminder.copy(lastPaidMonth = currentMonth))
                 } else {
