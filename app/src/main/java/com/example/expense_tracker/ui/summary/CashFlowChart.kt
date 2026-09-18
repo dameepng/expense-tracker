@@ -19,12 +19,12 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.core.graphics.toColorInt
 
-private fun formatAxisValue(value: Long): String {
+internal fun formatAxisValue(value: Long): String {
     return when {
         value >= 1_000_000 -> "${value / 1_000_000}jt"
         value >= 1_000 -> "${value / 1_000}k"
@@ -38,21 +38,20 @@ fun CashFlowChart(
     modifier: Modifier = Modifier
 ) {
     if (dailyCashFlow.isEmpty()) {
-        Box(modifier = modifier.height(180.dp))
+        Box(modifier = modifier.height(DEFAULT_CHART_HEIGHT))
         return
     }
 
     val incomeColor = Color(0xFF10B981)
     val expenseColor = Color(0xFF94A3B8) // Lighter slate for better visibility
     val gridColor = Color(0xFFE2E8F0)
-    MaterialTheme.colorScheme.onSurfaceVariant
 
     val density = LocalDensity.current
     val labelSizeSp = 10.sp
     val labelSizePx = with(density) { labelSizeSp.toPx() }
 
     // Pre-compute date labels
-    val dateFormat = remember { SimpleDateFormat("d MMM", Locale("id", "ID")) }
+    val dateFormat = remember { SimpleDateFormat("d MMM", Locale.forLanguageTag("id-ID")) }
     val dateLabels = remember(dailyCashFlow) {
         if (dailyCashFlow.size <= 1) {
             dailyCashFlow.mapIndexed { index, data ->
@@ -90,10 +89,10 @@ fun CashFlowChart(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .height(DEFAULT_CHART_HEIGHT)
             .padding(top = 12.dp)
     ) {
-        Canvas(modifier = Modifier.fillMaxWidth().height(180.dp)) {
+        Canvas(modifier = Modifier.fillMaxWidth().height(DEFAULT_CHART_HEIGHT)) {
             val totalWidth = size.width
             val totalHeight = size.height
 
@@ -137,18 +136,14 @@ fun CashFlowChart(
             // ── Draw X Axis Labels ──
             val stepX = if (dailyCashFlow.size > 1) chartWidth / (dailyCashFlow.size - 1) else chartWidth
 
-            @Suppress("UNCHECKED_CAST")
-            val labelPairs = dateLabels as? List<Pair<Int, String>>
-            if (labelPairs != null) {
-                labelPairs.forEach { (idx, label) ->
-                    val x = leftMargin + idx * stepX
-                    drawContext.canvas.nativeCanvas.drawText(
-                        label,
-                        x,
-                        totalHeight - 2.dp.toPx(),
-                        xTextPaint
-                    )
-                }
+            dateLabels.forEach { (idx, label) ->
+                val x = leftMargin + idx * stepX
+                drawContext.canvas.nativeCanvas.drawText(
+                    label,
+                    x,
+                    totalHeight - 2.dp.toPx(),
+                    xTextPaint
+                )
             }
 
             // ── Draw Chart Lines ──
@@ -297,3 +292,6 @@ fun CashFlowChart(
         }
     }
 }
+
+private val DEFAULT_CHART_HEIGHT = 180.dp
+

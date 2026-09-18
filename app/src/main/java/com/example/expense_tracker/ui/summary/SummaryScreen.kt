@@ -16,8 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import com.example.expense_tracker.ui.theme.spacing
-import com.example.expense_tracker.ui.theme.motionScheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -39,8 +37,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.expense_tracker.data.FilterPeriod
+import com.example.expense_tracker.data.TimeRangeCalculator
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
+import com.example.expense_tracker.ui.theme.categoryColor
+import com.example.expense_tracker.ui.theme.motionScheme
+import com.example.expense_tracker.ui.theme.spacing
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.TextButton
@@ -399,7 +401,7 @@ fun SummaryScreen(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 840.dp),
+                    .widthIn(max = MAX_SUMMARY_WIDTH),
                 contentPadding = PaddingValues(bottom = 96.dp)
             ) {
             item(key = "hero_balance") {
@@ -650,7 +652,7 @@ fun SummaryScreen(
                                                 modifier = Modifier
                                                     .size(10.dp)
                                                     .background(
-                                                        color = com.example.expense_tracker.ui.theme.categoryColor(item.categoryId.toInt(), isIncome),
+                                                        color = categoryColor(item.categoryId.toInt(), isIncome),
                                                         shape = CircleShape
                                                     )
                                             )
@@ -726,9 +728,9 @@ fun SummaryScreen(
                             val startDate = state.customStartDate
                             val endDate = state.customEndDate
                             val (start, end) = if (state.filter == FilterPeriod.CUSTOM && startDate != null && endDate != null) {
-                                Pair(startDate, endDate + 86400000L)
+                                Pair(startDate, endDate + MILLIS_PER_DAY)
                             } else {
-                                com.example.expense_tracker.data.TimeRangeCalculator.calculateRange(state.filter)
+                                TimeRangeCalculator.calculateRange(state.filter)
                             }
                             onCategoryClick(item.categoryId, state.selectedWalletId, start, end)
                         }
@@ -830,4 +832,8 @@ fun BreakdownCardItemPreview() {
         )
     }
 }
+
+private val MAX_SUMMARY_WIDTH = 840.dp
+private const val MILLIS_PER_DAY = 86_400_000L
+
 

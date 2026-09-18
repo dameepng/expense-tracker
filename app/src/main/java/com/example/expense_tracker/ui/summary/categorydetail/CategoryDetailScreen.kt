@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.draw.clip
-import com.example.expense_tracker.ui.theme.spacing
-import com.example.expense_tracker.ui.theme.motionScheme
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +48,8 @@ import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.ExpenseWithCategory
 import com.example.expense_tracker.ui.components.TransactionListItem
+import com.example.expense_tracker.ui.theme.motionScheme
+import com.example.expense_tracker.ui.theme.spacing
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,11 +84,11 @@ fun CategoryDetailScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
-                windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0)
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -137,7 +138,7 @@ fun CategoryDetailScreen(
                 }
 
                 val spacing = MaterialTheme.spacing
-                val swipeShape = RoundedCornerShape(20.dp)
+                val swipeShape = RoundedCornerShape(SWIPE_SHAPE_RADIUS)
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(spacing.space100),
@@ -161,7 +162,7 @@ fun CategoryDetailScreen(
                             backgroundContent = {
                                 val direction = dismissState.dismissDirection
                                 val color = when (direction) {
-                                    SwipeToDismissBoxValue.StartToEnd -> Color(0xFF4CAF50) // Green for edit
+                                    SwipeToDismissBoxValue.StartToEnd -> SWIPE_EDIT_COLOR // Green for edit
                                     SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error // Red for delete
                                     else -> Color.Transparent
                                 }
@@ -216,3 +217,7 @@ fun CategoryDetailScreen(
         }
     }
 }
+
+private val SWIPE_SHAPE_RADIUS = 20.dp
+private val SWIPE_EDIT_COLOR = Color(0xFF4CAF50)
+

@@ -1,18 +1,24 @@
 package com.example.expense_tracker.ui.summary.categorydetail
 
+import android.app.Application
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.expense_tracker.data.AppDatabase
 import com.example.expense_tracker.data.Category
+import com.example.expense_tracker.data.Expense
 import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.ExpenseWithCategory
+import com.example.expense_tracker.data.RoomExpenseRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
@@ -99,18 +105,7 @@ class CategoryDetailViewModel(
     fun deleteExpense(expense: ExpenseWithCategory) {
         viewModelScope.launch {
             withContext(ioDispatcher) {
-                val expenseEntity = com.example.expense_tracker.data.Expense(
-                    id = expense.id,
-                    amount = expense.amount,
-                    description = expense.description,
-                    timestamp = expense.timestamp,
-                    type = expense.type,
-                    categoryId = expense.categoryId,
-                    walletId = expense.walletId,
-                    merchant = expense.merchant,
-                    isRecurring = expense.isRecurring
-                )
-                repository.deleteExpense(expenseEntity)
+                repository.deleteExpense(expense.toExpense())
             }
         }
     }
@@ -118,29 +113,30 @@ class CategoryDetailViewModel(
     fun undoDeleteExpense(expense: ExpenseWithCategory) {
         viewModelScope.launch {
             withContext(ioDispatcher) {
-                val expenseEntity = com.example.expense_tracker.data.Expense(
-                    id = expense.id,
-                    amount = expense.amount,
-                    description = expense.description,
-                    timestamp = expense.timestamp,
-                    type = expense.type,
-                    categoryId = expense.categoryId,
-                    walletId = expense.walletId,
-                    merchant = expense.merchant,
-                    isRecurring = expense.isRecurring
-                )
-                repository.insertExpense(expenseEntity)
+                repository.insertExpense(expense.toExpense())
             }
         }
     }
 }
 
+private fun ExpenseWithCategory.toExpense(): Expense = Expense(
+    id = id,
+    amount = amount,
+    description = description,
+    timestamp = timestamp,
+    type = type,
+    categoryId = categoryId,
+    walletId = walletId,
+    merchant = merchant,
+    isRecurring = isRecurring
+)
+
 class CategoryDetailViewModelFactory(
-    private val app: android.app.Application
-) : androidx.lifecycle.ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>, extras: androidx.lifecycle.viewmodel.CreationExtras): T {
-        val database = com.example.expense_tracker.data.AppDatabase.getInstance(app)
-        val repository = com.example.expense_tracker.data.RoomExpenseRepository(database.expenseDao())
+    private val app: Application
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+        val database = AppDatabase.getInstance(app)
+        val repository = RoomExpenseRepository(database.expenseDao())
         val savedStateHandle = extras.createSavedStateHandle()
         if (modelClass.isAssignableFrom(CategoryDetailViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

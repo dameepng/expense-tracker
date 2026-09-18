@@ -1,13 +1,12 @@
 package com.example.expense_tracker.ui.summary
 
-import androidx.compose.material3.MaterialTheme
-import com.example.expense_tracker.ui.theme.motionScheme
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,6 +22,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.ui.theme.categoryColor
+import com.example.expense_tracker.ui.theme.motionScheme
 
 @Composable
 fun DonutChart(
@@ -44,13 +44,13 @@ fun DonutChart(
 
     Box(
         modifier = modifier
-            .size(160.dp) // Compact size
+            .size(DEFAULT_DONUT_SIZE)
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         // The Chart
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokeWidth = size.width * 0.15f // 15% of width for the donut ring thickness
+            val strokeWidth = size.width * STROKE_WIDTH_FRACTION // 15% of width for the donut ring thickness
             val radius = size.width / 2 - strokeWidth / 2
 
             if (items.isEmpty()) {
@@ -92,3 +92,6 @@ fun DonutChart(
         }
     }
 }
+
+private val DEFAULT_DONUT_SIZE = 160.dp
+private const val STROKE_WIDTH_FRACTION = 0.15f

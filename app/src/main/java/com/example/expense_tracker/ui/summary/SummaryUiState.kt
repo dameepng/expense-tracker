@@ -3,6 +3,7 @@ package com.example.expense_tracker.ui.summary
 import androidx.compose.runtime.Immutable
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.TransactionType
+import com.example.expense_tracker.data.Wallet
 
 @Immutable
 data class SummaryUiState(
@@ -13,7 +14,7 @@ data class SummaryUiState(
     val customStartDate: Long? = null,
     val customEndDate: Long? = null,
     val isLoading: Boolean = false,
-    val wallets: List<com.example.expense_tracker.data.Wallet> = emptyList(),
+    val wallets: List<Wallet> = emptyList(),
     val selectedWalletId: Long? = null, // null = all wallets
     
     // Premium Dashboard Fields

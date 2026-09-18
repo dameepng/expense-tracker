@@ -4,17 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.TimeRangeCalculator
+import com.example.expense_tracker.data.TransactionType
 import com.example.expense_tracker.data.WalletRepository
+import java.util.Calendar
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-
-import com.example.expense_tracker.data.TransactionType
 
 class SummaryViewModel(
     private val repository: SummaryRepository,
@@ -56,12 +57,12 @@ class SummaryViewModel(
             filterParamsFlow
                 .flatMapLatest { params ->
                     val (start, end) = if (params.filter == FilterPeriod.CUSTOM && params.customStartDate != null && params.customEndDate != null) {
-                        Pair(params.customStartDate, params.customEndDate + 86400000L)
+                        Pair(params.customStartDate, params.customEndDate + MILLIS_PER_DAY)
                     } else {
                         TimeRangeCalculator.calculateRange(params.filter)
                     }
                     
-                    kotlinx.coroutines.flow.combine(
+                    combine(
                         repository.getTotalBalance(params.walletId),
                         repository.getBreakdownByCategory(start, end, params.type, params.walletId),
                         repository.getTotalIncome(start, end, params.walletId),
@@ -91,15 +92,15 @@ class SummaryViewModel(
                         }
 
                         // Aggregate Daily Cash Flow
-                        val calendar = java.util.Calendar.getInstance()
+                        val calendar = Calendar.getInstance()
                         val dailyMap = mutableMapOf<Long, Pair<Long, Long>>() // Map of day start millis -> (Income, Expense)
                         
                         transactions.forEach { tx ->
                             calendar.timeInMillis = tx.timestamp
-                            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-                            calendar.set(java.util.Calendar.MINUTE, 0)
-                            calendar.set(java.util.Calendar.SECOND, 0)
-                            calendar.set(java.util.Calendar.MILLISECOND, 0)
+                            calendar.set(Calendar.HOUR_OF_DAY, 0)
+                            calendar.set(Calendar.MINUTE, 0)
+                            calendar.set(Calendar.SECOND, 0)
+                            calendar.set(Calendar.MILLISECOND, 0)
                             val dayMillis = calendar.timeInMillis
                             
                             val current = dailyMap[dayMillis] ?: Pair(0L, 0L)
@@ -159,3 +160,6 @@ class SummaryViewModel(
         _uiState.value = _uiState.value.copy(isLoading = true)
     }
 }
+
+private const val MILLIS_PER_DAY = 86_400_000L
+
