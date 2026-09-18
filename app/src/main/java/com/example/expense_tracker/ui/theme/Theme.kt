@@ -78,7 +78,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun Expense_trackerTheme(
+fun ExpenseTrackerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true, // Menggunakan Dynamic Color default (opsi M3)
     motionScheme: MotionScheme = MotionScheme.expressive(),
@@ -106,4 +106,22 @@ fun Expense_trackerTheme(
             content()
         }
     }
+}
+
+/**
+ * Convenience alias matching the project's original naming convention.
+ */
+@Composable
+fun Expense_trackerTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
+    motionScheme: MotionScheme = MotionScheme.expressive(),
+    content: @Composable () -> Unit
+) {
+    ExpenseTrackerTheme(
+        darkTheme = darkTheme,
+        dynamicColor = dynamicColor,
+        motionScheme = motionScheme,
+        content = content
+    )
 }

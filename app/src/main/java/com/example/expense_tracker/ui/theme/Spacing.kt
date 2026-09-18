@@ -70,6 +70,9 @@ val MaterialTheme.spacing: Spacing
     @ReadOnlyComposable
     get() = LocalSpacing.current
 
+private const val COMPACT_SCREEN_MAX_WIDTH_DP = 600
+private const val MEDIUM_SCREEN_MAX_WIDTH_DP = 840
+
 /**
  * Menghasilkan konfigurasi spacing adaptif berdasarkan lebar layar saat ini:
  * - Compact (<600dp)
@@ -80,28 +83,29 @@ val MaterialTheme.spacing: Spacing
 fun rememberAdaptiveSpacingConfig(): Spacing {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
+    val base = Spacing()
 
     return when {
-        screenWidth < 600 -> Spacing(
-            screenMargin = 16.dp,
-            sectionGap = 16.dp,
-            cardPadding = 16.dp,
-            itemGap = 12.dp,
-            inlineGap = 8.dp
+        screenWidth < COMPACT_SCREEN_MAX_WIDTH_DP -> base.copy(
+            screenMargin = base.space200,
+            sectionGap = base.space200,
+            cardPadding = base.space200,
+            itemGap = base.space150,
+            inlineGap = base.space100
         )
-        screenWidth < 840 -> Spacing(
-            screenMargin = 24.dp,
-            sectionGap = 24.dp,
-            cardPadding = 20.dp,
-            itemGap = 16.dp,
-            inlineGap = 8.dp
+        screenWidth < MEDIUM_SCREEN_MAX_WIDTH_DP -> base.copy(
+            screenMargin = base.space300,
+            sectionGap = base.space300,
+            cardPadding = base.space250,
+            itemGap = base.space200,
+            inlineGap = base.space100
         )
-        else -> Spacing(
-            screenMargin = 32.dp,
-            sectionGap = 32.dp,
-            cardPadding = 24.dp,
-            itemGap = 16.dp,
-            inlineGap = 12.dp
+        else -> base.copy(
+            screenMargin = base.space400,
+            sectionGap = base.space400,
+            cardPadding = base.space300,
+            itemGap = base.space200,
+            inlineGap = base.space150
         )
     }
 }

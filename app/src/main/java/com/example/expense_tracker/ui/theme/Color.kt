@@ -96,7 +96,11 @@ val IncomeCategoryColors = listOf(
 
 fun categoryColor(index: Int, isIncome: Boolean = false): Color =
     if (isIncome) {
-        IncomeCategoryColors.getOrElse((index - 1).coerceAtLeast(0) % IncomeCategoryColors.size) { Color(0xFF10B981) }
+        val colors = IncomeCategoryColors
+        val safeIndex = (index - 1).coerceAtLeast(0) % colors.size
+        colors.getOrElse(safeIndex) { colors.first() }
     } else {
-        CategoryColors.getOrElse((index - 1).coerceAtLeast(0) % CategoryColors.size) { Color.Gray }
+        val colors = CategoryColors
+        val safeIndex = (index - 1).coerceAtLeast(0) % colors.size
+        colors.getOrElse(safeIndex) { Color.Gray }
     }
