@@ -2,11 +2,19 @@ package com.example.expense_tracker.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.expense_tracker.data.BillReminderRepository
+import com.example.expense_tracker.data.Category
+import com.example.expense_tracker.data.Expense
 import com.example.expense_tracker.data.ExpenseRepository
 import com.example.expense_tracker.data.ExpenseWithCategory
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.TimeRangeCalculator
+import com.example.expense_tracker.data.UserPreferencesRepository
+import com.example.expense_tracker.data.Wallet
+import com.example.expense_tracker.data.WalletRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,13 +24,18 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.YearMonth
 
+private const val RECENT_TRANSACTIONS_LIMIT = 5
+private const val DEFAULT_CATEGORY_FALLBACK = "Lainnya"
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(
     private val repository: ExpenseRepository,
-    private val walletRepository: com.example.expense_tracker.data.WalletRepository,
-    private val billReminderRepository: com.example.expense_tracker.data.BillReminderRepository,
-    private val userPreferencesRepository: com.example.expense_tracker.data.UserPreferencesRepository,
-    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
+    private val walletRepository: WalletRepository,
+    private val billReminderRepository: BillReminderRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
@@ -36,25 +49,23 @@ class HomeViewModel(
             val nameFlow = userPreferencesRepository.userNameFlow
             val photoFlow = userPreferencesRepository.userPhotoUriFlow
 
-            val transactionsFlow = combine(walletIdFlow, timeRangeFlow) { walletId, timeRange ->
+            val queryFilterFlow = combine(walletIdFlow, timeRangeFlow) { walletId, timeRange ->
                 Pair(walletId, timeRange)
-            }.flatMapLatest { (walletId, timeRange) ->
+            }
+
+            val transactionsFlow = queryFilterFlow.flatMapLatest { (walletId, timeRange) ->
                 val (start, end) = timeRange
                 if (walletId != null) repository.getTransactionsByWallet(walletId, start, end)
                 else repository.getAllTransactionsBetween(start, end)
             }
 
-            val totalExpenseFlow = combine(walletIdFlow, timeRangeFlow) { walletId, timeRange ->
-                Pair(walletId, timeRange)
-            }.flatMapLatest { (walletId, timeRange) ->
+            val totalExpenseFlow = queryFilterFlow.flatMapLatest { (walletId, timeRange) ->
                 val (start, end) = timeRange
                 if (walletId != null) repository.getTotalExpenseByWallet(walletId, start, end)
                 else repository.getTotalExpense(start, end)
             }
 
-            val totalIncomeFlow = combine(walletIdFlow, timeRangeFlow) { walletId, timeRange ->
-                Pair(walletId, timeRange)
-            }.flatMapLatest { (walletId, timeRange) ->
+            val totalIncomeFlow = queryFilterFlow.flatMapLatest { (walletId, timeRange) ->
                 val (start, end) = timeRange
                 if (walletId != null) repository.getTotalIncomeByWallet(walletId, start, end)
                 else repository.getTotalIncome(start, end)
@@ -64,7 +75,7 @@ class HomeViewModel(
             val walletsFlow = walletRepository.getAllWallets()
             
             val activeRemindersCountFlow = billReminderRepository.getActiveReminders().map { reminders ->
-                val currentMonth = java.time.YearMonth.now().toString()
+                val currentMonth = YearMonth.now().toString()
                 reminders.count { it.isActive && it.lastPaidMonth != currentMonth }
             }
 
@@ -82,11 +93,14 @@ class HomeViewModel(
                 val walletId = args[0] as Long?
                 val userName = args[1] as String
                 val userPhotoUri = args[2] as String?
-                val transactions = args[3] as List<com.example.expense_tracker.data.Expense>
+                @Suppress("UNCHECKED_CAST")
+                val transactions = args[3] as List<Expense>
                 val totalExpense = args[4] as Long
                 val totalIncome = args[5] as Long
-                val categories = args[6] as List<com.example.expense_tracker.data.Category>
-                val wallets = args[7] as List<com.example.expense_tracker.data.Wallet>
+                @Suppress("UNCHECKED_CAST")
+                val categories = args[6] as List<Category>
+                @Suppress("UNCHECKED_CAST")
+                val wallets = args[7] as List<Wallet>
                 val activeRemindersCount = args[8] as Int
 
                 val withCategory = transactions.map { expense ->
@@ -95,7 +109,7 @@ class HomeViewModel(
                         id = expense.id,
                         amount = expense.amount,
                         categoryId = expense.categoryId,
-                        categoryName = category?.name ?: "Lainnya",
+                        categoryName = category?.name ?: DEFAULT_CATEGORY_FALLBACK,
                         description = expense.description,
                         timestamp = expense.timestamp,
                         type = expense.type,
@@ -107,7 +121,7 @@ class HomeViewModel(
 
                 val selectedWallet = wallets.find { it.id == walletId }
                 val finalWalletId = if (walletId != null && selectedWallet == null) null else walletId
-                val finalWalletName = selectedWallet?.name ?: "All Wallets"
+                val finalWalletName = selectedWallet?.name ?: DEFAULT_WALLET_NAME
 
                 HomeUiState(
                     selectedWalletId = finalWalletId,
@@ -115,7 +129,7 @@ class HomeViewModel(
                     totalAmount = totalIncome - totalExpense,
                     totalIncome = totalIncome,
                     totalExpense = totalExpense,
-                    transactions = withCategory.take(5),
+                    transactions = withCategory.take(RECENT_TRANSACTIONS_LIMIT),
                     wallets = wallets,
                     activeRemindersCount = activeRemindersCount,
                     userName = userName,
@@ -139,18 +153,7 @@ class HomeViewModel(
     fun deleteExpense(expense: ExpenseWithCategory) {
         viewModelScope.launch {
             withContext(ioDispatcher) {
-                val dbExpense = com.example.expense_tracker.data.Expense(
-                    id = expense.id,
-                    amount = expense.amount,
-                    categoryId = expense.categoryId,
-                    description = expense.description,
-                    timestamp = expense.timestamp,
-                    type = expense.type,
-                    walletId = expense.walletId,
-                    merchant = expense.merchant,
-                    isRecurring = expense.isRecurring
-                )
-                repository.deleteExpense(dbExpense)
+                repository.deleteExpense(expense.toEntity())
             }
         }
     }
@@ -158,19 +161,20 @@ class HomeViewModel(
     fun undoDeleteExpense(expense: ExpenseWithCategory) {
         viewModelScope.launch {
             withContext(ioDispatcher) {
-                val dbExpense = com.example.expense_tracker.data.Expense(
-                    id = expense.id,
-                    amount = expense.amount,
-                    categoryId = expense.categoryId,
-                    description = expense.description,
-                    timestamp = expense.timestamp,
-                    type = expense.type,
-                    walletId = expense.walletId,
-                    merchant = expense.merchant,
-                    isRecurring = expense.isRecurring
-                )
-                repository.insertExpense(dbExpense)
+                repository.insertExpense(expense.toEntity())
             }
         }
     }
+
+    private fun ExpenseWithCategory.toEntity(): Expense = Expense(
+        id = id,
+        amount = amount,
+        categoryId = categoryId,
+        description = description,
+        timestamp = timestamp,
+        type = type,
+        walletId = walletId,
+        merchant = merchant,
+        isRecurring = isRecurring
+    )
 }

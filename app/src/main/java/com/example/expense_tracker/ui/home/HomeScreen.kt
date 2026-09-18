@@ -1,104 +1,109 @@
 package com.example.expense_tracker.ui.home
 
-import com.example.expense_tracker.ui.components.TransactionListItem
-import com.example.expense_tracker.ui.theme.spacing
-import com.example.expense_tracker.ui.theme.motionScheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.expense_tracker.data.ExpenseWithCategory
-import com.example.expense_tracker.ui.CurrencyFormatter
-import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 import coil.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-
-import androidx.compose.ui.res.stringResource
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.size.Size
 import com.example.expense_tracker.R
+import com.example.expense_tracker.data.ExpenseWithCategory
+import com.example.expense_tracker.data.TransactionType
+import com.example.expense_tracker.data.Wallet
+import com.example.expense_tracker.ui.CurrencyFormatter
+import com.example.expense_tracker.ui.components.TransactionListItem
+import com.example.expense_tracker.ui.theme.ExpenseTrackerTheme
+import com.example.expense_tracker.ui.theme.motionScheme
+import com.example.expense_tracker.ui.theme.spacing
+import com.example.expense_tracker.ui.wallet.CardGradients
+import kotlinx.coroutines.launch
+
+private val MAX_ADAPTIVE_WIDTH = 840.dp
+private const val DEFAULT_MASKED_CARD_NUMBER = "•••• •••• •••• 4020"
 
 // ── Custom Header ───────────────────────────────────────────────────
 
@@ -125,13 +130,13 @@ fun HeaderSection(
                     if (!userPhotoUri.isNullOrEmpty()) {
                         val context = LocalContext.current
                         val imageRequest = remember(userPhotoUri, context) {
-                            coil.request.ImageRequest.Builder(context)
+                            ImageRequest.Builder(context)
                                 .data(userPhotoUri)
                                 .crossfade(true)
-                                .size(coil.size.Size(120, 120))
+                                .size(Size(120, 120))
                                 .memoryCacheKey(userPhotoUri)
-                                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-                                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
                                 .build()
                         }
                         AsyncImage(
@@ -170,9 +175,9 @@ fun HeaderSection(
         actions = {
             IconButton(onClick = onNavigateToReminder) {
                 if (activeRemindersCount > 0) {
-                    androidx.compose.material3.BadgedBox(
+                    BadgedBox(
                         badge = {
-                            androidx.compose.material3.Badge(
+                            Badge(
                                 containerColor = MaterialTheme.colorScheme.error,
                                 contentColor = MaterialTheme.colorScheme.onError
                             ) {
@@ -209,13 +214,13 @@ fun BalanceCard(
     totalBalance: Long,
     selectedWalletName: String,
     modifier: Modifier = Modifier,
-    wallets: List<com.example.expense_tracker.data.Wallet> = emptyList(),
+    wallets: List<Wallet> = emptyList(),
     selectedWalletId: Long? = null,
     onWalletSelected: (Long?) -> Unit = {}
 ) {
     val selectedWallet = wallets.find { it.id == selectedWalletId }
     val gradient = if (selectedWallet != null) {
-        com.example.expense_tracker.ui.wallet.CardGradients.getGradient(selectedWallet.color).brush
+        CardGradients.getGradient(selectedWallet.color).brush
     } else {
         Brush.linearGradient(
             colors = listOf(
@@ -235,7 +240,7 @@ fun BalanceCard(
         val padded = masked.padEnd(16, '•')
         padded.chunked(4).joinToString(" ")
     } else {
-        "•••• •••• •••• 4020"
+        DEFAULT_MASKED_CARD_NUMBER
     }
 
     val spacing = MaterialTheme.spacing
@@ -346,7 +351,7 @@ fun BalanceCard(
                         Text(
                             text = maskedCardNumber,
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                                fontFamily = FontFamily.Monospace
                             ),
                             letterSpacing = 2.sp,
                             color = Color.White.copy(alpha = 0.7f)
@@ -403,7 +408,7 @@ fun IncomeExpenseSummary(
                     modifier = Modifier.size(44.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.TrendingUp,
+                        imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                         contentDescription = "Income",
                         tint = Color(0xFF1B5E20),
                         modifier = Modifier.padding(10.dp)
@@ -443,7 +448,7 @@ fun IncomeExpenseSummary(
                     modifier = Modifier.size(44.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.TrendingDown,
+                        imageVector = Icons.AutoMirrored.Filled.TrendingDown,
                         contentDescription = "Expense",
                         tint = MaterialTheme.colorScheme.onErrorContainer,
                         modifier = Modifier.padding(10.dp)
@@ -540,7 +545,6 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    LocalContext.current
 
     var isFirstLoad by remember { mutableStateOf(true) }
     LaunchedEffect(state.transactions.firstOrNull()?.id) {
@@ -608,7 +612,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 840.dp)
+                    .widthIn(max = MAX_ADAPTIVE_WIDTH)
             ) {
         
         Spacer(modifier = Modifier.height(spacing.sectionGap))
@@ -811,7 +815,7 @@ fun AutoResizeText(
 @Preview(showBackground = true)
 @Composable
 fun BalanceCardPreview() {
-    Expense_trackerTheme {
+    ExpenseTrackerTheme {
         BalanceCard(totalBalance = 150_000L, selectedWalletName = "All Wallets")
     }
 }
@@ -819,7 +823,7 @@ fun BalanceCardPreview() {
 @Preview(showBackground = true)
 @Composable
 fun HomeHeaderPreview() {
-    Expense_trackerTheme {
+    ExpenseTrackerTheme {
         HeaderSection()
     }
 }
@@ -827,7 +831,7 @@ fun HomeHeaderPreview() {
 @Preview(showBackground = true)
 @Composable
 fun TransactionListItemPreview() {
-    Expense_trackerTheme {
+    ExpenseTrackerTheme {
         Column {
             TransactionListItem(
                 transaction = ExpenseWithCategory(
@@ -837,7 +841,7 @@ fun TransactionListItemPreview() {
                     categoryName = "Makanan",
                     description = "Makan Siang",
                     timestamp = System.currentTimeMillis(),
-                    type = com.example.expense_tracker.data.TransactionType.EXPENSE.name
+                    type = TransactionType.EXPENSE.name
                 )
             )
             TransactionListItem(
@@ -848,7 +852,7 @@ fun TransactionListItemPreview() {
                     categoryName = "Gaji",
                     description = "Gaji Bulan Ini",
                     timestamp = System.currentTimeMillis(),
-                    type = com.example.expense_tracker.data.TransactionType.INCOME.name
+                    type = TransactionType.INCOME.name
                 )
             )
         }
@@ -858,7 +862,7 @@ fun TransactionListItemPreview() {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview_withData() {
-    Expense_trackerTheme {
+    ExpenseTrackerTheme {
         val fakeState = HomeUiState(
             periodLabel = "Hari Ini",
             totalAmount = 150_000L,

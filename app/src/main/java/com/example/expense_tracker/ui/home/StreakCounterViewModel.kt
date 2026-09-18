@@ -2,6 +2,7 @@ package com.example.expense_tracker.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +12,7 @@ import kotlinx.coroutines.withContext
 
 class StreakCounterViewModel(
     private val repository: StreakRepository,
-    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StreakCounterUiState())
@@ -32,7 +33,7 @@ class StreakCounterViewModel(
                 encouragementText = if (streak > 0) {
                     "$streak hari berturut-turut!"
                 } else {
-                    "Mulai streak kamu hari ini!"
+                    DEFAULT_STREAK_ENCOURAGEMENT
                 }
             )
         }
