@@ -31,15 +31,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.ExpenseWithCategory
+import com.example.expense_tracker.data.TransactionType
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.TimeFormatter
+import com.example.expense_tracker.ui.theme.categoryColor
 import com.example.expense_tracker.ui.theme.spacing
+
+private val IncomeAmountColor = Color(0xFF2E8B57)
+private val IncomeIconBgColor = Color(0xFFE8F5E9)
+private val IncomeIconTintColor = Color(0xFF1B5E20)
+private const val CATEGORY_ICON_BG_ALPHA = 0.15f
 
 @Composable
 fun TransactionListItem(
@@ -48,45 +56,31 @@ fun TransactionListItem(
     onClick: (() -> Unit)? = null
 ) {
     val spacing = MaterialTheme.spacing
-    val isIncome = transaction.type == com.example.expense_tracker.data.TransactionType.INCOME.name
+    val isIncome = transaction.type == TransactionType.INCOME.name
     val amountPrefix = if (isIncome) "+" else "-"
-    val amountColor = if (isIncome) Color(0xFF2E8B57) else MaterialTheme.colorScheme.error
+    val amountColor = if (isIncome) IncomeAmountColor else MaterialTheme.colorScheme.error
 
     val iconBg = if (isIncome) {
-        Color(0xFFE8F5E9)
+        IncomeIconBgColor
     } else {
-        com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt()).copy(alpha = 0.15f)
+        categoryColor(transaction.categoryId.toInt()).copy(alpha = CATEGORY_ICON_BG_ALPHA)
     }
     val iconTint = if (isIncome) {
-        Color(0xFF1B5E20)
+        IncomeIconTintColor
     } else {
-        com.example.expense_tracker.ui.theme.categoryColor(transaction.categoryId.toInt())
+        categoryColor(transaction.categoryId.toInt())
     }
 
-    val iconVector = if (isIncome) {
-        Icons.AutoMirrored.Filled.TrendingUp
-    } else {
-        when (transaction.categoryId) {
-            1L -> Icons.Default.Restaurant
-            2L -> Icons.Default.DirectionsCar
-            3L -> Icons.Default.ShoppingCart
-            4L -> Icons.Default.Movie
-            5L -> Icons.Default.Receipt
-            6L -> Icons.Default.LocalHospital
-            else -> Icons.Default.MoreHoriz
-        }
-    }
+    val iconVector = getCategoryIcon(transaction.categoryId, isIncome)
 
     val cardShape = RoundedCornerShape(20.dp)
+    val baseModifier = modifier
+        .fillMaxWidth()
+        .clip(cardShape)
     val containerModifier = if (onClick != null) {
-        modifier
-            .fillMaxWidth()
-            .clip(cardShape)
-            .clickable(onClick = onClick)
+        baseModifier.clickable(onClick = onClick)
     } else {
-        modifier
-            .fillMaxWidth()
-            .clip(cardShape)
+        baseModifier
     }
 
     val title = remember(transaction.merchant, transaction.description, transaction.categoryName) {
@@ -198,6 +192,19 @@ fun TransactionListItem(
                 containerColor = Color.Transparent
             )
         )
+    }
+}
+
+private fun getCategoryIcon(categoryId: Long, isIncome: Boolean): ImageVector {
+    if (isIncome) return Icons.AutoMirrored.Filled.TrendingUp
+    return when (categoryId) {
+        1L -> Icons.Default.Restaurant
+        2L -> Icons.Default.DirectionsCar
+        3L -> Icons.Default.ShoppingCart
+        4L -> Icons.Default.Movie
+        5L -> Icons.Default.Receipt
+        6L -> Icons.Default.LocalHospital
+        else -> Icons.Default.MoreHoriz
     }
 }
 

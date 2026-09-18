@@ -4,19 +4,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-
-import androidx.compose.material3.MaterialTheme
 import com.example.expense_tracker.ui.theme.spacing
+
+private val DEFAULT_ADAPTIVE_MAX_WIDTH: Dp = 840.dp
 
 /**
  * Nilai spacing dan padding adaptif sesuai prinsip Material 3 Expressive Layout.
@@ -53,7 +52,7 @@ fun rememberAdaptiveSpacing(): AdaptiveSpacing {
  */
 @Composable
 fun AdaptiveContentContainer(
-    maxWidth: Dp = 840.dp,
+    maxWidth: Dp = DEFAULT_ADAPTIVE_MAX_WIDTH,
     modifier: Modifier = Modifier,
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     content: @Composable ColumnScope.() -> Unit
