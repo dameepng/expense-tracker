@@ -51,7 +51,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -141,6 +143,7 @@ fun WalletListScreen(
 
     if (showAddDialog) {
         val spacing = MaterialTheme.spacing
+        val coroutineScope = rememberCoroutineScope()
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         var newWalletName by remember { mutableStateOf("") }
         var newCardNumber by remember { mutableStateOf("") }
@@ -150,6 +153,16 @@ fun WalletListScreen(
         var selectedColorId by remember { mutableStateOf(CardGradients.SunsetRose.id) }
 
         val yearFocusRequester = remember { FocusRequester() }
+
+        fun dismissAddWallet() {
+            coroutineScope.launch {
+                sheetState.hide()
+            }.invokeOnCompletion {
+                if (!sheetState.isVisible) {
+                    showAddDialog = false
+                }
+            }
+        }
 
         ModalBottomSheet(
             onDismissRequest = { showAddDialog = false },
@@ -310,7 +323,7 @@ fun WalletListScreen(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(
-                        onClick = { showAddDialog = false },
+                        onClick = { dismissAddWallet() },
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Text(stringResource(R.string.cancel))
@@ -328,7 +341,7 @@ fun WalletListScreen(
                                 cardExpiry = formattedExpiry,
                                 color = selectedColorId
                             )
-                            showAddDialog = false
+                            dismissAddWallet()
                         },
                         enabled = newWalletName.isNotBlank(),
                         shape = RoundedCornerShape(16.dp)

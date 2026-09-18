@@ -85,6 +85,76 @@ sealed interface NfcScanState {
 }
 
 @Composable
+fun NfcQuickScanSheetContent(
+    state: NfcScanState,
+    onDismiss: () -> Unit,
+    onRetry: () -> Unit,
+    onSimulateScan: ((NfcCardType) -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Header Bar
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.nfc_scan_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Tutup",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        AnimatedContent(
+            targetState = state,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
+            },
+            label = "nfc_state_animation"
+        ) { targetState ->
+            when (targetState) {
+                is NfcScanState.Scanning -> {
+                    ScanningView(onSimulateScan = onSimulateScan)
+                }
+                is NfcScanState.Success -> {
+                    SuccessCardView(
+                        card = targetState.card,
+                        onDismiss = onDismiss
+                    )
+                }
+                is NfcScanState.Error -> {
+                    ErrorView(
+                        message = targetState.message,
+                        onRetry = onRetry,
+                        onDismiss = onDismiss
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
 fun NfcQuickScanSheet(
     state: NfcScanState,
     onDismiss: () -> Unit,
@@ -99,73 +169,24 @@ fun NfcQuickScanSheet(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Drag Handle / Pill
             Box(
                 modifier = Modifier
+                    .padding(top = 16.dp, bottom = 8.dp)
                     .size(width = 38.dp, height = 4.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.outlineVariant)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Header Bar
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.nfc_scan_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Tutup",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            AnimatedContent(
-                targetState = state,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
-                },
-                label = "nfc_state_animation"
-            ) { targetState ->
-                when (targetState) {
-                    is NfcScanState.Scanning -> {
-                        ScanningView(onSimulateScan = onSimulateScan)
-                    }
-                    is NfcScanState.Success -> {
-                        SuccessCardView(
-                            card = targetState.card,
-                            onDismiss = onDismiss
-                        )
-                    }
-                    is NfcScanState.Error -> {
-                        ErrorView(
-                            message = targetState.message,
-                            onRetry = onRetry,
-                            onDismiss = onDismiss
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            NfcQuickScanSheetContent(
+                state = state,
+                onDismiss = onDismiss,
+                onRetry = onRetry,
+                onSimulateScan = onSimulateScan
+            )
         }
     }
 }

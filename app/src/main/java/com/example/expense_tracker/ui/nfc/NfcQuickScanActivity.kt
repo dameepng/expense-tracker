@@ -1,6 +1,5 @@
 package com.example.expense_tracker.ui.nfc
 
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.nfc.NfcAdapter
@@ -14,20 +13,21 @@ import android.os.VibratorManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.example.expense_tracker.BuildConfig
 import com.example.expense_tracker.data.AppDatabase
@@ -42,14 +42,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalMaterial3Api::class)
 class NfcQuickScanActivity : ComponentActivity() {
 
     private var nfcAdapter: NfcAdapter? = null
     private var scanState by mutableStateOf<NfcScanState>(NfcScanState.Scanning)
+    private var isFinishingActivity = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
@@ -65,39 +74,44 @@ class NfcQuickScanActivity : ComponentActivity() {
         setContent {
             Expense_trackerTheme {
                 val coroutineScope = rememberCoroutineScope()
-                // Dimmed translucent overlay background
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.55f))
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = { finishWithFade() }
-                        ),
-                    contentAlignment = Alignment.BottomCenter
+                val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+                fun dismissSheet() {
+                    coroutineScope.launch {
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            finishWithFade()
+                        }
+                    }
+                }
+
+                ModalBottomSheet(
+                    onDismissRequest = { finishWithFade() },
+                    sheetState = sheetState,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
-                    NfcQuickScanSheet(
-                        state = scanState,
-                        onDismiss = { finishWithFade() },
-                        onRetry = {
-                            scanState = NfcScanState.Scanning
-                        },
-                        onSimulateScan = if (BuildConfig.DEBUG || nfcAdapter == null) {
-                            { type ->
-                                coroutineScope.launch {
-                                    simulateScan(type)
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        NfcQuickScanSheetContent(
+                            state = scanState,
+                            onDismiss = { dismissSheet() },
+                            onRetry = {
+                                scanState = NfcScanState.Scanning
+                            },
+                            onSimulateScan = if (BuildConfig.DEBUG || nfcAdapter == null) {
+                                { type ->
+                                    coroutineScope.launch {
+                                        simulateScan(type)
+                                    }
                                 }
-                            }
-                        } else null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {} // Consume click so it doesn't dismiss
-                            )
-                            .navigationBarsPadding()
-                    )
+                            } else null,
+                            modifier = Modifier.widthIn(max = 560.dp)
+                        )
+                    }
                 }
             }
         }
@@ -256,6 +270,8 @@ class NfcQuickScanActivity : ComponentActivity() {
 
 
     private fun finishWithFade() {
+        if (isFinishingActivity) return
+        isFinishingActivity = true
         finishAndRemoveTask()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
@@ -266,6 +282,8 @@ class NfcQuickScanActivity : ComponentActivity() {
     }
 
     override fun finish() {
+        if (isFinishingActivity) return
+        isFinishingActivity = true
         finishAndRemoveTask()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
