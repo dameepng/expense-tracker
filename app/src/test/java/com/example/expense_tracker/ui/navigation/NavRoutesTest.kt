@@ -17,4 +17,11 @@ class NavRoutesTest {
         assertTrue(NavRoutes.shouldShowBottomBar(NavRoutes.WALLET))
         assertTrue(NavRoutes.shouldShowBottomBar(null))
     }
+
+    @Test
+    fun `inputRoute generates correct route paths`() {
+        org.junit.Assert.assertEquals("input", NavRoutes.inputRoute())
+        org.junit.Assert.assertEquals("input", NavRoutes.inputRoute(null))
+        org.junit.Assert.assertEquals("input?expenseId=42", NavRoutes.inputRoute(42L))
+    }
 }

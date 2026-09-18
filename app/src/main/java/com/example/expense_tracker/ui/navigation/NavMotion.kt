@@ -37,6 +37,8 @@ val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope
  * All transitions respect system accessibility settings via [isReduceMotion].
  */
 object NavMotion {
+    private const val PARALLAX_OFFSET_FACTOR = 0.20f
+    private const val FADE_THROUGH_INITIAL_SCALE = 0.96f
 
     /**
      * Determines whether a transition between two routes is a top-level switch
@@ -57,7 +59,7 @@ object NavMotion {
     fun isInputRoute(route: String?): Boolean {
         if (route == null) return false
         val base = route.substringBefore('?').substringBefore('/')
-        return base == "input"
+        return base == NavRoutes.INPUT_BASE
     }
 
     /**
@@ -85,7 +87,7 @@ object NavMotion {
                     easing = LinearEasing
                 )
             ) + scaleIn(
-                initialScale = 0.96f,
+                initialScale = FADE_THROUGH_INITIAL_SCALE,
                 animationSpec = tween(
                     durationMillis = MaterialMotionTokens.DurationMedium1, // 250ms
                     delayMillis = MaterialMotionTokens.DurationShort2, // 100ms
@@ -137,7 +139,7 @@ object NavMotion {
             // M3 Shared Axis X: Forward push (outgoing parent shifts slightly left with parallax)
             scope.slideOutOfContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                targetOffset = { fullWidth -> (fullWidth * 0.20f).toInt() },
+                targetOffset = { fullWidth -> (fullWidth * PARALLAX_OFFSET_FACTOR).toInt() },
                 animationSpec = tween(
                     durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (tuned for 60fps/120fps budget)
                     easing = MaterialMotionTokens.EmphasizedDecelerate
@@ -175,7 +177,7 @@ object NavMotion {
                     easing = LinearEasing
                 )
             ) + scaleIn(
-                initialScale = 0.96f,
+                initialScale = FADE_THROUGH_INITIAL_SCALE,
                 animationSpec = tween(
                     durationMillis = MaterialMotionTokens.DurationMedium1,
                     delayMillis = MaterialMotionTokens.DurationShort2,
@@ -186,7 +188,7 @@ object NavMotion {
             // M3 Shared Axis X: Backward pop (parent returns from left parallax offset)
             scope.slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.End,
-                initialOffset = { fullWidth -> (fullWidth * 0.20f).toInt() },
+                initialOffset = { fullWidth -> (fullWidth * PARALLAX_OFFSET_FACTOR).toInt() },
                 animationSpec = tween(
                     durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (tuned for 60fps/120fps budget)
                     easing = MaterialMotionTokens.EmphasizedDecelerate

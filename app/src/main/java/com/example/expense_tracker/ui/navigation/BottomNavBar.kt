@@ -115,7 +115,7 @@ fun BottomNavBar(
 
             // Add (Center Action Button)
             CompactNavAddButton(
-                selected = currentRoute?.startsWith("input") == true,
+                selected = NavMotion.isInputRoute(currentRoute),
                 onClick = {
                     onNavigate(NavRoutes.inputRoute(null))
                 }

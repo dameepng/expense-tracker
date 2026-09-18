@@ -190,7 +190,7 @@ fun AppNavigationDrawerContent(
                 }
                 Column {
                     Text(
-                        text = "Kasflow",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -252,7 +252,7 @@ fun AppNavigationDrawerContent(
                 },
                 shape = RoundedCornerShape(16.dp),
                 colors = itemColors,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = spacing.space50)
             )
 
             NavigationDrawerItem(
@@ -264,7 +264,7 @@ fun AppNavigationDrawerContent(
                 },
                 shape = RoundedCornerShape(16.dp),
                 colors = itemColors,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = spacing.space50)
             )
 
             NavigationDrawerItem(
@@ -276,7 +276,7 @@ fun AppNavigationDrawerContent(
                 },
                 shape = RoundedCornerShape(16.dp),
                 colors = itemColors,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = spacing.space50)
             )
         }
     }

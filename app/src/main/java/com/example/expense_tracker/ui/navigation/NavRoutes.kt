@@ -6,6 +6,7 @@ object NavRoutes {
     const val RECEIPT_PICKER = "receipt_picker"
     const val RECEIPT_REVIEW = "receipt_review"
     const val CHAT = "chat"
+    const val INPUT_BASE = "input"
     const val INPUT = "input?expenseId={expenseId}"
     const val SUMMARY = "summary"
     const val WALLET = "wallet"
@@ -27,7 +28,7 @@ object NavRoutes {
     }
 
     fun inputRoute(expenseId: Long? = null): String {
-        return if (expenseId != null) "input?expenseId=$expenseId" else "input"
+        return if (expenseId != null) "$INPUT_BASE?expenseId=$expenseId" else INPUT_BASE
     }
 
     fun categoryDetailRoute(categoryId: Long, walletId: Long?, startTime: Long, endTime: Long): String {
