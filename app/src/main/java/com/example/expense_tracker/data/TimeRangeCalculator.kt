@@ -10,13 +10,15 @@ object TimeRangeCalculator {
 
     private const val ONE_DAY_MS = 86_400_000L
 
+    private fun Calendar.truncateToMidnight(): Calendar = apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+
     fun todayStart(): Long {
-        val cal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
+        val cal = Calendar.getInstance().truncateToMidnight()
         return cal.timeInMillis
     }
 
@@ -26,22 +28,14 @@ object TimeRangeCalculator {
             FilterPeriod.TODAY -> Pair(todayStart(), todayEnd)
 
             FilterPeriod.WEEK -> {
-                val cal = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
+                val cal = Calendar.getInstance().truncateToMidnight().apply {
                     set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
                 }
                 Pair(cal.timeInMillis, todayEnd)
             }
 
             FilterPeriod.MONTH -> {
-                val cal = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
+                val cal = Calendar.getInstance().truncateToMidnight().apply {
                     set(Calendar.DAY_OF_MONTH, 1)
                 }
                 Pair(cal.timeInMillis, todayEnd)

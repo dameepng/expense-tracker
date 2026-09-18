@@ -8,13 +8,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.compose.runtime.Stable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
-@Stable
 interface UserPreferencesRepository {
     val selectedWalletIdFlow: Flow<Long?>
     val themeModeFlow: Flow<String>
@@ -35,6 +33,15 @@ interface UserPreferencesRepository {
 }
 
 class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences>) : UserPreferencesRepository {
+
+    companion object {
+        const val DEFAULT_THEME_MODE = "System Default"
+        const val DEFAULT_CURRENCY = "IDR"
+        const val DEFAULT_LANGUAGE = "Indonesia"
+        const val DEFAULT_USER_NAME = "Adam"
+        const val NULL_WALLET_SENTINEL = -1L
+    }
+
     private val selectedWalletIdKey = longPreferencesKey("selected_wallet_id")
     private val themeModeKey = stringPreferencesKey("theme_mode")
     private val currencyKey = stringPreferencesKey("currency")
@@ -46,24 +53,24 @@ class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences
 
     override val selectedWalletIdFlow: Flow<Long?> = dataStore.data
         .map { preferences ->
-            val id = preferences[selectedWalletIdKey] ?: -1L
-            if (id == -1L) null else id
+            val id = preferences[selectedWalletIdKey] ?: NULL_WALLET_SENTINEL
+            if (id == NULL_WALLET_SENTINEL) null else id
         }
 
     override val themeModeFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[themeModeKey] ?: "System Default" }
+        .map { preferences -> preferences[themeModeKey] ?: DEFAULT_THEME_MODE }
 
     override val currencyFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[currencyKey] ?: "IDR" }
+        .map { preferences -> preferences[currencyKey] ?: DEFAULT_CURRENCY }
 
     override val languageFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[languageKey] ?: "Indonesia" }
+        .map { preferences -> preferences[languageKey] ?: DEFAULT_LANGUAGE }
 
     override val isBiometricsEnabledFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[isBiometricsEnabledKey] ?: false }
 
     override val userNameFlow: Flow<String> = dataStore.data
-        .map { preferences -> preferences[userNameKey] ?: "Adam" }
+        .map { preferences -> preferences[userNameKey] ?: DEFAULT_USER_NAME }
 
     override val userPhotoUriFlow: Flow<String?> = dataStore.data
         .map { preferences -> preferences[userPhotoUriKey] }

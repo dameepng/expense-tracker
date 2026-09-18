@@ -15,7 +15,9 @@ import java.util.Calendar
  */
 class StreakCalculator {
 
-    private val oneDayMs = 86_400_000L
+    companion object {
+        private const val ONE_DAY_MS = 86_400_000L
+    }
 
     /**
      * @param timestamps raw epoch-millis list from DAO (may be unsorted, may contain duplicates per day)
@@ -40,7 +42,7 @@ class StreakCalculator {
             .sortedDescending()
 
         // Determine the reference start: today if it has expense, else yesterday
-        val startFrom = if (normalized.firstOrNull() == todayMidnight) todayMidnight else todayMidnight - oneDayMs
+        val startFrom = if (normalized.firstOrNull() == todayMidnight) todayMidnight else todayMidnight - ONE_DAY_MS
 
         var streak = 0
         var expected = startFrom
@@ -49,7 +51,7 @@ class StreakCalculator {
             if (date > expected) continue  // skip dates ahead of reference
             if (date == expected) {
                 streak++
-                expected -= oneDayMs
+                expected -= ONE_DAY_MS
             } else {
                 break  // gap found
             }
