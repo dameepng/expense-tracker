@@ -33,15 +33,23 @@ class WorkManagerStartupTask(
                 .setRequiresBatteryNotLow(true)
                 .build()
 
-            val dailyWorkRequest = PeriodicWorkRequestBuilder<BillReminderWorker>(24, TimeUnit.HOURS)
+            val dailyWorkRequest = PeriodicWorkRequestBuilder<BillReminderWorker>(
+                WORK_REPEAT_INTERVAL_HOURS,
+                TimeUnit.HOURS
+            )
                 .setConstraints(constraints)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                "BillReminderWork",
+                WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP,
                 dailyWorkRequest
             )
         }
+    }
+
+    private companion object {
+        const val WORK_NAME = "BillReminderWork"
+        const val WORK_REPEAT_INTERVAL_HOURS = 24L
     }
 }

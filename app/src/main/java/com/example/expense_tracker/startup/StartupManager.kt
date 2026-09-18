@@ -99,18 +99,26 @@ class StartupManager(
                 task()
             }
             if (result == null) {
-                try {
-                    Log.w(TAG, "Startup task '${task.id}' timed out after ${task.timeoutMs}ms")
-                } catch (_: Throwable) {
-                    println("Startup task '${task.id}' timed out after ${task.timeoutMs}ms")
-                }
+                logWarning("Startup task '${task.id}' timed out after ${task.timeoutMs}ms")
             }
         } catch (e: Exception) {
-            try {
-                Log.e(TAG, "Error executing startup task '${task.id}'", e)
-            } catch (_: Throwable) {
-                println("Error executing startup task '${task.id}': ${e.message}")
-            }
+            logError("Error executing startup task '${task.id}'", e)
+        }
+    }
+
+    private fun logWarning(message: String) {
+        try {
+            Log.w(TAG, message)
+        } catch (_: Throwable) {
+            println(message)
+        }
+    }
+
+    private fun logError(message: String, throwable: Throwable) {
+        try {
+            Log.e(TAG, message, throwable)
+        } catch (_: Throwable) {
+            println("$message: ${throwable.message}")
         }
     }
 }
