@@ -1,6 +1,7 @@
 package com.example.expense_tracker.utils
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -83,6 +84,7 @@ object NotificationHelper {
         return true
     }
 
+    @SuppressLint("MissingPermission")
     fun showNotification(context: Context, notificationId: Int, title: String, message: String) {
         // Create an explicit intent for an Activity in your app
         val intent = Intent(context, MainActivity::class.java).apply {
@@ -108,11 +110,16 @@ object NotificationHelper {
             return
         }
 
-        with(NotificationManagerCompat.from(context)) {
-            notify(notificationId, builder.build())
+        try {
+            with(NotificationManagerCompat.from(context)) {
+                notify(notificationId, builder.build())
+            }
+        } catch (_: SecurityException) {
+            // Ignored if permission was revoked concurrently
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun showTransactionSuccessNotification(
         context: Context,
         title: String,
@@ -149,8 +156,12 @@ object NotificationHelper {
         }
 
         val notificationId = (System.currentTimeMillis() % 100000).toInt()
-        with(NotificationManagerCompat.from(context)) {
-            notify(notificationId, builder.build())
+        try {
+            with(NotificationManagerCompat.from(context)) {
+                notify(notificationId, builder.build())
+            }
+        } catch (_: SecurityException) {
+            // Ignored if permission was revoked concurrently
         }
     }
 }
