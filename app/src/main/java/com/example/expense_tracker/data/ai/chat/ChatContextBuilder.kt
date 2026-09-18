@@ -1,6 +1,7 @@
 package com.example.expense_tracker.data.ai.chat
 
 import com.example.expense_tracker.data.analytics.CategoryExpenseTotal
+import com.example.expense_tracker.data.analytics.ExpenseComparison
 import com.example.expense_tracker.data.analytics.FinancialPeriodKind
 import com.example.expense_tracker.data.analytics.PeriodExpenseSummary
 import com.google.gson.Gson
@@ -43,16 +44,7 @@ internal class ChatContextBuilder(
             add("current_week", context.currentWeek.toJson(context.zoneId))
             add("current_month", context.currentMonth.toJson(context.zoneId))
             add("previous_month", context.previousMonth.toJson(context.zoneId))
-            add("month_comparison", JsonObject().apply {
-                addProperty("amount_difference", context.monthComparison.amountDifference)
-                val percentage = context.monthComparison.percentageChange
-                if (percentage == null) {
-                    addProperty("percentage_status", "not_available_no_previous_expense")
-                } else {
-                    addProperty("percentage_change", percentage)
-                    addProperty("percentage_status", "available")
-                }
-            })
+            add("month_comparison", context.monthComparison.toJson())
         }
 
         val serialized = gson.toJson(root)
@@ -139,6 +131,17 @@ internal class ChatContextBuilder(
         addProperty("category_id", categoryId)
         addProperty("category_name", categoryName)
         addProperty("total_expense", totalAmount)
+    }
+
+    private fun ExpenseComparison.toJson(): JsonObject = JsonObject().apply {
+        addProperty("amount_difference", amountDifference)
+        val percentage = percentageChange
+        if (percentage == null) {
+            addProperty("percentage_status", "not_available_no_previous_expense")
+        } else {
+            addProperty("percentage_change", percentage)
+            addProperty("percentage_status", "available")
+        }
     }
 
     private fun ChatContext.dataStatus(): String =
