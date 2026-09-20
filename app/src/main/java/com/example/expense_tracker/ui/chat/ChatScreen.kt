@@ -1,54 +1,30 @@
 package com.example.expense_tracker.ui.chat
 
 import android.content.res.Configuration
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.CompareArrows
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.outlined.MicNone
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.rounded.GraphicEq
-import androidx.compose.material.icons.rounded.Lightbulb
-import androidx.compose.material.icons.rounded.Restaurant
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,7 +33,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -70,25 +48,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -96,9 +66,14 @@ import com.example.expense_tracker.R
 import com.example.expense_tracker.data.ai.chat.ChatMessage
 import com.example.expense_tracker.data.ai.chat.ChatRole
 import com.example.expense_tracker.ui.chat.components.ChatBubbleStatus
+import com.example.expense_tracker.ui.chat.components.ChatEmptyState
+import com.example.expense_tracker.ui.chat.components.ChatErrorCard
+import com.example.expense_tracker.ui.chat.components.ChatInputBar
 import com.example.expense_tracker.ui.chat.components.ChatMessageBubble
+import com.example.expense_tracker.ui.chat.components.ChatScopeDialog
 import com.example.expense_tracker.ui.theme.Expense_trackerTheme
 import com.example.expense_tracker.ui.theme.spacing
+import kotlinx.coroutines.launch
 
 private val MAX_CHAT_SCREEN_WIDTH = 768.dp
 
@@ -146,7 +121,8 @@ internal fun ChatScreenContent(
     onSend: () -> Unit,
     onCancelRequest: () -> Unit,
     onRetry: () -> Unit,
-    onDiscardFailed: () -> Unit
+    onDiscardFailed: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
@@ -165,8 +141,6 @@ internal fun ChatScreenContent(
     val keyboardVisible = WindowInsets.isImeVisible
 
     // 1. Auto-scroll saat keyboard dibuka:
-    // Dengan reverseLayout = true, item index 0 secara natural terkunci di tepi bawah saat keyboard naik.
-    // Jika user sedang berada di paling bawah (isAtBottom), kita pastikan index 0 tetap tampil sempurna.
     LaunchedEffect(keyboardVisible) {
         if (keyboardVisible && isAtBottom && state.messages.isNotEmpty()) {
             withFrameNanos { } // Tunggu 1 frame agar layoutInfo viewport selesai diukur ulang
@@ -175,8 +149,6 @@ internal fun ChatScreenContent(
     }
 
     // 2. Auto-scroll saat pesan baru masuk, loading, atau error:
-    // HANYA dipicu jika user memang sedang berada di paling bawah (isAtBottom).
-    // Jika user sedang scroll ke atas membaca histori, posisinya tidak akan ditarik paksa ke bawah.
     LaunchedEffect(
         state.messages.size,
         state.isLoading,
@@ -203,7 +175,7 @@ internal fun ChatScreenContent(
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.TopCenter
@@ -213,49 +185,12 @@ internal fun ChatScreenContent(
                 .fillMaxSize()
                 .widthIn(max = MAX_CHAT_SCREEN_WIDTH)
                 .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
-            // WindowInsets(0): Matikan inset handling otomatis Scaffold.
-            // Alasan: Jika Scaffold mengurus insets secara otomatis, bottomBar atau contentPadding
-            // akan sering mendapat dobel inset (misalnya IME + navigationBars dijumlahkan dua kali).
-            // Dengan WindowInsets(0, 0, 0, 0), kita memegang kendali penuh:
-            // - TopAppBar menangani statusBars secara internal
-            // - ChatInputBar menangani imePadding() & navigationBarsPadding() sendiri secara terisolasi
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.chat_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.back)
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { showScopeInfo = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = stringResource(R.string.chat_scope_action)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                        titleContentColor = MaterialTheme.colorScheme.onBackground,
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                    scrollBehavior = topAppBarScrollBehavior
+                ChatTopAppBar(
+                    scrollBehavior = topAppBarScrollBehavior,
+                    onBack = onBack,
+                    onOpenScopeInfo = { showScopeInfo = true }
                 )
             },
             bottomBar = {
@@ -274,18 +209,12 @@ internal fun ChatScreenContent(
         ) { contentPadding ->
             ChatMessagesList(
                 listState = listState,
-                messages = state.messages,
-                pendingMessageId = state.pendingMessage?.id,
-                failedMessageId = state.failedMessage?.id,
-                isLoading = state.isLoading,
-                error = state.error,
-                canRetry = state.canRetry,
-                isHistoryTruncated = state.isHistoryTruncated,
+                state = state,
+                contentPadding = contentPadding,
                 onExampleClick = onInputChange,
                 onCancelRequest = onCancelRequest,
                 onRetry = onRetry,
-                onDiscardFailed = onDiscardFailed,
-                contentPadding = contentPadding
+                onDiscardFailed = onDiscardFailed
             )
         }
 
@@ -295,33 +224,67 @@ internal fun ChatScreenContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ChatTopAppBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    onBack: () -> Unit,
+    onOpenScopeInfo: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.chat_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back)
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onOpenScopeInfo) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = stringResource(R.string.chat_scope_action)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        scrollBehavior = scrollBehavior,
+        modifier = modifier
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChatMessagesList(
     listState: LazyListState,
-    messages: List<ChatMessage>,
-    pendingMessageId: String?,
-    failedMessageId: String?,
-    isLoading: Boolean,
-    error: ChatUiError?,
-    canRetry: Boolean,
-    isHistoryTruncated: Boolean,
+    state: ChatUiState,
+    contentPadding: PaddingValues,
     onExampleClick: (String) -> Unit,
     onCancelRequest: () -> Unit,
     onRetry: () -> Unit,
     onDiscardFailed: () -> Unit,
-    contentPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    // Pola Standar Chat (WhatsApp/Telegram):
-    // Ketika ada pesan, gunakan reverseLayout = true dengan list dibalik (newest item di index 0).
-    // Keuntungan besar:
-    // 1. Pesan terbaru "auto-nempel" di bawah secara gratis tanpa perlu kalkulasi scroll manual.
-    // 2. Saat keyboard (IME) muncul dan resize viewport, posisi item 0 tetap diam di atas input bar.
-    // Saat pesan kosong, gunakan reverseLayout = false agar layout Empty State (welcome card & suggestions)
-    // mengalir secara wajar dari atas ke bawah.
-    val isReversed = messages.isNotEmpty()
-    val messagesReversed = remember(messages) { messages.asReversed() }
+    val isReversed = state.messages.isNotEmpty()
+    val messagesReversed = remember(state.messages) { state.messages.asReversed() }
 
     val spacing = MaterialTheme.spacing
     LazyColumn(
@@ -329,41 +292,36 @@ private fun ChatMessagesList(
         reverseLayout = isReversed,
         modifier = modifier
             .fillMaxSize()
-            // padding(contentPadding): Meneruskan padding Scaffold (topBar & bottomBar height)
             .padding(contentPadding)
-            // consumeWindowInsets: Memberitahu Compose insets ini sudah dikonsumsi agar tidak dihitung ganda
             .consumeWindowInsets(contentPadding),
         contentPadding = PaddingValues(horizontal = spacing.screenMargin, vertical = spacing.itemGap),
         verticalArrangement = Arrangement.spacedBy(spacing.itemGap)
     ) {
         if (isReversed) {
-            // Karena reverseLayout = true, indeks 0 digambar di posisi visual paling bawah.
             // 1. Error card (posisi visual paling bawah jika ada error)
-            error?.let { err ->
+            state.error?.let { err ->
                 item(key = "error-${err.name}") {
                     ChatErrorCard(
                         error = err,
-                        canRetry = canRetry,
+                        canRetry = state.canRetry,
                         onRetry = onRetry,
                         onDiscard = onDiscardFailed
                     )
                 }
             }
 
-            // 2. Loading indicator (posisi visual di bawah pesan terakhir, menunggu jawaban AI)
-            if (isLoading) {
+            // 2. Loading indicator
+            if (state.isLoading) {
                 item(key = "loading") {
                     ChatLoading(onCancel = onCancelRequest)
                 }
             }
 
-            // 3. Pesan-pesan dalam urutan terbalik:
-            // messagesReversed[0] (pesan terbaru) digambar di bawah,
-            // messagesReversed[last] (pesan terlama) digambar di atas.
+            // 3. Pesan-pesan dalam urutan terbalik
             items(messagesReversed, key = ChatMessage::id) { message ->
                 val status = when (message.id) {
-                    pendingMessageId -> ChatBubbleStatus.SENDING
-                    failedMessageId -> ChatBubbleStatus.FAILED
+                    state.pendingMessage?.id -> ChatBubbleStatus.SENDING
+                    state.failedMessage?.id -> ChatBubbleStatus.FAILED
                     else -> null
                 }
                 ChatMessageBubble(
@@ -376,20 +334,11 @@ private fun ChatMessagesList(
                 )
             }
 
-            // 4. Notifikasi riwayat terpotong:
-            // Diletakkan di indeks terakhir agar tampil di posisi visual paling atas (sebelum pesan terlama).
-            if (isHistoryTruncated) {
-                item(key = "history-truncated") {
-                    ChatNotice(text = stringResource(R.string.chat_history_truncated))
-                }
-            }
+            // 4. Notifikasi riwayat terpotong
+            truncatedHistoryNoticeItem(state.isHistoryTruncated)
         } else {
             // Layout normal top-to-bottom saat chat masih kosong
-            if (isHistoryTruncated) {
-                item(key = "history-truncated") {
-                    ChatNotice(text = stringResource(R.string.chat_history_truncated))
-                }
-            }
+            truncatedHistoryNoticeItem(state.isHistoryTruncated)
             item(key = "empty") {
                 ChatEmptyState(onExampleClick = onExampleClick)
             }
@@ -397,46 +346,26 @@ private fun ChatMessagesList(
     }
 }
 
-@Composable
-private fun ChatScopeDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(imageVector = Icons.Default.Info, contentDescription = null) },
-        title = { Text(text = stringResource(R.string.chat_scope_title)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = stringResource(R.string.chat_scope_summary),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.chat_transmission_notice),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = stringResource(R.string.chat_detail_limit),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.chat_scope_close))
-            }
+private fun LazyListScope.truncatedHistoryNoticeItem(isHistoryTruncated: Boolean) {
+    if (isHistoryTruncated) {
+        item(key = "history-truncated") {
+            ChatNotice(text = stringResource(R.string.chat_history_truncated))
         }
-    )
+    }
 }
 
 @Composable
-private fun ChatNotice(text: String) {
+private fun ChatNotice(
+    text: String,
+    modifier: Modifier = Modifier
+) {
     val spacing = MaterialTheme.spacing
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(20.dp),
         tonalElevation = 1.dp,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .semantics { liveRegion = LiveRegionMode.Polite }
     ) {
@@ -451,187 +380,14 @@ private fun ChatNotice(text: String) {
     }
 }
 
-private data class PromptSuggestion(
-    val title: String,
-    val query: String,
-    val icon: ImageVector,
-    val iconTint: Color,
-    val iconBackground: Color
-)
-
 @Composable
-private fun ChatEmptyState(onExampleClick: (String) -> Unit) {
-    val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
-
-    val promptFoodTitle = stringResource(R.string.chat_prompt_food_title)
-    val promptFoodQuery = stringResource(R.string.chat_example_food_month)
-    val promptTopTitle = stringResource(R.string.chat_prompt_top_category_title)
-    val promptTopQuery = stringResource(R.string.chat_example_top_category)
-    val promptCompTitle = stringResource(R.string.chat_prompt_compare_title)
-    val promptCompQuery = stringResource(R.string.chat_example_month_comparison)
-    val promptUnusualTitle = stringResource(R.string.chat_prompt_unusual_title)
-    val promptUnusualQuery = stringResource(R.string.chat_example_unusual)
-
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val primaryContainer = MaterialTheme.colorScheme.primaryContainer
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
-    val tertiaryContainer = MaterialTheme.colorScheme.tertiaryContainer
-    val surfaceContainerHighest = MaterialTheme.colorScheme.surfaceContainerHighest
-    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-
-    val suggestions = remember(
-        promptFoodTitle, promptFoodQuery,
-        promptTopTitle, promptTopQuery,
-        promptCompTitle, promptCompQuery,
-        promptUnusualTitle, promptUnusualQuery,
-        primaryColor, primaryContainer,
-        secondaryColor, secondaryContainer,
-        tertiaryColor, tertiaryContainer,
-        surfaceContainerHighest, onSurfaceVariant
-    ) {
-        listOf(
-            PromptSuggestion(
-                title = promptFoodTitle,
-                query = promptFoodQuery,
-                icon = Icons.Rounded.Restaurant,
-                iconTint = primaryColor,
-                iconBackground = primaryContainer.copy(alpha = 0.6f)
-            ),
-            PromptSuggestion(
-                title = promptTopTitle,
-                query = promptTopQuery,
-                icon = Icons.AutoMirrored.Rounded.TrendingUp,
-                iconTint = secondaryColor,
-                iconBackground = secondaryContainer.copy(alpha = 0.6f)
-            ),
-            PromptSuggestion(
-                title = promptCompTitle,
-                query = promptCompQuery,
-                icon = Icons.AutoMirrored.Rounded.CompareArrows,
-                iconTint = tertiaryColor,
-                iconBackground = tertiaryContainer.copy(alpha = 0.6f)
-            ),
-            PromptSuggestion(
-                title = promptUnusualTitle,
-                query = promptUnusualQuery,
-                icon = Icons.Rounded.Lightbulb,
-                iconTint = onSurfaceVariant,
-                iconBackground = surfaceContainerHighest
-            )
-        )
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = spacing.space100),
-        verticalArrangement = Arrangement.spacedBy(spacing.space150)
-    ) {
-        // Welcoming Hero Header (Clean typography, no chat bubble)
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = spacing.space50),
-            verticalArrangement = Arrangement.spacedBy(spacing.space100)
-        ) {
-            Text(
-                text = stringResource(R.string.chat_welcome),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Text(
-                text = stringResource(R.string.chat_empty_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        // Section Title
-        Text(
-            text = stringResource(R.string.chat_prompt_suggestions_title),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = spacing.space50)
-        )
-
-        // Cards
-        suggestions.forEach { item ->
-            Surface(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onExampleClick(item.query)
-                },
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                tonalElevation = 1.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = spacing.space200, vertical = spacing.space150),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(spacing.space150)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(item.iconBackground),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = null,
-                            tint = item.iconTint,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(spacing.space25)
-                    ) {
-                        Text(
-                            text = item.title,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = item.query,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ChatLoading(onCancel: () -> Unit) {
+private fun ChatLoading(
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val spacing = MaterialTheme.spacing
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .semantics { liveRegion = LiveRegionMode.Polite },
         horizontalArrangement = Arrangement.spacedBy(spacing.space150),
@@ -651,228 +407,6 @@ private fun ChatLoading(onCancel: () -> Unit) {
             Text(stringResource(R.string.chat_cancel_request))
         }
     }
-}
-
-@Composable
-private fun ChatErrorCard(
-    error: ChatUiError,
-    canRetry: Boolean,
-    onRetry: () -> Unit,
-    onDiscard: () -> Unit
-) {
-    val spacing = MaterialTheme.spacing
-    val message = stringResource(error.messageResource())
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { liveRegion = LiveRegionMode.Polite }
-    ) {
-        Column(
-            modifier = Modifier.padding(spacing.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(spacing.space100)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(spacing.space100),
-                verticalAlignment = Alignment.Top
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ErrorOutline,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = stringResource(R.string.chat_error_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(text = message, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-            if (canRetry) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDiscard) {
-                        Text(stringResource(R.string.chat_discard_failed))
-                    }
-                    Button(
-                        onClick = onRetry,
-                        shape = RoundedCornerShape(14.dp)
-                    ) {
-                        Text(stringResource(R.string.chat_retry), fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ChatInputBar(
-    inputText: String,
-    canSend: Boolean,
-    isFailed: Boolean,
-    hasInputError: Boolean,
-    onReset: () -> Unit,
-    onInputChange: (String) -> Unit,
-    onSend: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val spacing = MaterialTheme.spacing
-    val keyboard = LocalSoftwareKeyboardController.current
-    val showSendAction = inputText.isNotEmpty()
-
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-    val baseStyle = MaterialTheme.typography.bodyLarge
-    val inputTextStyle = remember(baseStyle, onSurfaceColor) {
-        baseStyle.copy(color = onSurfaceColor)
-    }
-    val inputShape = remember { RoundedCornerShape(24.dp) }
-
-    // Best Practice Insets (Google Jetchat Sample):
-    // Modifier.imePadding().navigationBarsPadding() dipasang langsung pada root composable input bar.
-    // - Saat keyboard tertutup: imePadding() = 0, navigationBarsPadding() memberi ruang pas di atas gesture pill / 3-button nav.
-    // - Saat keyboard terbuka: imePadding() mengangkat bar setinggi keyboard. navigationBars yang berada di balik keyboard
-    //   otomatis ter-consume sehingga navigationBarsPadding() tidak menambahkan padding ekstra (bebas celah/gap ganda).
-    // - Hindari menghitung WindowInsets.navigationBars.asPaddingValues() secara manual karena rawan salah hitung.
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .imePadding()
-            .navigationBarsPadding()
-            .padding(horizontal = spacing.space150, vertical = spacing.space100),
-        verticalArrangement = Arrangement.spacedBy(spacing.space50)
-    ) {
-        BasicTextField(
-            value = inputText,
-            onValueChange = onInputChange,
-            enabled = !isFailed,
-            textStyle = inputTextStyle,
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-            minLines = 1,
-            maxLines = 4,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Default
-            ),
-            modifier = Modifier.fillMaxWidth(),
-            decorationBox = { innerTextField ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh, inputShape)
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, inputShape)
-                        .padding(start = spacing.space50, end = spacing.space125, top = spacing.space100, bottom = spacing.space100),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onReset, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.chat_new_session),
-                            modifier = Modifier.size(26.dp)
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = spacing.space100),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        if (inputText.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.chat_input_placeholder),
-                                style = inputTextStyle,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        innerTextField()
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(spacing.space200),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.MicNone,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Surface(
-                            shape = CircleShape,
-                            color = if (showSendAction && canSend) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            },
-                            contentColor = if (showSendAction && canSend) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
-                        ) {
-                            IconButton(
-                                onClick = {
-                                    keyboard?.hide()
-                                    onSend()
-                                },
-                                enabled = showSendAction && canSend,
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (showSendAction) {
-                                        Icons.Default.ArrowUpward
-                                    } else {
-                                        Icons.Rounded.GraphicEq
-                                    },
-                                    contentDescription = stringResource(
-                                        if (showSendAction) R.string.chat_send
-                                        else R.string.chat_record_audio
-                                    ),
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        )
-        if (hasInputError || inputText.length >= 900) {
-            Text(
-                text = stringResource(R.string.chat_character_count, inputText.length),
-                style = MaterialTheme.typography.labelSmall,
-                color = if (hasInputError) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
-    }
-}
-
-private fun ChatUiError.messageResource(): Int = when (this) {
-    ChatUiError.CONFIGURATION -> R.string.chat_error_configuration
-    ChatUiError.NETWORK -> R.string.chat_error_network
-    ChatUiError.TIMEOUT -> R.string.chat_error_timeout
-    ChatUiError.RATE_LIMIT -> R.string.chat_error_rate_limit
-    ChatUiError.AUTHENTICATION -> R.string.chat_error_authentication
-    ChatUiError.SERVICE -> R.string.chat_error_service
-    ChatUiError.INVALID_RESPONSE -> R.string.chat_error_invalid_response
-    ChatUiError.DATA_LOADING -> R.string.chat_error_data_loading
-    ChatUiError.CONTEXT_LIMIT -> R.string.chat_error_context_limit
-    ChatUiError.INVALID_INPUT -> R.string.chat_error_invalid_input
-    ChatUiError.INPUT_LIMIT -> R.string.chat_error_input_limit
 }
 
 @Preview(name = "Chat Empty - Light", showBackground = true, widthDp = 360, heightDp = 720)
