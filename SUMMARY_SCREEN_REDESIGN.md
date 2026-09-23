@@ -67,15 +67,7 @@ The redesign transitions `SummaryScreen` from an arbitrary collection of nested 
 ## 4. New Information Hierarchy
 
 ```
-Ringkasan                                                  [Calendar]
-
-╭──────────────────────────────────────────────────────────────────╮
-│ TOTAL SALDO                                            [Eye] [●] │
-│                                                                  │
-│ Rp200.084.000                                                    │
-│                                                                  │
-│ — Tidak berubah dari bulan lalu                                  │
-╰──────────────────────────────────────────────────────────────────╯
+Ringkasan                                      [Calendar] [Wallet]
 
 ╭──────────────────────────────────────────────────────────────────╮
 │ Arus Kas                                             Bulan Ini ▼ │
@@ -141,8 +133,8 @@ Ringkasan                                                  [Calendar]
 | [`CashFlowChart.kt`](file:///c:/dame-project/Android/expense_tracker/app/src/main/java/com/example/expense_tracker/ui/summary/CashFlowChart.kt) | Implemented cumulative net cash flow trend with zero baseline; added touch drag scrubber with tooltip; replaced native Paint with Compose `TextMeasurer`; added TalkBack accessibility semantics. |
 | [`SpendingCategorySection.kt`](file:///c:/dame-project/Android/expense_tracker/app/src/main/java/com/example/expense_tracker/ui/summary/components/SpendingCategorySection.kt) | Consistent Indonesian strings; added `isBalanceVisible` support; refined spacing and typography. |
 | [`BreakdownCardItem.kt`](file:///c:/dame-project/Android/expense_tracker/app/src/main/java/com/example/expense_tracker/ui/summary/components/BreakdownCardItem.kt) | Integrated privacy masking for category amounts; refined corner shape and padding. |
-| [`SummaryTopAppBar.kt`](file:///c:/dame-project/Android/expense_tracker/app/src/main/java/com/example/expense_tracker/ui/summary/components/SummaryTopAppBar.kt) | Applied transparent container color to seamlessly integrate into page background. |
-| [`SummaryScreen.kt`](file:///c:/dame-project/Android/expense_tracker/app/src/main/java/com/example/expense_tracker/ui/summary/SummaryScreen.kt) | Hoisted unified `isBalanceVisible` state to mask all financial figures simultaneously; saved `LazyListState` across tab navigation; wired contextual insight inputs. |
+| [`SummaryTopAppBar.kt`](file:///c:/dame-project/Android/expense_tracker/app/src/main/java/com/example/expense_tracker/ui/summary/components/SummaryTopAppBar.kt) | Always display wallet selector action alongside the custom date filter; applied transparent container color. |
+| [`SummaryScreen.kt`](file:///c:/dame-project/Android/expense_tracker/app/src/main/java/com/example/expense_tracker/ui/summary/SummaryScreen.kt) | Removed `HeroBalanceCard` to prioritize Cash Flow dashboard; added top section gap padding; saved `LazyListState` across tab navigation. |
 | [`SummaryFormatTest.kt`](file:///c:/dame-project/Android/expense_tracker/app/src/test/java/com/example/expense_tracker/ui/summary/SummaryFormatTest.kt) | Updated unit tests to verify Indonesian compact currency format (`rb` instead of `k`, `jt`, and negative numbers). |
 
 ---

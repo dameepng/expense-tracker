@@ -114,19 +114,8 @@ internal fun SummaryScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .widthIn(max = MAX_SUMMARY_WIDTH),
-            contentPadding = PaddingValues(bottom = 96.dp)
+            contentPadding = PaddingValues(top = spacing.sectionGap, bottom = 96.dp)
         ) {
-            item(key = "hero_balance") {
-                Spacer(modifier = Modifier.height(spacing.sectionGap))
-                HeroBalanceCard(
-                    totalBalance = state.totalBalance,
-                    percentageChange = state.balancePercentageChange,
-                    isBalanceVisible = isBalanceVisible,
-                    onToggleBalanceVisibility = onToggleBalanceVisibility
-                )
-                Spacer(modifier = Modifier.height(spacing.sectionGap))
-            }
-
             item(key = "cash_flow") {
                 CashFlowSection(
                     filter = state.filter,

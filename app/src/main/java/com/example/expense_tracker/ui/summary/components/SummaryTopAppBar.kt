@@ -22,11 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.FilterPeriod
 import com.example.expense_tracker.data.Wallet
-
-private const val CHOOSE_WALLET_DESCRIPTION = "Pilih Wallet"
+import com.example.expense_tracker.ui.theme.ExpenseTrackerTheme
 
 /**
  * Top app bar for summary screen containing title, custom date filter button, and optional wallet selector.
@@ -60,13 +60,11 @@ fun SummaryTopAppBar(
                     }
                 )
             }
-            if (wallets.size > 1) {
-                WalletDropdownAction(
-                    wallets = wallets,
-                    selectedWalletId = selectedWalletId,
-                    onWalletSelected = onWalletSelected
-                )
-            }
+            WalletDropdownAction(
+                wallets = wallets,
+                selectedWalletId = selectedWalletId,
+                onWalletSelected = onWalletSelected
+            )
         },
         colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
             containerColor = androidx.compose.ui.graphics.Color.Transparent
@@ -87,7 +85,7 @@ private fun WalletDropdownAction(
         IconButton(onClick = { walletMenuExpanded = true }) {
             Icon(
                 imageVector = Icons.Default.AccountBalanceWallet,
-                contentDescription = CHOOSE_WALLET_DESCRIPTION,
+                contentDescription = stringResource(R.string.input_choose_wallet),
                 tint = if (selectedWalletId != null) {
                     MaterialTheme.colorScheme.primary
                 } else {
@@ -128,3 +126,40 @@ private fun WalletDropdownAction(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun SummaryTopAppBarPreview() {
+    ExpenseTrackerTheme {
+        val sampleWallets = listOf(
+            Wallet(id = 1, name = "Dompet Utama", balance = 5_000_000L),
+            Wallet(id = 2, name = "BCA", balance = 12_500_000L)
+        )
+        SummaryTopAppBar(
+            currentFilter = FilterPeriod.MONTH,
+            wallets = sampleWallets,
+            selectedWalletId = null,
+            onCustomFilterClick = {},
+            onWalletSelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SummaryTopAppBarSelectedWalletPreview() {
+    ExpenseTrackerTheme {
+        val sampleWallets = listOf(
+            Wallet(id = 1, name = "Dompet Utama", balance = 5_000_000L),
+            Wallet(id = 2, name = "BCA", balance = 12_500_000L)
+        )
+        SummaryTopAppBar(
+            currentFilter = FilterPeriod.CUSTOM,
+            wallets = sampleWallets,
+            selectedWalletId = 2L,
+            onCustomFilterClick = {},
+            onWalletSelected = {}
+        )
+    }
+}
+
