@@ -1,6 +1,9 @@
 package com.example.expense_tracker.ui.theme
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 // ── UX Design Tokens: Material 3 (Fallback) ───────────────────────
 
@@ -104,3 +107,37 @@ fun categoryColor(index: Int, isIncome: Boolean = false): Color =
         val safeIndex = (index - 1).coerceAtLeast(0) % colors.size
         colors.getOrElse(safeIndex) { Color.Gray }
     }
+
+// ── Semantic Financial Tokens (High WCAG contrast) ─────────────────
+val FinancialPositiveLight = Color(0xFF0F8A58) // Accessible emerald green
+val FinancialPositiveDark = Color(0xFF34D399)  // Vibrant mint green
+val FinancialNegativeLight = Color(0xFFC5221F) // Deep crimson red
+val FinancialNegativeDark = Color(0xFFF87171)  // Coral red
+val FinancialNeutralLight = Color(0xFF5F6368)  // Accessible neutral slate
+val FinancialNeutralDark = Color(0xFF9AA0A6)   // Subtle light slate
+
+val ChartGridLight = Color(0x1F000000)         // 12% black
+val ChartGridDark = Color(0x1FFFFFFF)          // 12% white
+val ChartAxisLight = Color(0xFF74777F)
+val ChartAxisDark = Color(0xFF8E9099)
+
+@Composable
+fun financialPositiveColor(): Color =
+    if (MaterialTheme.colorScheme.background.luminance() < 0.5f) FinancialPositiveDark else FinancialPositiveLight
+
+@Composable
+fun financialNegativeColor(): Color =
+    if (MaterialTheme.colorScheme.background.luminance() < 0.5f) FinancialNegativeDark else FinancialNegativeLight
+
+@Composable
+fun financialNeutralColor(): Color =
+    if (MaterialTheme.colorScheme.background.luminance() < 0.5f) FinancialNeutralDark else FinancialNeutralLight
+
+@Composable
+fun chartGridColor(): Color =
+    if (MaterialTheme.colorScheme.background.luminance() < 0.5f) ChartGridDark else ChartGridLight
+
+@Composable
+fun chartAxisColor(): Color =
+    if (MaterialTheme.colorScheme.background.luminance() < 0.5f) ChartAxisDark else ChartAxisLight
+

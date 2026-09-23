@@ -68,6 +68,9 @@ fun SummaryTopAppBar(
                 )
             }
         },
+        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent
+        ),
         windowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier
     )

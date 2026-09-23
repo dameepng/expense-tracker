@@ -1,6 +1,5 @@
 package com.example.expense_tracker.ui.summary.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +23,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,8 +44,6 @@ import com.example.expense_tracker.ui.theme.categoryColor
 import com.example.expense_tracker.ui.theme.spacing
 
 private const val MAX_LEGEND_ITEMS = 5
-private const val SPENDING_BY_CATEGORY_TITLE = "Spending by category"
-private const val CHOOSE_TYPE_DESCRIPTION = "Pilih Tipe"
 
 /**
  * Card section displaying spending/income by category with DonutChart, legend, and total spending footer.
@@ -57,7 +55,8 @@ fun SpendingCategorySection(
     isLoading: Boolean,
     totalAmount: Long,
     onTransactionTypeSelected: (TransactionType) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isBalanceVisible: Boolean = true
 ) {
     val spacing = MaterialTheme.spacing
     val isIncome = transactionType == TransactionType.INCOME
@@ -84,9 +83,14 @@ fun SpendingCategorySection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = SPENDING_BY_CATEGORY_TITLE,
+                    text = if (isIncome) {
+                        stringResource(R.string.income_by_category)
+                    } else {
+                        stringResource(R.string.spending_by_category)
+                    },
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 TransactionTypeSwitcher(
@@ -95,21 +99,21 @@ fun SpendingCategorySection(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(spacing.space200))
 
             when {
-                isLoading -> {
+                isLoading && items.isEmpty() -> {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(150.dp),
+                            .height(140.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
                     }
                 }
                 items.isEmpty() -> {
-                    SummaryEmptyState(isIncome = isIncome, modifier = Modifier.height(150.dp))
+                    SummaryEmptyState(isIncome = isIncome, modifier = Modifier.height(140.dp))
                 }
                 else -> {
                     // Donut Chart and Legend Row
@@ -130,14 +134,11 @@ fun SpendingCategorySection(
                         ) {
                             items.take(MAX_LEGEND_ITEMS).forEach { item ->
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .background(
-                                                color = categoryColor(item.categoryId.toInt(), isIncome),
-                                                shape = CircleShape
-                                            )
-                                    )
+                                    Surface(
+                                        modifier = Modifier.size(10.dp),
+                                        shape = CircleShape,
+                                        color = categoryColor(item.categoryId.toInt(), isIncome)
+                                    ) {}
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = item.categoryName,
@@ -157,7 +158,7 @@ fun SpendingCategorySection(
                             if (items.size > MAX_LEGEND_ITEMS) {
                                 Text(
                                     text = "+ ${items.size - MAX_LEGEND_ITEMS} ${stringResource(R.string.others)}",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(start = 18.dp)
                                 )
@@ -165,7 +166,7 @@ fun SpendingCategorySection(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(spacing.space200))
 
                     // Total spending footer
                     Row(
@@ -174,12 +175,16 @@ fun SpendingCategorySection(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(R.string.total_spending),
+                            text = if (isIncome) {
+                                stringResource(R.string.total_income_label)
+                            } else {
+                                stringResource(R.string.total_spending)
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = CurrencyFormatter.format(totalAmount),
+                            text = if (isBalanceVisible) CurrencyFormatter.format(totalAmount) else stringResource(R.string.privacy_hidden_amount),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -206,20 +211,23 @@ private fun TransactionTypeSwitcher(
 
     Box(modifier = modifier) {
         Row(
-            modifier = Modifier.clickable { typeMenuExpanded = true },
+            modifier = Modifier
+                .clickable { typeMenuExpanded = true }
+                .padding(vertical = 4.dp, horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = currentLabel,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = CHOOSE_TYPE_DESCRIPTION,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
             )
         }
 

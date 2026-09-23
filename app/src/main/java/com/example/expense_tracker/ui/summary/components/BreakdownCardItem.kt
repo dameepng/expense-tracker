@@ -32,9 +32,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.expense_tracker.R
 import com.example.expense_tracker.ui.CurrencyFormatter
 import com.example.expense_tracker.ui.summary.BreakdownItem
 import com.example.expense_tracker.ui.theme.ExpenseTrackerTheme
@@ -49,6 +51,7 @@ fun BreakdownCardItem(
     item: BreakdownItem,
     modifier: Modifier = Modifier,
     isIncome: Boolean = false,
+    isBalanceVisible: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     val spacing = MaterialTheme.spacing
@@ -66,10 +69,11 @@ fun BreakdownCardItem(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         onClick = onClick
     ) {
         Row(
@@ -145,9 +149,9 @@ fun BreakdownCardItem(
             // Trailing Content: Amount and Chevron
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = CurrencyFormatter.format(item.amount),
+                    text = if (isBalanceVisible) CurrencyFormatter.format(item.amount) else stringResource(R.string.privacy_hidden_amount),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.width(spacing.space50))

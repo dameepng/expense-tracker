@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +47,8 @@ fun SummaryScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var showDateRangePicker by remember { mutableStateOf(false) }
+    var isBalanceVisible by rememberSaveable { mutableStateOf(true) }
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
     Scaffold(
         topBar = {
@@ -66,7 +69,10 @@ fun SummaryScreen(
             onWalletSelected = { viewModel.onWalletSelected(it) },
             onTransactionTypeSelected = { viewModel.onTransactionTypeSelected(it) },
             onCategoryClick = onCategoryClick,
-            modifier = Modifier.padding(paddingValues)
+            isBalanceVisible = isBalanceVisible,
+            onToggleBalanceVisibility = { isBalanceVisible = !isBalanceVisible },
+            modifier = Modifier.padding(paddingValues),
+            listState = listState
         )
     }
 
@@ -89,10 +95,15 @@ internal fun SummaryScreenContent(
     onTransactionTypeSelected: (TransactionType) -> Unit,
     onCategoryClick: (categoryId: Long, walletId: Long?, startTime: Long, endTime: Long) -> Unit,
     modifier: Modifier = Modifier,
+    isBalanceVisible: Boolean = true,
+    onToggleBalanceVisibility: () -> Unit = {},
     listState: LazyListState = rememberLazyListState()
 ) {
     val spacing = MaterialTheme.spacing
     val isIncome = state.transactionType == TransactionType.INCOME
+
+    val topCategory = remember(state.items) { state.items.maxByOrNull { it.amount } }
+    val topCategoryPercent = topCategory?.let { (it.percentage * 100).toInt() }
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -109,7 +120,9 @@ internal fun SummaryScreenContent(
                 Spacer(modifier = Modifier.height(spacing.sectionGap))
                 HeroBalanceCard(
                     totalBalance = state.totalBalance,
-                    percentageChange = state.balancePercentageChange
+                    percentageChange = state.balancePercentageChange,
+                    isBalanceVisible = isBalanceVisible,
+                    onToggleBalanceVisibility = onToggleBalanceVisibility
                 )
                 Spacer(modifier = Modifier.height(spacing.sectionGap))
             }
@@ -122,7 +135,10 @@ internal fun SummaryScreenContent(
                     totalExpense = state.totalExpense,
                     dailyCashFlow = state.dailyCashFlow,
                     onFilterSelected = onFilterSelected,
-                    onCustomFilterClick = onCustomFilterClick
+                    onCustomFilterClick = onCustomFilterClick,
+                    isBalanceVisible = isBalanceVisible,
+                    topCategoryName = topCategory?.categoryName,
+                    topCategoryPercentage = topCategoryPercent
                 )
             }
 
@@ -133,7 +149,8 @@ internal fun SummaryScreenContent(
                     items = state.items,
                     isLoading = state.isLoading,
                     totalAmount = state.totalAmount,
-                    onTransactionTypeSelected = onTransactionTypeSelected
+                    onTransactionTypeSelected = onTransactionTypeSelected,
+                    isBalanceVisible = isBalanceVisible
                 )
                 Spacer(modifier = Modifier.height(spacing.sectionGap))
             }
@@ -147,6 +164,7 @@ internal fun SummaryScreenContent(
                     BreakdownCardItem(
                         item = item,
                         isIncome = isIncome,
+                        isBalanceVisible = isBalanceVisible,
                         modifier = Modifier
                             .animateItem(
                                 fadeInSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
@@ -205,14 +223,21 @@ fun SummaryScreenWithDataPreview() {
             BreakdownItem(3, "Belanja", 30_000L, 0.20f),
             BreakdownItem(4, "Hiburan", 15_000L, 0.10f),
         )
+        val dailyFlow = listOf(
+            DailyCashFlow(1726500000000L, 200_300_000L, 0L),
+            DailyCashFlow(1726700000000L, 0L, 100_000L),
+            DailyCashFlow(1726900000000L, 0L, 116_000L)
+        )
         SummaryScreenContent(
             state = SummaryUiState(
                 isLoading = false,
-                totalBalance = 1_500_000L,
-                totalIncome = 2_000_000L,
-                totalExpense = 500_000L,
-                netCashFlow = 1_500_000L,
-                totalAmount = 150_000L,
+                totalBalance = 200_084_000L,
+                balancePercentageChange = 0.0f,
+                totalIncome = 200_300_000L,
+                totalExpense = 216_000L,
+                netCashFlow = 200_084_000L,
+                totalAmount = 216_000L,
+                dailyCashFlow = dailyFlow,
                 items = items
             ),
             onFilterSelected = { _, _, _ -> },

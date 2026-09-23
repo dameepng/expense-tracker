@@ -17,10 +17,10 @@ class SummaryFormatTest {
     }
 
     @Test
-    fun formatAxisValue_formatsThousandsWithK() {
-        assertEquals("1k", formatAxisValue(1_000L))
-        assertEquals("50k", formatAxisValue(50_000L))
-        assertEquals("999k", formatAxisValue(999_000L))
+    fun formatAxisValue_formatsThousandsWithRb() {
+        assertEquals("1rb", formatAxisValue(1_000L))
+        assertEquals("50rb", formatAxisValue(50_000L))
+        assertEquals("999rb", formatAxisValue(999_000L))
     }
 
     @Test
@@ -28,6 +28,12 @@ class SummaryFormatTest {
         assertEquals("1jt", formatAxisValue(1_000_000L))
         assertEquals("2jt", formatAxisValue(2_500_000L))
         assertEquals("15jt", formatAxisValue(15_000_000L))
+    }
+
+    @Test
+    fun formatAxisValue_formatsNegativeValuesCorrectly() {
+        assertEquals("-50rb", formatAxisValue(-50_000L))
+        assertEquals("-2jt", formatAxisValue(-2_000_000L))
     }
 
     @Test
