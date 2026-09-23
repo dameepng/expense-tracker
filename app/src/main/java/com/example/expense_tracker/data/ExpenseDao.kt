@@ -49,6 +49,9 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
     fun getAllTransactionsBetween(startTime: Long, endTime: Long): Flow<List<Expense>>
 
+    @Query("SELECT * FROM expenses WHERE timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC LIMIT :limit")
+    fun getRecentTransactionsBetween(startTime: Long, endTime: Long, limit: Int): Flow<List<Expense>>
+
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime AND type = 'EXPENSE'")
     fun getTotalExpenseByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<Long>
 
@@ -57,6 +60,9 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
     fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>>
+
+    @Query("SELECT * FROM expenses WHERE walletId = :walletId AND timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC LIMIT :limit")
+    fun getRecentTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long, limit: Int): Flow<List<Expense>>
 
     @Query("SELECT * FROM expenses WHERE categoryId = :categoryId AND timestamp >= :startTime AND timestamp < :endTime ORDER BY timestamp DESC")
     fun getTransactionsByCategory(categoryId: Long, startTime: Long, endTime: Long): Flow<List<Expense>>

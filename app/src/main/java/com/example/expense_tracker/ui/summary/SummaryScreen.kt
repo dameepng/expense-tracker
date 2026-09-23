@@ -141,7 +141,8 @@ internal fun SummaryScreenContent(
             if (!state.isLoading && state.items.isNotEmpty()) {
                 items(
                     items = state.items,
-                    key = { "${state.transactionType}_${it.categoryId}" }
+                    key = { "${state.transactionType}_${it.categoryId}" },
+                    contentType = { "breakdown_item" }
                 ) { item ->
                     BreakdownCardItem(
                         item = item,

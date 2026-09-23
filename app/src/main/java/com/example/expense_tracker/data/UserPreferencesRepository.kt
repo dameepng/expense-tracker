@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -56,24 +57,31 @@ class UserPreferencesRepositoryImpl(private val dataStore: DataStore<Preferences
             val id = preferences[selectedWalletIdKey] ?: NULL_WALLET_SENTINEL
             if (id == NULL_WALLET_SENTINEL) null else id
         }
+        .distinctUntilChanged()
 
     override val themeModeFlow: Flow<String> = dataStore.data
         .map { preferences -> preferences[themeModeKey] ?: DEFAULT_THEME_MODE }
+        .distinctUntilChanged()
 
     override val currencyFlow: Flow<String> = dataStore.data
         .map { preferences -> preferences[currencyKey] ?: DEFAULT_CURRENCY }
+        .distinctUntilChanged()
 
     override val languageFlow: Flow<String> = dataStore.data
         .map { preferences -> preferences[languageKey] ?: DEFAULT_LANGUAGE }
+        .distinctUntilChanged()
 
     override val isBiometricsEnabledFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[isBiometricsEnabledKey] ?: false }
+        .distinctUntilChanged()
 
     override val userNameFlow: Flow<String> = dataStore.data
         .map { preferences -> preferences[userNameKey] ?: DEFAULT_USER_NAME }
+        .distinctUntilChanged()
 
     override val userPhotoUriFlow: Flow<String?> = dataStore.data
         .map { preferences -> preferences[userPhotoUriKey] }
+        .distinctUntilChanged()
 
     override suspend fun saveSelectedWalletId(walletId: Long?) {
         dataStore.edit { preferences ->

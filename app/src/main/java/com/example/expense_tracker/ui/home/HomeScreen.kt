@@ -1,5 +1,6 @@
 package com.example.expense_tracker.ui.home
 
+import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,6 +73,7 @@ fun HomeScreen(
     onNavigateToChat: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
+    ReportDrawnWhen { !state.isLoading }
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -278,7 +280,8 @@ private fun HomeTransactionsList(
             ) {
                 items(
                     items = transactions,
-                    key = { it.id }
+                    key = { it.id },
+                    contentType = { "transaction_item" }
                 ) { expense ->
                     SwipeableTransactionItem(
                         expense = expense,

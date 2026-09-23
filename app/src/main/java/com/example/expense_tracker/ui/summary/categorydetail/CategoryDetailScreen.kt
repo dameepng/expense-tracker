@@ -146,7 +146,8 @@ fun CategoryDetailScreen(
                 ) {
                     items(
                         items = state.transactions,
-                        key = { it.id }
+                        key = { it.id },
+                        contentType = { "transaction_item" }
                     ) { expense ->
                         val currentExpense by rememberUpdatedState(expense)
                         val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember(expense.id) {

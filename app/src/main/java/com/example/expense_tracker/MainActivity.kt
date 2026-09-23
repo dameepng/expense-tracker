@@ -68,8 +68,6 @@ import com.example.expense_tracker.ui.navigation.AppNavigationRail
 import com.example.expense_tracker.ui.navigation.BottomNavBar
 import com.example.expense_tracker.ui.navigation.NavRoutes
 import com.example.expense_tracker.ui.navigation.rememberIsReduceMotion
-import com.example.expense_tracker.ui.reminder.ReminderListViewModel
-import com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory
 import com.example.expense_tracker.ui.theme.ExpenseTrackerTheme
 import com.example.expense_tracker.ui.theme.MaterialMotionTokens
 import com.example.expense_tracker.utils.AuthManager
@@ -244,9 +242,6 @@ fun ExpenseTrackerApp(
     val homeViewModel: HomeViewModel = viewModel(
         factory = remember { HomeViewModelFactory.create(app) }
     )
-    val reminderListViewModel: ReminderListViewModel = viewModel(
-        factory = remember { ReminderListViewModelFactory(app) }
-    )
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -357,7 +352,6 @@ fun ExpenseTrackerApp(
                 AppScaffold(
                     navController = navController,
                     homeViewModel = homeViewModel,
-                    reminderListViewModel = reminderListViewModel,
                     userPreferencesRepository = userPreferencesRepository,
                     isReduceMotion = isReduceMotion,
                     showNavigation = false,
@@ -383,7 +377,6 @@ fun ExpenseTrackerApp(
                     AppScaffold(
                         navController = navController,
                         homeViewModel = homeViewModel,
-                        reminderListViewModel = reminderListViewModel,
                         userPreferencesRepository = userPreferencesRepository,
                         isReduceMotion = isReduceMotion,
                         showNavigation = false,
@@ -404,7 +397,6 @@ fun ExpenseTrackerApp(
             AppScaffold(
                 navController = navController,
                 homeViewModel = homeViewModel,
-                reminderListViewModel = reminderListViewModel,
                 userPreferencesRepository = userPreferencesRepository,
                 isReduceMotion = isReduceMotion,
                 showNavigation = showNavigation && widthSizeClass == WindowWidthSizeClass.Compact,
@@ -426,7 +418,6 @@ fun ExpenseTrackerApp(
 private fun AppScaffold(
     navController: NavHostController,
     homeViewModel: HomeViewModel,
-    reminderListViewModel: ReminderListViewModel,
     userPreferencesRepository: UserPreferencesRepository,
     isReduceMotion: Boolean,
     showNavigation: Boolean,
@@ -453,7 +444,6 @@ private fun AppScaffold(
             AppNavHost(
                 navController = navController,
                 homeViewModel = homeViewModel,
-                reminderListViewModel = reminderListViewModel,
                 userPreferencesRepository = userPreferencesRepository,
                 isReduceMotion = isReduceMotion,
                 onNavigateToInput = onNavigateToInput,

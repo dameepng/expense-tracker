@@ -51,6 +51,7 @@ import com.example.expense_tracker.ui.receipt.ReceiptScanViewModel
 import com.example.expense_tracker.ui.receipt.ReceiptScanViewModelFactory
 import com.example.expense_tracker.ui.reminder.ReminderListScreen
 import com.example.expense_tracker.ui.reminder.ReminderListViewModel
+import com.example.expense_tracker.ui.reminder.ReminderListViewModelFactory
 import com.example.expense_tracker.ui.summary.SummaryScreen
 import com.example.expense_tracker.ui.summary.SummaryViewModel
 import com.example.expense_tracker.ui.summary.SummaryViewModelFactory
@@ -79,7 +80,6 @@ private const val KEY_SUMMARY_WALLET_ID = "summary_wallet_id"
 fun AppNavHost(
     navController: NavHostController,
     homeViewModel: HomeViewModel,
-    reminderListViewModel: ReminderListViewModel,
     userPreferencesRepository: UserPreferencesRepository,
     isReduceMotion: Boolean,
     onNavigateToInput: (Long?) -> Unit,
@@ -354,7 +354,13 @@ fun AppNavHost(
                     )
                 }
 
-                composable(NavRoutes.REMINDER_LIST) {
+                composable(NavRoutes.REMINDER_LIST) { backStackEntry ->
+                    val reminderListViewModel: ReminderListViewModel = viewModel(
+                        viewModelStoreOwner = backStackEntry,
+                        factory = remember(backStackEntry) {
+                            ReminderListViewModelFactory(app)
+                        }
+                    )
                     ReminderListScreen(
                         viewModel = reminderListViewModel,
                         onNavigateBack = onNavigateBack

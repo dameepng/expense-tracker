@@ -55,8 +55,8 @@ class HomeViewModel(
 
             val transactionsFlow = queryFilterFlow.flatMapLatest { (walletId, timeRange) ->
                 val (start, end) = timeRange
-                if (walletId != null) repository.getTransactionsByWallet(walletId, start, end)
-                else repository.getAllTransactionsBetween(start, end)
+                if (walletId != null) repository.getRecentTransactionsByWallet(walletId, start, end, RECENT_TRANSACTIONS_LIMIT)
+                else repository.getRecentTransactionsBetween(start, end, RECENT_TRANSACTIONS_LIMIT)
             }
 
             val totalExpenseFlow = queryFilterFlow.flatMapLatest { (walletId, timeRange) ->

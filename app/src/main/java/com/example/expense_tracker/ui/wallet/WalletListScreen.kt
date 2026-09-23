@@ -127,7 +127,8 @@ fun WalletListScreen(
                 ) {
                     items(
                         items = uiState.wallets,
-                        key = { it.id }
+                        key = { it.id },
+                        contentType = { "wallet_card" }
                     ) { wallet ->
                         CreditCardItem(
                             wallet = wallet,

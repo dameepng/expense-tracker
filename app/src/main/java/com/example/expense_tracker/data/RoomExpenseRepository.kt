@@ -25,6 +25,10 @@ class RoomExpenseRepository(
         return dao.getAllTransactionsBetween(startTime, endTime)
     }
 
+    override fun getRecentTransactionsBetween(startTime: Long, endTime: Long, limit: Int): Flow<List<Expense>> {
+        return dao.getRecentTransactionsBetween(startTime, endTime, limit)
+    }
+
     override fun getAllTransactions(): List<Expense> {
         return dao.getAllTransactions()
     }
@@ -56,6 +60,10 @@ class RoomExpenseRepository(
 
     override fun getTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> {
         return dao.getTransactionsByWallet(walletId, startTime, endTime)
+    }
+
+    override fun getRecentTransactionsByWallet(walletId: Long, startTime: Long, endTime: Long, limit: Int): Flow<List<Expense>> {
+        return dao.getRecentTransactionsByWallet(walletId, startTime, endTime, limit)
     }
 
     override fun getTransactionsByCategory(categoryId: Long, startTime: Long, endTime: Long): Flow<List<Expense>> {
