@@ -19,6 +19,12 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -241,6 +247,56 @@ private fun RecentTransactionsHeader(
 }
 
 @Composable
+private fun TransactionSkeletonItem(modifier: Modifier = Modifier) {
+    val spacing = MaterialTheme.spacing
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(spacing.space150)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            )
+            Spacer(modifier = Modifier.width(spacing.space150))
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .height(16.dp)
+                        .fillMaxWidth(0.5f)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                )
+                Spacer(modifier = Modifier.height(spacing.space75))
+                Box(
+                    modifier = Modifier
+                        .height(12.dp)
+                        .fillMaxWidth(0.3f)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                )
+            }
+            Spacer(modifier = Modifier.width(spacing.space100))
+            Box(
+                modifier = Modifier
+                    .height(18.dp)
+                    .width(72.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            )
+        }
+    }
+}
+
+@Composable
 private fun HomeTransactionsList(
     isLoading: Boolean,
     transactions: List<ExpenseWithCategory>,
@@ -255,14 +311,20 @@ private fun HomeTransactionsList(
 
     Box(modifier = modifier) {
         if (isLoading) {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(NavigationBarDefaults.windowInsets)
-                    .padding(bottom = 64.dp),
-                contentAlignment = Alignment.Center
+                    .padding(
+                        top = spacing.space100,
+                        bottom = 96.dp,
+                        start = spacing.screenMargin,
+                        end = spacing.screenMargin
+                    ),
+                verticalArrangement = Arrangement.spacedBy(spacing.space100)
             ) {
-                CircularProgressIndicator()
+                repeat(4) {
+                    TransactionSkeletonItem()
+                }
             }
         } else if (transactions.isEmpty()) {
             EmptyState(periodLabel = periodLabel)

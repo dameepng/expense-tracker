@@ -7,13 +7,18 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -90,20 +95,44 @@ class MainActivity : AppCompatActivity() {
 
     private val pendingNavRoute = mutableStateOf<Triple<String, String?, Long?>?>(null)
 
+    private val homeViewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory.create(application)
+    }
+
+    private val userPrefsRepo by lazy {
+        UserPreferencesRepositoryImpl(applicationContext.dataStore)
+    }
+
+    @Volatile
+    private var isPreferencesLoaded = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        var isAppReady by mutableStateOf(false)
-        splashScreen.setKeepOnScreenCondition { !isAppReady }
         handleIntent(intent)
-        enableEdgeToEdge()
+
+        // Transparent system bars initialized immediately to prevent navigation bar flash
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
+        )
+
+        // Pre-warm preferences asynchronously so initial destination is 100% correct before splash drops
+        lifecycleScope.launch {
+            userPrefsRepo.isBiometricsEnabledFlow.first()
+            isPreferencesLoaded = true
+        }
+
+        // Splash ONLY holds for the minimal state required to determine the initial destination.
+        // Home content loads progressively underneath with stable skeleton placeholders.
+        splashScreen.setKeepOnScreenCondition {
+            !isPreferencesLoaded
+        }
+
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
             val widthSizeClass = windowSizeClass.widthSizeClass
             val context = LocalContext.current
-            val userPrefsRepo = remember(context) {
-                UserPreferencesRepositoryImpl(context.dataStore)
-            }
             val themeMode by userPrefsRepo.themeModeFlow.collectAsState(initial = THEME_SYSTEM_DEFAULT)
 
             LaunchedEffect(userPrefsRepo) {
@@ -124,10 +153,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-            }
-
-            LaunchedEffect(Unit) {
-                isAppReady = true
             }
 
             val isBiometricsEnabled by userPrefsRepo.isBiometricsEnabledFlow.collectAsState(initial = false)
@@ -190,6 +215,7 @@ class MainActivity : AppCompatActivity() {
                     )
                 } else {
                     ExpenseTrackerApp(
+                        homeViewModel = homeViewModel,
                         userPreferencesRepository = userPrefsRepo,
                         widthSizeClass = widthSizeClass,
                         pendingNavRoute = pendingNavRoute
@@ -232,16 +258,13 @@ class MainActivity : AppCompatActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseTrackerApp(
+    homeViewModel: HomeViewModel,
     userPreferencesRepository: UserPreferencesRepository,
     widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
     pendingNavRoute: MutableState<Triple<String, String?, Long?>?> = remember { mutableStateOf(null) }
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as Application
-
-    val homeViewModel: HomeViewModel = viewModel(
-        factory = remember { HomeViewModelFactory.create(app) }
-    )
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
