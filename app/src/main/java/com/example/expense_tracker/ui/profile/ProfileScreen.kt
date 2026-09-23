@@ -224,10 +224,16 @@ fun ProfileScreen(
                         subtitle = stringResource(R.string.profile_receipt_desc),
                         onClick = onNavigateToReceipt
                     )
+                }
+                Spacer(modifier = Modifier.height(spacing.itemGap))
+            }
+
+            item {
+                SettingsGroup(title = stringResource(R.string.profile_tools_features)) {
                     SettingsItem(
                         icon = Icons.Default.Nfc,
                         title = stringResource(R.string.nfc_scan_title),
-                        subtitle = "Cek saldo Mandiri e-Money & BNI TapCash",
+                        subtitle = stringResource(R.string.profile_nfc_desc),
                         onClick = onNavigateToNfcScan
                     )
                 }

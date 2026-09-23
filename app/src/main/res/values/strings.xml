@@ -6,9 +6,11 @@
     <string name="nav_profile">Profil</string>
     <string name="profile_preferences">Preferensi</string>
     <string name="profile_ai_features">Fitur AI</string>
+    <string name="profile_tools_features">Alat &amp; Fitur</string>
     <string name="profile_chat_ai_desc">Konsultasi ringkasan pengeluaran &amp; keuangan</string>
     <string name="profile_ai_input_desc">Catat transaksi otomatis dari teks bebas</string>
     <string name="profile_receipt_desc">Pindai dan ekstrak transaksi dari foto struk</string>
+    <string name="profile_nfc_desc">Cek saldo Mandiri e-Money &amp; BNI TapCash</string>
     <string name="profile_help_info">Bantuan &amp; Informasi</string>
     <string name="profile_theme">Tema Aplikasi</string>
     <string name="profile_currency">Mata Uang Utama</string>
