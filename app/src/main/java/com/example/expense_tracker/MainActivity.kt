@@ -56,6 +56,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -307,8 +308,11 @@ fun ExpenseTrackerApp(
                 // no-op
             } else {
                 navController.navigate(route) {
-                    popUpTo(navController.graph.startDestinationId)
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
             }
         }
@@ -320,8 +324,11 @@ fun ExpenseTrackerApp(
     val onNavigateToSummary: (Long?) -> Unit = remember(navController) {
         { walletId: Long? ->
             navController.navigate(NavRoutes.SUMMARY) {
-                popUpTo(navController.graph.startDestinationId)
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
                 launchSingleTop = true
+                restoreState = true
             }
             navController.currentBackStackEntry
                 ?.savedStateHandle

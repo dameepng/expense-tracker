@@ -29,16 +29,16 @@ val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope
 /**
  * Material 3 Expressive Navigation Motion System.
  *
- * Implements official Material 3 transition patterns:
- * 1. Top-Level Navigation (Bottom Nav tabs) -> Fade Through (no spatial horizontal slide)
- * 2. Forward Navigation (Deeper hierarchy) -> Shared Axis X Push (slide with parallax + fade)
- * 3. Backward Navigation (Pop back stack) -> Shared Axis X Pop (slide right + parallax return)
+ * Implements refined Material 3 transition patterns:
+ * 1. Top-Level Navigation (Bottom Nav tabs) -> Instant, crisp Crossfade (150ms, 0ms delay, no scale bounce)
+ * 2. Modal Form Navigation (Input Screen) -> Vertical Slide-Up (200ms) / Slide-Down (180ms) with Predictive Back
+ * 3. Hierarchical Forward Navigation (List -> Detail) -> Shared Axis X Push (220ms, subtle parallax)
+ * 4. Hierarchical Backward Navigation (Detail -> Parent) -> Shared Axis X Pop (200ms, gesture-friendly)
  *
  * All transitions respect system accessibility settings via [isReduceMotion].
  */
 object NavMotion {
-    private const val PARALLAX_OFFSET_FACTOR = 0.20f
-    private const val FADE_THROUGH_INITIAL_SCALE = 0.96f
+    private const val PARALLAX_OFFSET_FACTOR = 0.15f
 
     /**
      * Determines whether a transition between two routes is a top-level switch
@@ -53,8 +53,6 @@ object NavMotion {
 
     /**
      * Determines whether a route is the InputScreen (transaction input form).
-     * Navigating to/from InputScreen is made instant (EnterTransition.None / ExitTransition.None)
-     * to eliminate frame drops during first-render composable tree inflation.
      */
     fun isInputRoute(route: String?): Boolean {
         if (route == null) return false
@@ -63,7 +61,7 @@ object NavMotion {
     }
 
     /**
-     * Standard M3 Enter Transition for forward navigation and top-level switches.
+     * Standard M3 Enter Transition for forward navigation, top-level switches, and modal entry.
      */
     fun enterTransition(
         scope: AnimatedContentTransitionScope<NavBackStackEntry>,
@@ -74,45 +72,49 @@ object NavMotion {
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
 
-        if (isInputRoute(toRoute) || isInputRoute(fromRoute)) {
-            return EnterTransition.None
-        }
-
-        return if (isTopLevelSwitch(fromRoute, toRoute)) {
-            // M3 Fade Through pattern for top-level tabs
-            fadeIn(
+        // Modal input screen slides up from bottom
+        if (isInputRoute(toRoute)) {
+            return scope.slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Up,
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium1, // 250ms
-                    delayMillis = MaterialMotionTokens.DurationShort2, // 100ms
-                    easing = LinearEasing
-                )
-            ) + scaleIn(
-                initialScale = FADE_THROUGH_INITIAL_SCALE,
-                animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium1, // 250ms
-                    delayMillis = MaterialMotionTokens.DurationShort2, // 100ms
-                    easing = MaterialMotionTokens.EmphasizedDecelerate
-                )
-            )
-        } else {
-            // M3 Shared Axis X: Forward push (incoming child enters from right)
-            scope.slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (tuned for 60fps/120fps budget)
+                    durationMillis = 200,
                     easing = MaterialMotionTokens.EmphasizedDecelerate
                 )
             ) + fadeIn(
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium1, // 250ms
+                    durationMillis = 150,
                     easing = LinearEasing
                 )
             )
         }
+
+        // Top-level peer tab switch: instant crossfade without artificial delay or whole-screen scaling
+        if (isTopLevelSwitch(fromRoute, toRoute)) {
+            return fadeIn(
+                animationSpec = tween(
+                    durationMillis = 150,
+                    easing = LinearEasing
+                )
+            )
+        }
+
+        // Standard hierarchical forward navigation (List -> Detail)
+        return scope.slideIntoContainer(
+            towards = AnimatedContentTransitionScope.SlideDirection.Start,
+            animationSpec = tween(
+                durationMillis = 220,
+                easing = MaterialMotionTokens.EmphasizedDecelerate
+            )
+        ) + fadeIn(
+            animationSpec = tween(
+                durationMillis = 180,
+                easing = LinearEasing
+            )
+        )
     }
 
     /**
-     * Standard M3 Exit Transition for forward navigation and top-level switches.
+     * Standard M3 Exit Transition for forward navigation, top-level switches, and modal exit.
      */
     fun exitTransition(
         scope: AnimatedContentTransitionScope<NavBackStackEntry>,
@@ -123,34 +125,40 @@ object NavMotion {
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
 
-        if (isInputRoute(toRoute) || isInputRoute(fromRoute)) {
-            return ExitTransition.None
+        // Screen beneath modal input fades subtly
+        if (isInputRoute(toRoute)) {
+            return fadeOut(
+                animationSpec = tween(
+                    durationMillis = 150,
+                    easing = LinearEasing
+                )
+            )
         }
 
-        return if (isTopLevelSwitch(fromRoute, toRoute)) {
-            // M3 Fade Through: Outgoing top-level tab fades out quickly
-            fadeOut(
+        // Top-level peer tab switch: instant crossfade
+        if (isTopLevelSwitch(fromRoute, toRoute)) {
+            return fadeOut(
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationShort3, // 150ms
-                    easing = LinearEasing
-                )
-            )
-        } else {
-            // M3 Shared Axis X: Forward push (outgoing parent shifts slightly left with parallax)
-            scope.slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                targetOffset = { fullWidth -> (fullWidth * PARALLAX_OFFSET_FACTOR).toInt() },
-                animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (tuned for 60fps/120fps budget)
-                    easing = MaterialMotionTokens.EmphasizedDecelerate
-                )
-            ) + fadeOut(
-                animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationShort4, // 200ms
+                    durationMillis = 150,
                     easing = LinearEasing
                 )
             )
         }
+
+        // Standard hierarchical forward push (outgoing parent shifts slightly left with parallax)
+        return scope.slideOutOfContainer(
+            towards = AnimatedContentTransitionScope.SlideDirection.Start,
+            targetOffset = { fullWidth -> (fullWidth * PARALLAX_OFFSET_FACTOR).toInt() },
+            animationSpec = tween(
+                durationMillis = 220,
+                easing = MaterialMotionTokens.EmphasizedDecelerate
+            )
+        ) + fadeOut(
+            animationSpec = tween(
+                durationMillis = 150,
+                easing = LinearEasing
+            )
+        )
     }
 
     /**
@@ -165,41 +173,40 @@ object NavMotion {
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
 
-        if (isInputRoute(toRoute) || isInputRoute(fromRoute)) {
-            return EnterTransition.None
+        // Returning from modal input: parent fades back in immediately
+        if (isInputRoute(fromRoute)) {
+            return fadeIn(
+                animationSpec = tween(
+                    durationMillis = 150,
+                    easing = LinearEasing
+                )
+            )
         }
 
-        return if (isTopLevelSwitch(fromRoute, toRoute)) {
-            fadeIn(
+        // Top-level peer tab switch
+        if (isTopLevelSwitch(fromRoute, toRoute)) {
+            return fadeIn(
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium1,
-                    delayMillis = MaterialMotionTokens.DurationShort2,
-                    easing = LinearEasing
-                )
-            ) + scaleIn(
-                initialScale = FADE_THROUGH_INITIAL_SCALE,
-                animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium1,
-                    delayMillis = MaterialMotionTokens.DurationShort2,
-                    easing = MaterialMotionTokens.EmphasizedDecelerate
-                )
-            )
-        } else {
-            // M3 Shared Axis X: Backward pop (parent returns from left parallax offset)
-            scope.slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                initialOffset = { fullWidth -> (fullWidth * PARALLAX_OFFSET_FACTOR).toInt() },
-                animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (tuned for 60fps/120fps budget)
-                    easing = MaterialMotionTokens.EmphasizedDecelerate
-                )
-            ) + fadeIn(
-                animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium1, // 250ms
+                    durationMillis = 150,
                     easing = LinearEasing
                 )
             )
         }
+
+        // Backward pop: parent returns from left parallax offset with gesture-friendly curve
+        return scope.slideIntoContainer(
+            towards = AnimatedContentTransitionScope.SlideDirection.End,
+            initialOffset = { fullWidth -> (fullWidth * PARALLAX_OFFSET_FACTOR).toInt() },
+            animationSpec = tween(
+                durationMillis = 200,
+                easing = MaterialMotionTokens.EmphasizedDecelerate
+            )
+        ) + fadeIn(
+            animationSpec = tween(
+                durationMillis = 180,
+                easing = LinearEasing
+            )
+        )
     }
 
     /**
@@ -214,32 +221,45 @@ object NavMotion {
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
 
-        if (isInputRoute(toRoute) || isInputRoute(fromRoute)) {
-            return ExitTransition.None
-        }
-
-        return if (isTopLevelSwitch(fromRoute, toRoute)) {
-            fadeOut(
+        // Modal input dismiss: slides down smoothly to reveal parent underneath (Predictive Back compatible)
+        if (isInputRoute(fromRoute)) {
+            return scope.slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Down,
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationShort3,
-                    easing = LinearEasing
-                )
-            )
-        } else {
-            // M3 Shared Axis X: Backward pop (child slides completely out to the right)
-            scope.slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                targetOffset = { fullWidth -> fullWidth },
-                animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationMedium2, // 300ms (harmonized with popEnter)
+                    durationMillis = 180,
                     easing = MaterialMotionTokens.EmphasizedAccelerate
                 )
             ) + fadeOut(
                 animationSpec = tween(
-                    durationMillis = MaterialMotionTokens.DurationShort4, // 200ms
+                    durationMillis = 150,
                     easing = LinearEasing
                 )
             )
         }
+
+        // Top-level peer tab switch
+        if (isTopLevelSwitch(fromRoute, toRoute)) {
+            return fadeOut(
+                animationSpec = tween(
+                    durationMillis = 150,
+                    easing = LinearEasing
+                )
+            )
+        }
+
+        // Backward pop: child slides completely out to the right with synchronized fade
+        return scope.slideOutOfContainer(
+            towards = AnimatedContentTransitionScope.SlideDirection.End,
+            targetOffset = { fullWidth -> fullWidth },
+            animationSpec = tween(
+                durationMillis = 200,
+                easing = MaterialMotionTokens.EmphasizedAccelerate
+            )
+        ) + fadeOut(
+            animationSpec = tween(
+                durationMillis = 180,
+                easing = LinearEasing
+            )
+        )
     }
 }
