@@ -224,13 +224,15 @@ fun SummaryScreenWithDataPreview() {
             BreakdownItem(4, "Hiburan", 15_000L, 0.10f),
         )
         val dailyFlow = listOf(
-            DailyCashFlow(1726500000000L, 200_300_000L, 0L),
-            DailyCashFlow(1726700000000L, 0L, 100_000L),
-            DailyCashFlow(1726900000000L, 0L, 116_000L)
+            DailyCashFlow(1726531200000L, 200_148_000L, 0L),          // 17 Sep: 200.148.000
+            DailyCashFlow(1726617600000L, 0L, 50_000_000L),          // 18 Sep: dips to ~150jt
+            DailyCashFlow(1726876800000L, 65_000_000L, 0L),          // 21 Sep: rises to ~215jt
+            DailyCashFlow(1727049600000L, 0L, 15_064_000L)           // 23 Sep: settles at 200.084.000
         )
         SummaryScreenContent(
             state = SummaryUiState(
                 isLoading = false,
+                filter = FilterPeriod.MONTH,
                 totalBalance = 200_084_000L,
                 balancePercentageChange = 0.0f,
                 totalIncome = 200_300_000L,

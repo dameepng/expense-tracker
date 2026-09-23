@@ -56,4 +56,12 @@ class SummaryFormatTest {
         assertEquals(50_000L, flow.income)
         assertEquals(20_000L, flow.expense)
     }
+
+    @Test
+    fun calculateNiceYTicks_returnsExpectedFourTicksFor200M() {
+        val ticks = calculateNiceYTicks(0L, 200_148_000L)
+        assertEquals(listOf(300_000_000L, 200_000_000L, 100_000_000L, 0L), ticks)
+        assertEquals(listOf("300jt", "200jt", "100jt", "0"), ticks.map { formatAxisValue(it) })
+    }
 }
+
