@@ -1,5 +1,11 @@
 package com.example.expense_tracker.ui.reminder
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,6 +36,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Restaurant
@@ -62,7 +70,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -75,10 +86,17 @@ import androidx.compose.ui.unit.sp
 import com.example.expense_tracker.R
 import com.example.expense_tracker.data.BillReminder
 import com.example.expense_tracker.ui.CurrencyFormatter
+import com.example.expense_tracker.ui.theme.MaterialMotionTokens
 import com.example.expense_tracker.ui.theme.categoryColor
 import com.example.expense_tracker.ui.theme.motionScheme
 import com.example.expense_tracker.ui.theme.spacing
 import kotlinx.coroutines.launch
+
+private enum class ReminderContentState {
+    Loading,
+    Empty,
+    Content
+}
 
 private val CardShape = RoundedCornerShape(22.dp)
 private val SquircleShape = RoundedCornerShape(16.dp)
@@ -134,123 +152,183 @@ fun ReminderListScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
-        if (uiState.isLoading && uiState.activeReminders.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (uiState.activeReminders.isEmpty()) {
-            BillEmptyState(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .widthIn(max = MAX_REMINDER_LIST_WIDTH)
-                        .padding(horizontal = spacing.screenMargin),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                    contentPadding = PaddingValues(
-                        top = spacing.space100,
-                        bottom = spacing.space400
-                    )
-                ) {
-                // Hero Overview Card (Google I/O Material 3 Expressive)
-                item(key = "bill_overview_header", contentType = "bill_overview_header") {
-                    BillOverviewCard(
-                        totalAmount = uiState.totalAmount,
-                        unpaidCount = uiState.unpaidCount,
-                        paidCount = uiState.paidCount
-                    )
-                }
+        val contentState = when {
+            uiState.isLoading && uiState.activeReminders.isEmpty() -> ReminderContentState.Loading
+            uiState.activeReminders.isEmpty() -> ReminderContentState.Empty
+            else -> ReminderContentState.Content
+        }
 
-                items(
-                    items = uiState.activeReminders,
-                    key = { it.reminder.id },
-                    contentType = { "reminder_card" }
-                ) { item ->
-                    val currentItem by rememberUpdatedState(item)
-                    val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember(item.reminder.id) {
-                        { dismissValue ->
-                            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                val deletedReminder = currentItem.reminder
-                                viewModel.deleteReminder(deletedReminder)
-                                coroutineScope.launch {
-                                    val result = snackbarHostState.showSnackbar(
-                                        message = deletedMessage,
-                                        actionLabel = undoLabel,
-                                        duration = SnackbarDuration.Short
-                                    )
-                                    if (result == SnackbarResult.ActionPerformed) {
-                                        viewModel.insertReminder(deletedReminder)
+        Crossfade(
+            targetState = contentState,
+            animationSpec = tween(
+                durationMillis = 200,
+                easing = MaterialMotionTokens.EmphasizedDecelerate
+            ),
+            label = "reminder_content_crossfade",
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) { state ->
+            when (state) {
+                ReminderContentState.Loading -> {
+                    ExpressiveReminderLoadingState()
+                }
+                ReminderContentState.Empty -> {
+                    BillEmptyState()
+                }
+                ReminderContentState.Content -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .widthIn(max = MAX_REMINDER_LIST_WIDTH)
+                                .padding(horizontal = spacing.screenMargin),
+                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                            contentPadding = PaddingValues(
+                                top = spacing.space100,
+                                bottom = spacing.space400
+                            )
+                        ) {
+                            // Hero Overview Card (Google I/O Material 3 Expressive)
+                            item(key = "bill_overview_header", contentType = "bill_overview_header") {
+                                BillOverviewCard(
+                                    totalAmount = uiState.totalAmount,
+                                    unpaidCount = uiState.unpaidCount,
+                                    paidCount = uiState.paidCount
+                                )
+                            }
+
+                            items(
+                                items = uiState.activeReminders,
+                                key = { it.reminder.id },
+                                contentType = { "reminder_card" }
+                            ) { item ->
+                                val currentItem by rememberUpdatedState(item)
+                                val confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = remember(item.reminder.id) {
+                                    { dismissValue ->
+                                        if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            val deletedReminder = currentItem.reminder
+                                            viewModel.deleteReminder(deletedReminder)
+                                            coroutineScope.launch {
+                                                val result = snackbarHostState.showSnackbar(
+                                                    message = deletedMessage,
+                                                    actionLabel = undoLabel,
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                                if (result == SnackbarResult.ActionPerformed) {
+                                                    viewModel.insertReminder(deletedReminder)
+                                                }
+                                            }
+                                            true
+                                        } else {
+                                            false
+                                        }
                                     }
                                 }
-                                true
-                            } else {
-                                false
+
+                                val dismissState = rememberSwipeToDismissBoxState(
+                                    confirmValueChange = confirmValueChange
+                                )
+
+                                val onItemMarkPaid: () -> Unit = remember(item.reminder.id) {
+                                    { onMarkAsPaid(item.reminder) }
+                                }
+
+                                SwipeToDismissBox(
+                                    state = dismissState,
+                                    backgroundContent = {
+                                        if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(CardShape)
+                                                    .background(MaterialTheme.colorScheme.error, shape = CardShape)
+                                                    .padding(end = 24.dp),
+                                                contentAlignment = Alignment.CenterEnd
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "Delete",
+                                                    tint = MaterialTheme.colorScheme.onError
+                                                )
+                                            }
+                                        }
+                                    },
+                                    enableDismissFromStartToEnd = false,
+                                    modifier = Modifier
+                                        .animateItem(
+                                            fadeInSpec = null,
+                                            fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                            placementSpec = null
+                                        )
+                                        .fillMaxWidth()
+                                        .clip(CardShape)
+                                ) {
+                                    ReminderItemCard(
+                                        item = item,
+                                        onClickMarkAsPaid = onItemMarkPaid
+                                    )
+                                }
                             }
                         }
                     }
-
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = confirmValueChange
-                    )
-
-                    val onItemMarkPaid: () -> Unit = remember(item.reminder.id) {
-                        { onMarkAsPaid(item.reminder) }
-                    }
-
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {
-                            if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CardShape)
-                                        .background(MaterialTheme.colorScheme.error, shape = CardShape)
-                                        .padding(end = 24.dp),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        tint = MaterialTheme.colorScheme.onError
-                                    )
-                                }
-                            }
-                        },
-                        enableDismissFromStartToEnd = false,
-                        modifier = Modifier
-                            .animateItem(
-                                fadeInSpec = null,
-                                fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-                                placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
-                            )
-                            .fillMaxWidth()
-                            .clip(CardShape)
-                    ) {
-                        ReminderItemCard(
-                            item = item,
-                            onClickMarkAsPaid = onItemMarkPaid
-                        )
-                    }
                 }
             }
-            }
+        }
+    }
+}
+
+/**
+ * Material 3 Expressive Loading State for Reminder List.
+ * Uses the official Material 3 Contained Loading Indicator with fluid shape morphing
+ * and warm typography (https://m3.material.io/components/loading-indicator/overview).
+ */
+@Composable
+fun ExpressiveReminderLoadingState(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        ) {
+            // Material 3 Expressive Contained Loading Indicator
+            com.example.expense_tracker.ui.components.MaterialContainedLoadingIndicator(
+                containerSize = 64.dp,
+                indicatorSize = 40.dp,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                indicatorColor = MaterialTheme.colorScheme.primary,
+                tonalElevation = 2.dp
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Informative Expressive Title
+            Text(
+                text = stringResource(R.string.bill_loading_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Subtitle Description
+            Text(
+                text = stringResource(R.string.bill_loading_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

@@ -2,6 +2,8 @@ package com.example.expense_tracker.ui.navigation
 
 import android.app.Application
 import android.content.Intent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.fillMaxSize
@@ -354,7 +356,13 @@ fun AppNavHost(
                     )
                 }
 
-                composable(NavRoutes.REMINDER_LIST) { backStackEntry ->
+                composable(
+                    route = NavRoutes.REMINDER_LIST,
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None }
+                ) { backStackEntry ->
                     val reminderListViewModel: ReminderListViewModel = viewModel(
                         viewModelStoreOwner = backStackEntry,
                         factory = remember(backStackEntry) {

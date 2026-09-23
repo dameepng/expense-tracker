@@ -20,6 +20,8 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -233,14 +235,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        val route = intent?.getStringExtra(EXTRA_NAV_ROUTE)
+        val route = intent?.getStringExtra(EXTRA_NAV_ROUTE) ?: intent?.getStringExtra("destination")
         val note = intent?.getStringExtra(EXTRA_CARD_NOTE)
         val amount = intent?.getLongExtra(EXTRA_CARD_AMOUNT, 0L)?.takeIf { it > 0 }
         if (route != null) {
             pendingNavRoute.value = Triple(route, note, amount)
-            intent.removeExtra(EXTRA_NAV_ROUTE)
-            intent.removeExtra(EXTRA_CARD_NOTE)
-            intent.removeExtra(EXTRA_CARD_AMOUNT)
+            intent?.removeExtra(EXTRA_NAV_ROUTE)
+            intent?.removeExtra("destination")
+            intent?.removeExtra(EXTRA_CARD_NOTE)
+            intent?.removeExtra(EXTRA_CARD_AMOUNT)
         }
     }
 
@@ -485,23 +488,24 @@ private fun AppScaffold(
                 onNavigateBack = onNavigateBack
             )
 
+            val isReminder = currentRoute == NavRoutes.REMINDER_LIST
             AnimatedVisibility(
                 visible = showNavigation,
                 modifier = Modifier.align(Alignment.BottomCenter),
-                enter = slideInVertically(
+                enter = if (isReminder) EnterTransition.None else slideInVertically(
                     animationSpec = tween(
-                        durationMillis = MaterialMotionTokens.DurationMedium2,
+                        durationMillis = 200,
                         easing = MaterialMotionTokens.EmphasizedDecelerate
                     ),
                     initialOffsetY = { it }
-                ) + fadeIn(animationSpec = tween(MaterialMotionTokens.DurationShort4)),
-                exit = slideOutVertically(
+                ) + fadeIn(animationSpec = tween(180)),
+                exit = if (isReminder) ExitTransition.None else slideOutVertically(
                     animationSpec = tween(
-                        durationMillis = MaterialMotionTokens.DurationShort4,
+                        durationMillis = 180,
                         easing = MaterialMotionTokens.EmphasizedAccelerate
                     ),
                     targetOffsetY = { it }
-                ) + fadeOut(animationSpec = tween(MaterialMotionTokens.DurationShort4))
+                ) + fadeOut(animationSpec = tween(150))
             ) {
                 BottomNavBar(
                     currentRoute = currentRoute,

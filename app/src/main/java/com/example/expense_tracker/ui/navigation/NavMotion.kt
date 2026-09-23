@@ -38,7 +38,8 @@ val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope
  * All transitions respect system accessibility settings via [isReduceMotion].
  */
 object NavMotion {
-    private const val PARALLAX_OFFSET_FACTOR = 0.15f
+    private const val FORWARD_SLIDE_OFFSET_FACTOR = 0.22f
+    private const val PARENT_PARALLAX_OFFSET_FACTOR = 0.10f
 
     /**
      * Determines whether a transition between two routes is a top-level switch
@@ -61,6 +62,15 @@ object NavMotion {
     }
 
     /**
+     * Determines whether a route is the Bill Reminder screen.
+     */
+    fun isReminderRoute(route: String?): Boolean {
+        if (route == null) return false
+        val base = route.substringBefore('?').substringBefore('/')
+        return base == NavRoutes.REMINDER_LIST
+    }
+
+    /**
      * Standard M3 Enter Transition for forward navigation, top-level switches, and modal entry.
      */
     fun enterTransition(
@@ -71,6 +81,11 @@ object NavMotion {
 
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
+
+        // Bill Reminder: zero transition animation (instant enter)
+        if (isReminderRoute(toRoute) || isReminderRoute(fromRoute)) {
+            return EnterTransition.None
+        }
 
         // Modal input screen slides up from bottom
         if (isInputRoute(toRoute)) {
@@ -98,9 +113,11 @@ object NavMotion {
             )
         }
 
-        // Standard hierarchical forward navigation (List -> Detail)
+        // Standard hierarchical forward navigation (List -> Detail, e.g. Bill Reminder)
+        // Uses refined 22% spatial displacement with smooth fade to prevent jarring 100% viewport whip
         return scope.slideIntoContainer(
             towards = AnimatedContentTransitionScope.SlideDirection.Start,
+            initialOffset = { fullWidth -> (fullWidth * FORWARD_SLIDE_OFFSET_FACTOR).toInt() },
             animationSpec = tween(
                 durationMillis = 220,
                 easing = MaterialMotionTokens.EmphasizedDecelerate
@@ -125,6 +142,11 @@ object NavMotion {
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
 
+        // Bill Reminder: zero transition animation (instant exit)
+        if (isReminderRoute(toRoute) || isReminderRoute(fromRoute)) {
+            return ExitTransition.None
+        }
+
         // Screen beneath modal input fades subtly
         if (isInputRoute(toRoute)) {
             return fadeOut(
@@ -148,7 +170,7 @@ object NavMotion {
         // Standard hierarchical forward push (outgoing parent shifts slightly left with parallax)
         return scope.slideOutOfContainer(
             towards = AnimatedContentTransitionScope.SlideDirection.Start,
-            targetOffset = { fullWidth -> (fullWidth * PARALLAX_OFFSET_FACTOR).toInt() },
+            targetOffset = { fullWidth -> (fullWidth * PARENT_PARALLAX_OFFSET_FACTOR).toInt() },
             animationSpec = tween(
                 durationMillis = 220,
                 easing = MaterialMotionTokens.EmphasizedDecelerate
@@ -173,6 +195,11 @@ object NavMotion {
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
 
+        // Bill Reminder: zero transition animation (instant pop enter)
+        if (isReminderRoute(fromRoute) || isReminderRoute(toRoute)) {
+            return EnterTransition.None
+        }
+
         // Returning from modal input: parent fades back in immediately
         if (isInputRoute(fromRoute)) {
             return fadeIn(
@@ -196,7 +223,7 @@ object NavMotion {
         // Backward pop: parent returns from left parallax offset with gesture-friendly curve
         return scope.slideIntoContainer(
             towards = AnimatedContentTransitionScope.SlideDirection.End,
-            initialOffset = { fullWidth -> (fullWidth * PARALLAX_OFFSET_FACTOR).toInt() },
+            initialOffset = { fullWidth -> (fullWidth * PARENT_PARALLAX_OFFSET_FACTOR).toInt() },
             animationSpec = tween(
                 durationMillis = 200,
                 easing = MaterialMotionTokens.EmphasizedDecelerate
@@ -220,6 +247,11 @@ object NavMotion {
 
         val fromRoute = scope.initialState.destination.route
         val toRoute = scope.targetState.destination.route
+
+        // Bill Reminder: zero transition animation (instant pop exit)
+        if (isReminderRoute(fromRoute) || isReminderRoute(toRoute)) {
+            return ExitTransition.None
+        }
 
         // Modal input dismiss: slides down smoothly to reveal parent underneath (Predictive Back compatible)
         if (isInputRoute(fromRoute)) {
@@ -247,10 +279,11 @@ object NavMotion {
             )
         }
 
-        // Backward pop: child slides completely out to the right with synchronized fade
+        // Backward pop: child slides smoothly out to the right (22% displacement) with synchronized fade
+        // Calibrated for 1:1 Predictive Back gesture tracking without whipping across the screen
         return scope.slideOutOfContainer(
             towards = AnimatedContentTransitionScope.SlideDirection.End,
-            targetOffset = { fullWidth -> fullWidth },
+            targetOffset = { fullWidth -> (fullWidth * FORWARD_SLIDE_OFFSET_FACTOR).toInt() },
             animationSpec = tween(
                 durationMillis = 200,
                 easing = MaterialMotionTokens.EmphasizedAccelerate

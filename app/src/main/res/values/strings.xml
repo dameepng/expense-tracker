@@ -193,6 +193,8 @@
     <string name="bill_empty_desc">Catat tagihan rutin bulanan (langganan, listrik, internet) agar keuanganmu tetap rapi dan terencana.</string>
     <string name="bill_deleted">Pengingat tagihan dihapus</string>
     <string name="bill_undo">Urungkan</string>
+    <string name="bill_loading_title">Menyiapkan Pengingat Tagihan</string>
+    <string name="bill_loading_desc">Memuat jadwal pembayaran rutin Anda…</string>
     <string name="transaction_recurring_badge">Berulang</string>
 
     <!-- Onboarding Screen -->
